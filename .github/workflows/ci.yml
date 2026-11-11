@@ -1,0 +1,226 @@
+# BUILDWISE CI — PR 과 main 에 올라온 코드를 자동으로 검사합니다.
+# 실패하면 Actions 탭에서 빨간 X 가 붙은 단계 이름을 보세요. 고치는 방법은 docs/QA_GUIDE.md.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.13.7"
+  NODE_VERSION: "24.22.2"
+  GITLEAKS_VERSION: "8.30.1"
+
+jobs:
+  backend:
+    name: 백엔드
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.4.13
+        env:
+          MYSQL_DATABASE: buildwise_test
+          MYSQL_USER: buildwise
+          MYSQL_PASSWORD: buildwise
+          MYSQL_ROOT_PASSWORD: ci-root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -pci-root --silent"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      BUILDWISE_DATABASE_URL: mysql+pymysql://buildwise:buildwise@127.0.0.1:3306/buildwise_test?charset=utf8mb4
+      BUILDWISE_TEST_DATABASE_URL: mysql+pymysql://buildwise:buildwise@127.0.0.1:3306/buildwise_test?charset=utf8mb4
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: ${{ env.UV_VERSION }}
+      - name: 의존성 설치 (uv sync --frozen)
+        run: uv sync --frozen
+      - name: 린트 (ruff check)
+        run: uv run --frozen ruff check . --output-format github
+      - name: 포맷 검사 (ruff format --check)
+        run: uv run --frozen ruff format --check .
+      - name: 견본 데이터 형식 검사
+        run: uv run --frozen python -m app.seed --check
+      - name: 마이그레이션 — 빈 DB 에서 최신까지 (alembic upgrade head)
+        run: uv run --frozen alembic upgrade head
+      - name: DB 모델과 마이그레이션 일치 (alembic check)
+        run: uv run --frozen alembic check
+      - name: 테스트 (pytest)
+        run: uv run --frozen pytest -q
+
+  contract:
+    name: 계약
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: ${{ env.UV_VERSION }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: 의존성 설치
+        run: |
+          (cd backend && uv sync --frozen)
+          (cd frontend && npm ci --no-audit --no-fund)
+      - name: 계약 파일 다시 만들기 (OpenAPI · 이벤트 스키마 · TS 타입)
+        run: |
+          (cd backend && uv run --frozen python -m app.export_contracts)
+          (cd frontend && npm run gen:api)
+      - name: 커밋된 계약 파일과 같은지 비교
+        run: |
+          if ! git diff --exit-code -- contracts frontend/src/api/schema.d.ts; then
+            echo "::error::계약 파일이 코드와 다릅니다. scripts/gen-contracts 를 실행하고 바뀐 파일을 같은 PR 에 커밋하세요."
+            exit 1
+          fi
+
+  frontend:
+    name: 프론트
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: 의존성 설치 (npm ci)
+        run: npm ci --no-audit --no-fund
+      - name: 린트 (eslint)
+        run: npm run lint
+      - name: 포맷 검사 (prettier)
+        run: npm run format:check
+      - name: 타입 검사 (tsc)
+        run: npm run typecheck
+      - name: 단위 테스트 (vitest)
+        run: npm test
+      - name: 빌드 (vite build)
+        run: npm run build
+
+  windows:
+    name: 윈도우
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      # 윈도우 러너는 기본으로 줄바꿈을 CRLF 로 바꿔 받습니다 → .gitattributes 가 제대로 막는지 같이 확인됩니다.
+      - uses: actions/checkout@v7
+      - name: PowerShell 5.1 로 scripts/*.ps1 구문 · BOM 검사
+        shell: powershell
+        run: |
+          Write-Host "PowerShell $($PSVersionTable.PSVersion)"
+          $failed = 0
+          foreach ($file in Get-ChildItem scripts -Filter *.ps1) {
+            $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
+            if ($bytes.Length -lt 3 -or $bytes[0] -ne 0xEF -or $bytes[1] -ne 0xBB -or $bytes[2] -ne 0xBF) {
+              Write-Host "::error file=scripts/$($file.Name)::UTF-8 BOM missing (Windows PowerShell 5.1 breaks Korean text without it)"
+              $failed++
+            }
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              foreach ($err in $errors) { Write-Host "::error file=scripts/$($file.Name)::$($err.Message)" }
+              $failed++
+            } else {
+              Write-Host "OK scripts/$($file.Name)"
+            }
+          }
+          if ($failed -gt 0) { exit 1 }
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: ${{ env.UV_VERSION }}
+      - name: 백엔드 DB 없는 테스트 (윈도우 경로 · 인코딩)
+        working-directory: backend
+        run: |
+          uv sync --frozen
+          uv run --frozen pytest -q tests/test_catalog_and_domain.py
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: 프론트 포맷 · 테스트 · 빌드 (윈도우)
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm run format:check
+          npm test
+          npm run build
+
+  secrets:
+    name: 비밀값
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: gitleaks 설치 (체크섬 확인)
+        run: |
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          curl -sSfL "$base/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          curl -sSfL "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt" -o checksums.txt
+          grep "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" checksums.txt | sed 's/gitleaks_.*$/gitleaks.tar.gz/' | sha256sum --check
+          tar -xzf gitleaks.tar.gz gitleaks
+      - name: 전체 이력에서 비밀값 찾기 (gitleaks)
+        run: ./gitleaks git --redact --verbose --exit-code 1 .
+
+  integration:
+    name: 통합(참고)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Windows 처럼 CRLF 설정으로 다시 받기
+        run: |
+          git config core.autocrlf true
+          git rm -rq --cached .
+          git reset -q --hard
+          if grep -rlI $'\r' scripts/*.sh backend/docker frontend/docker compose.yaml; then
+            echo "::error::셸 스크립트에 CRLF 줄바꿈이 들어갔습니다. .gitattributes 를 확인하세요."
+            exit 1
+          fi
+      - name: 전체 실행 (docker compose up --wait)
+        run: docker compose up -d --build --wait
+      - name: 전체 검사 스크립트 (scripts/check.sh)
+        run: bash scripts/check.sh
+      - name: 브라우저 연기 테스트 (Playwright)
+        run: |
+          docker run --rm --network host -v "$PWD/frontend:/work" -w /work \
+            mcr.microsoft.com/playwright:v1.65.0-noble \
+            bash -c "npm ci --no-audit --no-fund && npx playwright test"
+      - name: 실패했을 때 컨테이너 로그
+        if: failure()
+        run: docker compose logs --tail 200
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          if-no-files-found: ignore
