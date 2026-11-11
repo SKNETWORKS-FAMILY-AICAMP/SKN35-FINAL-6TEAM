@@ -1,0 +1,54 @@
+{
+  "_설명": "가상 기업 A 의 상품표(CSV) 컬럼을 공통 상품 형식으로 옮기는 규칙입니다. 실제 기업을 붙일 때도 이런 매핑 파일을 하나 만듭니다.",
+  "columns": {
+    "sku": "상품코드",
+    "product_type": "분류",
+    "brand": "제조사",
+    "model_name": "상품명",
+    "price_amount": "판매가",
+    "price_status": "가격구분"
+  },
+  "product_type_values": {
+    "노트북": "laptop",
+    "데스크탑": "desktop",
+    "모니터": "monitor"
+  },
+  "price_status_values": {
+    "확정": "confirmed",
+    "미확인": "unconfirmed",
+    "테스트": "test"
+  },
+  "attributes": {
+    "laptop": {
+      "cpu": "CPU",
+      "cpu_cores": "코어수",
+      "ram_gb": "메모리(GB)",
+      "storage_gb": "저장공간(GB)",
+      "gpu": "그래픽",
+      "gpu_vram_gb": "그래픽메모리(GB)",
+      "display_inch": "화면(인치)",
+      "weight_kg": "무게(kg)"
+    },
+    "desktop": {
+      "cpu": "CPU",
+      "cpu_cores": "코어수",
+      "ram_gb": "메모리(GB)",
+      "storage_gb": "저장공간(GB)",
+      "gpu": "그래픽",
+      "gpu_vram_gb": "그래픽메모리(GB)",
+      "psu_w": "파워(W)",
+      "form_factor": "케이스"
+    },
+    "monitor": {
+      "size_inch": "화면(인치)",
+      "resolution": "해상도",
+      "refresh_hz": "주사율(Hz)",
+      "panel": "패널"
+    }
+  },
+  "defaults": {
+    "data_status": "test",
+    "currency": "KRW",
+    "source_note": "가상 기업 A 상품표(테스트 데이터)"
+  }
+}

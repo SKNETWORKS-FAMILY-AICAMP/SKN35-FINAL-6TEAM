@@ -1,0 +1,211 @@
+{
+  "$defs": {
+    "ArtifactKind": {
+      "enum": [
+        "requirements",
+        "recommendation",
+        "validation",
+        "quotation",
+        "order"
+      ],
+      "title": "ArtifactKind",
+      "type": "string"
+    },
+    "ArtifactRef": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ArtifactKind"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ],
+      "title": "ArtifactRef",
+      "type": "object"
+    },
+    "EventError": {
+      "properties": {
+        "code": {
+          "description": "오류 코드. 예: PRICE_UNCONFIRMED, SERVER_RESTART",
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "title": "EventError",
+      "type": "object"
+    },
+    "EventType": {
+      "enum": [
+        "requirements.updated",
+        "run.started",
+        "run.completed",
+        "run.failed",
+        "run.needs_input",
+        "run.needs_revision",
+        "run.superseded",
+        "task.started",
+        "task.progress",
+        "task.retrying",
+        "task.completed",
+        "task.failed",
+        "task.needs_input",
+        "order.created"
+      ],
+      "title": "EventType",
+      "type": "string"
+    },
+    "Team": {
+      "description": "업무팀. 제품 설명용 논리 역할이며 서버가 따로 있는 것은 아닙니다.",
+      "enum": [
+        "consultation",
+        "design",
+        "validation",
+        "quotation"
+      ],
+      "title": "Team",
+      "type": "string"
+    },
+    "WorkStatus": {
+      "description": "작업·실행 상태. 화면 애니메이션도 이 값만 따릅니다.",
+      "enum": [
+        "pending",
+        "running",
+        "needs_input",
+        "needs_revision",
+        "completed",
+        "failed",
+        "cancelled",
+        "superseded"
+      ],
+      "title": "WorkStatus",
+      "type": "string"
+    }
+  },
+  "description": "업무팀 실행 이벤트 한 건. 화면은 seq 순서로만 처리합니다.",
+  "properties": {
+    "artifact": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "company_id": {
+      "title": "Company Id",
+      "type": "integer"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EventError"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    },
+    "metrics": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Metrics"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "requirement_version": {
+      "description": "이 이벤트가 속한 요구사항 버전",
+      "title": "Requirement Version",
+      "type": "integer"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Run Id"
+    },
+    "seq": {
+      "description": "세션 안에서 1부터 빈틈없이 늘어나는 순번",
+      "title": "Seq",
+      "type": "integer"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/WorkStatus"
+    },
+    "team": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Team"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "null 이면 실행 전체에 대한 이벤트"
+    },
+    "type": {
+      "$ref": "#/$defs/EventType"
+    }
+  },
+  "required": [
+    "seq",
+    "session_id",
+    "company_id",
+    "run_id",
+    "requirement_version",
+    "team",
+    "type",
+    "status",
+    "occurred_at",
+    "message"
+  ],
+  "title": "AgentEventOut",
+  "type": "object"
+}
