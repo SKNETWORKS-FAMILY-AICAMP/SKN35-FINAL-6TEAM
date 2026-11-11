@@ -48,7 +48,7 @@ jobs:
       BUILDWISE_TEST_DATABASE_URL: mysql+pymysql://buildwise:buildwise@127.0.0.1:3306/buildwise_test?charset=utf8mb4
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: ${{ env.UV_VERSION }}
       - name: 의존성 설치 (uv sync --frozen)
@@ -72,7 +72,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: ${{ env.UV_VERSION }}
       - uses: actions/setup-node@v7
@@ -151,7 +151,7 @@ jobs:
             }
           }
           if ($failed -gt 0) { exit 1 }
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: ${{ env.UV_VERSION }}
       - name: 백엔드 DB 없는 테스트 (윈도우 경로 · 인코딩)
