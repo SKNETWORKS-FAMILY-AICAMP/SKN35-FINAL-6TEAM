@@ -1,0 +1,275 @@
+/* 연결 확인용 최소 화면입니다. 최종 디자인(2D 게임형 오피스)은 별도로 작업합니다. */
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --line: #dfe3e8;
+  --text: #1d2430;
+  --muted: #677285;
+  --accent: #2457d6;
+  --ok: #1f8a4c;
+  --warn: #b7791f;
+  --bad: #c53030;
+  font-family:
+    "Pretendard",
+    "Apple SD Gothic Neo",
+    "Malgun Gothic",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+h2 {
+  font-size: 15px;
+  margin: 0 0 12px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background: #fff4d6;
+  color: #7a5200;
+  border: 1px solid #f0d58a;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+}
+
+.company {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.connection {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0 12px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr) minmax(240px, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.column {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form {
+  display: grid;
+  gap: 10px;
+}
+
+.form label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.form input[type="number"],
+.form input:not([type]) {
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+}
+
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.check {
+  display: flex !important;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 4px;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button[type="submit"],
+.panel > button {
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 9px 12px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.office-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 700px) {
+  .office-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.desk {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line);
+  background: #fafbfc;
+  border-radius: 8px;
+  padding: 10px;
+  min-height: 96px;
+}
+
+.desk-name {
+  font-weight: 600;
+}
+
+.desk-status {
+  font-size: 12px;
+}
+
+.desk-message {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.status-running {
+  border-left-color: var(--accent);
+}
+.status-completed {
+  border-left-color: var(--ok);
+}
+.status-failed {
+  border-left-color: var(--bad);
+}
+.status-needs_input,
+.status-needs_revision {
+  border-left-color: var(--warn);
+}
+.status-superseded,
+.status-cancelled {
+  border-left-color: var(--muted);
+}
+
+.status {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.run-message {
+  font-size: 13px;
+}
+
+.desk-log {
+  font-size: 12px;
+  margin: 10px 0 0;
+  padding-left: 18px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th,
+td {
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  padding: 6px 4px;
+  vertical-align: top;
+}
+
+.rec-rejected {
+  color: var(--muted);
+}
+
+.plain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notes {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+.error {
+  color: var(--bad);
+  font-size: 13px;
+}

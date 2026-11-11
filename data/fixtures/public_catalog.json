@@ -1,0 +1,105 @@
+{
+  "_설명": "공개 멀티브랜드 견본 카탈로그. 브랜드·모델·사양·가격은 모두 가상입니다(data_status=test). 실제 공식 자료를 넣을 때는 source_url 과 data_status 를 채웁니다.",
+  "products": [
+    {
+      "sku": "PUB-LT-001", "product_type": "laptop", "brand": "알파컴(가상)", "model_name": "AirLite 14",
+      "price_amount": 1290000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 8코어 저전력", "cpu_cores": 8, "ram_gb": 16, "storage_gb": 512, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "display_inch": 14.0, "weight_kg": 1.12, "battery_wh": 60}
+    },
+    {
+      "sku": "PUB-LT-002", "product_type": "laptop", "brand": "알파컴(가상)", "model_name": "AirLite 16 Pro",
+      "price_amount": 2190000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 12코어", "cpu_cores": 12, "ram_gb": 32, "storage_gb": 1024, "gpu": "가상 외장 8GB", "gpu_vram_gb": 8, "display_inch": 16.0, "weight_kg": 1.85, "battery_wh": 80}
+    },
+    {
+      "sku": "PUB-LT-003", "product_type": "laptop", "brand": "베타테크(가상)", "model_name": "Creator 15",
+      "price_amount": 3390000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 16코어", "cpu_cores": 16, "ram_gb": 64, "storage_gb": 2048, "gpu": "가상 외장 12GB", "gpu_vram_gb": 12, "display_inch": 15.6, "weight_kg": 2.1, "battery_wh": 90}
+    },
+    {
+      "sku": "PUB-LT-004", "product_type": "laptop", "brand": "베타테크(가상)", "model_name": "Office 15",
+      "price_amount": 690000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 6코어", "cpu_cores": 6, "ram_gb": 8, "storage_gb": 256, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "display_inch": 15.6, "weight_kg": 1.7}
+    },
+    {
+      "sku": "PUB-LT-005", "product_type": "laptop", "brand": "감마시스템즈(가상)", "model_name": "Gamer 17",
+      "price_amount": 2790000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 14코어", "cpu_cores": 14, "ram_gb": 32, "storage_gb": 1024, "gpu": "가상 외장 12GB", "gpu_vram_gb": 12, "display_inch": 17.3, "weight_kg": 2.6, "battery_wh": 90}
+    },
+    {
+      "sku": "PUB-LT-006", "product_type": "laptop", "brand": "델타비전(가상)", "model_name": "Slim 13",
+      "price_amount": 1490000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 8코어", "cpu_cores": 8, "ram_gb": 16, "storage_gb": 512, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "display_inch": 13.3, "weight_kg": 0.99, "battery_wh": 55}
+    },
+    {
+      "sku": "PUB-DT-001", "product_type": "desktop", "brand": "감마시스템즈(가상)", "model_name": "Tower R7",
+      "price_amount": 1890000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 8코어", "cpu_cores": 8, "ram_gb": 32, "storage_gb": 1024, "gpu": "가상 외장 12GB", "gpu_vram_gb": 12, "psu_w": 750, "form_factor": "미들타워"}
+    },
+    {
+      "sku": "PUB-DT-002", "product_type": "desktop", "brand": "감마시스템즈(가상)", "model_name": "Tower R9",
+      "price_amount": 3990000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 16코어", "cpu_cores": 16, "ram_gb": 64, "storage_gb": 2048, "gpu": "가상 외장 24GB", "gpu_vram_gb": 24, "psu_w": 1000, "form_factor": "빅타워"}
+    },
+    {
+      "sku": "PUB-DT-003", "product_type": "desktop", "brand": "알파컴(가상)", "model_name": "Mini Office",
+      "price_amount": 590000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 6코어", "cpu_cores": 6, "ram_gb": 16, "storage_gb": 512, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "psu_w": 120, "form_factor": "미니PC"}
+    },
+    {
+      "sku": "PUB-DT-004", "product_type": "desktop", "brand": "베타테크(가상)", "model_name": "Studio",
+      "price_amount": 2690000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 12코어", "cpu_cores": 12, "ram_gb": 32, "storage_gb": 2048, "gpu": "가상 외장 16GB", "gpu_vram_gb": 16, "psu_w": 850, "form_factor": "미들타워"}
+    },
+    {
+      "sku": "PUB-GPU-001", "product_type": "gpu", "brand": "오메가칩(가상)", "model_name": "G60 8GB",
+      "price_amount": 420000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"chip": "가상 G60", "vram_gb": 8, "tdp_w": 160, "length_mm": 240, "recommended_psu_w": 550, "interface": "PCIe 4.0 x16"}
+    },
+    {
+      "sku": "PUB-GPU-002", "product_type": "gpu", "brand": "오메가칩(가상)", "model_name": "G70 12GB",
+      "price_amount": 690000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"chip": "가상 G70", "vram_gb": 12, "tdp_w": 220, "length_mm": 285, "recommended_psu_w": 650, "interface": "PCIe 4.0 x16"}
+    },
+    {
+      "sku": "PUB-GPU-003", "product_type": "gpu", "brand": "오메가칩(가상)", "model_name": "G80 16GB",
+      "price_amount": 1290000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"chip": "가상 G80", "vram_gb": 16, "tdp_w": 320, "length_mm": 320, "recommended_psu_w": 850, "interface": "PCIe 5.0 x16"}
+    },
+    {
+      "sku": "PUB-GPU-004", "product_type": "gpu", "brand": "오메가칩(가상)", "model_name": "G90 24GB",
+      "price_amount": 2390000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"chip": "가상 G90", "vram_gb": 24, "tdp_w": 450, "length_mm": 340, "recommended_psu_w": 1000, "interface": "PCIe 5.0 x16"}
+    },
+    {
+      "sku": "PUB-SV-001", "product_type": "server", "brand": "델타비전(가상)", "model_name": "Rack 1U",
+      "price_amount": 6900000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 서버 32코어", "cpu_sockets": 1, "cpu_cores_total": 32, "ram_gb": 128, "storage_tb": 4.0, "rack_u": 1, "redundant_psu": true}
+    },
+    {
+      "sku": "PUB-SV-002", "product_type": "server", "brand": "델타비전(가상)", "model_name": "Rack 2U",
+      "price_amount": 15800000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"cpu": "가상 서버 32코어 x2", "cpu_sockets": 2, "cpu_cores_total": 64, "ram_gb": 512, "storage_tb": 16.0, "rack_u": 2, "redundant_psu": true}
+    },
+    {
+      "sku": "PUB-SV-003", "product_type": "server", "brand": "델타비전(가상)", "model_name": "Rack 4U AI",
+      "price_amount": null, "price_status": "unconfirmed", "data_status": "test", "source_note": "견적 문의 상품 — 가격 미확인(가상 견본)",
+      "attributes": {"cpu": "가상 서버 48코어 x2", "cpu_sockets": 2, "cpu_cores_total": 96, "ram_gb": 1024, "storage_tb": 32.0, "rack_u": 4, "redundant_psu": true}
+    },
+    {
+      "sku": "PUB-MN-001", "product_type": "monitor", "brand": "델타비전(가상)", "model_name": "View 27 QHD",
+      "price_amount": 389000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"size_inch": 27.0, "resolution": "2560x1440", "refresh_hz": 165, "panel": "IPS"}
+    },
+    {
+      "sku": "PUB-MN-002", "product_type": "monitor", "brand": "델타비전(가상)", "model_name": "View 32 4K",
+      "price_amount": 559000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"size_inch": 32.0, "resolution": "3840x2160", "refresh_hz": 60, "panel": "IPS"}
+    },
+    {
+      "sku": "PUB-MN-003", "product_type": "monitor", "brand": "베타테크(가상)", "model_name": "Office 24",
+      "price_amount": 159000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
+      "attributes": {"size_inch": 24.0, "resolution": "1920x1080", "refresh_hz": 75, "panel": "VA"}
+    }
+  ]
+}
