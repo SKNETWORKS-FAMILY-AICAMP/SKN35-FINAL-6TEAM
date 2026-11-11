@@ -68,7 +68,7 @@ git --version
 
 **내 이름 · 이메일 설정.** 이 저장소는 **공개**라서 커밋에 남는 이메일이 누구에게나 보입니다. 개인 메일 대신 GitHub 가 주는 비공개 주소를 씁니다.
 
-1. GitHub → 오른쪽 위 프로필 → **Settings → Emails** 에서 **Keep my email addresses private** 를 켭니다.
+1. GitHub 오른쪽 위 프로필 사진을 누르고 **Settings** 메뉴의 **Emails** 로 가서 **Keep my email addresses private** 를 켭니다.
 2. 그 아래에 보이는 `숫자+아이디@users.noreply.github.com` 주소를 복사합니다.
 3. 아래 명령의 값을 내 것으로 바꿔 실행합니다.
 
