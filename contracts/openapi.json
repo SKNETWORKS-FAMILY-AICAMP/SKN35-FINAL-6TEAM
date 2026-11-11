@@ -1,0 +1,1778 @@
+{
+  "components": {
+    "schemas": {
+      "AgentEventOut": {
+        "description": "업무팀 실행 이벤트 한 건. 화면은 seq 순서로만 처리합니다.",
+        "properties": {
+          "artifact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArtifactRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_id": {
+            "title": "Company Id",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EventError"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metrics"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "requirement_version": {
+            "description": "이 이벤트가 속한 요구사항 버전",
+            "title": "Requirement Version",
+            "type": "integer"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "seq": {
+            "description": "세션 안에서 1부터 빈틈없이 늘어나는 순번",
+            "title": "Seq",
+            "type": "integer"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkStatus"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Team"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null 이면 실행 전체에 대한 이벤트"
+          },
+          "type": {
+            "$ref": "#/components/schemas/EventType"
+          }
+        },
+        "required": [
+          "seq",
+          "session_id",
+          "company_id",
+          "run_id",
+          "requirement_version",
+          "team",
+          "type",
+          "status",
+          "occurred_at",
+          "message"
+        ],
+        "title": "AgentEventOut",
+        "type": "object"
+      },
+      "ArtifactKind": {
+        "enum": [
+          "requirements",
+          "recommendation",
+          "validation",
+          "quotation",
+          "order"
+        ],
+        "title": "ArtifactKind",
+        "type": "string"
+      },
+      "ArtifactRef": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ArtifactKind"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "ArtifactRef",
+        "type": "object"
+      },
+      "CompanyOut": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_test_data": {
+            "title": "Is Test Data",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/CompanyPolicyOut"
+          },
+          "product_types": {
+            "description": "이 기업이 취급하는 상품 유형",
+            "items": {
+              "$ref": "#/components/schemas/ProductTypeOut"
+            },
+            "title": "Product Types",
+            "type": "array"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "source_format": {
+            "title": "Source Format",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "domain",
+          "source_format",
+          "product_types",
+          "policy",
+          "is_test_data"
+        ],
+        "title": "CompanyOut",
+        "type": "object"
+      },
+      "CompanyPolicyOut": {
+        "properties": {
+          "discount_rate": {
+            "title": "Discount Rate",
+            "type": "number"
+          },
+          "free_shipping_over": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Shipping Over"
+          },
+          "quote_valid_days": {
+            "title": "Quote Valid Days",
+            "type": "integer"
+          },
+          "shipping_fee": {
+            "title": "Shipping Fee",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "shipping_fee",
+          "free_shipping_over",
+          "discount_rate",
+          "quote_valid_days"
+        ],
+        "title": "CompanyPolicyOut",
+        "type": "object"
+      },
+      "EventError": {
+        "properties": {
+          "code": {
+            "description": "오류 코드. 예: PRICE_UNCONFIRMED, SERVER_RESTART",
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "retryable": {
+            "title": "Retryable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "retryable"
+        ],
+        "title": "EventError",
+        "type": "object"
+      },
+      "EventType": {
+        "enum": [
+          "requirements.updated",
+          "run.started",
+          "run.completed",
+          "run.failed",
+          "run.needs_input",
+          "run.needs_revision",
+          "run.superseded",
+          "task.started",
+          "task.progress",
+          "task.retrying",
+          "task.completed",
+          "task.failed",
+          "task.needs_input",
+          "order.created"
+        ],
+        "title": "EventType",
+        "type": "string"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthOut": {
+        "properties": {
+          "database": {
+            "title": "Database",
+            "type": "string"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "mode",
+          "database"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "OrderIn": {
+        "additionalProperties": false,
+        "properties": {
+          "quotation_id": {
+            "title": "Quotation Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "quotation_id"
+        ],
+        "title": "OrderIn",
+        "type": "object"
+      },
+      "OrderOut": {
+        "properties": {
+          "company_id": {
+            "title": "Company Id",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_virtual": {
+            "default": true,
+            "title": "Is Virtual",
+            "type": "boolean"
+          },
+          "quotation_id": {
+            "title": "Quotation Id",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "status": {
+            "description": "virtual_created — 실제 결제·배송 없음",
+            "title": "Status",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "company_id",
+          "session_id",
+          "quotation_id",
+          "status",
+          "total",
+          "created_at"
+        ],
+        "title": "OrderOut",
+        "type": "object"
+      },
+      "ProductOut": {
+        "properties": {
+          "attributes": {
+            "additionalProperties": true,
+            "title": "Attributes",
+            "type": "object"
+          },
+          "brand": {
+            "title": "Brand",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "data_status": {
+            "description": "verified | unverified | test",
+            "title": "Data Status",
+            "type": "string"
+          },
+          "model_name": {
+            "title": "Model Name",
+            "type": "string"
+          },
+          "price_amount": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Amount"
+          },
+          "price_status": {
+            "description": "confirmed | unconfirmed | test",
+            "title": "Price Status",
+            "type": "string"
+          },
+          "product_type": {
+            "title": "Product Type",
+            "type": "string"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          },
+          "source_note": {
+            "title": "Source Note",
+            "type": "string"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          }
+        },
+        "required": [
+          "sku",
+          "product_type",
+          "brand",
+          "model_name",
+          "price_amount",
+          "currency",
+          "price_status",
+          "data_status",
+          "source_url",
+          "source_note",
+          "attributes"
+        ],
+        "title": "ProductOut",
+        "type": "object"
+      },
+      "ProductTypeOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label"
+        ],
+        "title": "ProductTypeOut",
+        "type": "object"
+      },
+      "QuotationItemOut": {
+        "properties": {
+          "brand": {
+            "title": "Brand",
+            "type": "string"
+          },
+          "data_status": {
+            "title": "Data Status",
+            "type": "string"
+          },
+          "line_total": {
+            "title": "Line Total",
+            "type": "integer"
+          },
+          "model_name": {
+            "title": "Model Name",
+            "type": "string"
+          },
+          "product_type": {
+            "title": "Product Type",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sku",
+          "product_type",
+          "brand",
+          "model_name",
+          "unit_price",
+          "quantity",
+          "line_total",
+          "data_status"
+        ],
+        "title": "QuotationItemOut",
+        "type": "object"
+      },
+      "QuotationOut": {
+        "properties": {
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "discount": {
+            "title": "Discount",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_reference": {
+            "default": true,
+            "description": "참고 견적(실제 판매가 아님)",
+            "title": "Is Reference",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QuotationItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "requirement_version": {
+            "title": "Requirement Version",
+            "type": "integer"
+          },
+          "shipping_fee": {
+            "title": "Shipping Fee",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subtotal": {
+            "title": "Subtotal",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "valid_until": {
+            "format": "date-time",
+            "title": "Valid Until",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "requirement_version",
+          "status",
+          "items",
+          "subtotal",
+          "shipping_fee",
+          "discount",
+          "total",
+          "currency",
+          "notes",
+          "valid_until"
+        ],
+        "title": "QuotationOut",
+        "type": "object"
+      },
+      "RecommendationOut": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationCheckOut"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "product": {
+            "$ref": "#/components/schemas/ProductOut"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "requirement_version": {
+            "title": "Requirement Version",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "status": {
+            "description": "candidate | validated | rejected",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "requirement_version",
+          "rank",
+          "product",
+          "score",
+          "reasons",
+          "status",
+          "checks"
+        ],
+        "title": "RecommendationOut",
+        "type": "object"
+      },
+      "RequirementsIn": {
+        "additionalProperties": false,
+        "description": "고객 요구사항. 상담팀이 대화에서 정리한 값입니다(지금은 화면 입력으로 대신합니다).",
+        "properties": {
+          "budget_max": {
+            "description": "총예산(원)",
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000.0,
+            "title": "Budget Max",
+            "type": "integer"
+          },
+          "note": {
+            "default": "",
+            "description": "고객이 한 말 원문(선택)",
+            "maxLength": 500,
+            "title": "Note",
+            "type": "string"
+          },
+          "preferences": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "세부 조건. 예: {\"min_ram_gb\": 16}",
+            "title": "Preferences",
+            "type": "object"
+          },
+          "product_types": {
+            "description": "찾을 상품 유형 코드. 예: laptop, monitor",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Product Types",
+            "type": "array"
+          },
+          "purpose": {
+            "description": "사용 목적. 예: 영상 편집",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          }
+        },
+        "required": [
+          "purpose",
+          "product_types",
+          "budget_max"
+        ],
+        "title": "RequirementsIn",
+        "type": "object"
+      },
+      "RequirementsOut": {
+        "properties": {
+          "derived_preferences": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "사용 목적에서 상담팀이 추론한 조건",
+            "title": "Derived Preferences",
+            "type": "object"
+          },
+          "effective_preferences": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "실제로 적용한 조건(고객이 직접 준 값이 우선)",
+            "title": "Effective Preferences",
+            "type": "object"
+          },
+          "input": {
+            "$ref": "#/components/schemas/RequirementsIn"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "input",
+          "derived_preferences",
+          "effective_preferences"
+        ],
+        "title": "RequirementsOut",
+        "type": "object"
+      },
+      "RequirementsUpdateOut": {
+        "properties": {
+          "changed": {
+            "description": "false 면 이전과 같은 요구사항이라 다시 실행하지 않았음",
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionOut"
+          }
+        },
+        "required": [
+          "changed",
+          "session"
+        ],
+        "title": "RequirementsUpdateOut",
+        "type": "object"
+      },
+      "RunOut": {
+        "properties": {
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "first_candidate_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "실행 시작부터 첫 후보 저장까지 걸린 시간",
+            "title": "First Candidate Ms"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "requirement_version": {
+            "title": "Requirement Version",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkStatus"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskOut"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "requirement_version",
+          "status",
+          "started_at",
+          "finished_at",
+          "first_candidate_ms",
+          "error_code",
+          "tasks"
+        ],
+        "title": "RunOut",
+        "type": "object"
+      },
+      "SessionOut": {
+        "properties": {
+          "company_id": {
+            "title": "Company Id",
+            "type": "integer"
+          },
+          "current_requirement_version": {
+            "title": "Current Requirement Version",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_event_seq": {
+            "title": "Last Event Seq",
+            "type": "integer"
+          },
+          "latest_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requirements": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequirementsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "company_id",
+          "status",
+          "current_requirement_version",
+          "last_event_seq",
+          "requirements",
+          "latest_run"
+        ],
+        "title": "SessionOut",
+        "type": "object"
+      },
+      "TaskOut": {
+        "properties": {
+          "attempt": {
+            "title": "Attempt",
+            "type": "integer"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkStatus"
+          },
+          "team": {
+            "$ref": "#/components/schemas/Team"
+          }
+        },
+        "required": [
+          "id",
+          "team",
+          "name",
+          "status",
+          "attempt",
+          "started_at",
+          "finished_at",
+          "duration_ms",
+          "error_code",
+          "error_message"
+        ],
+        "title": "TaskOut",
+        "type": "object"
+      },
+      "Team": {
+        "description": "업무팀. 제품 설명용 논리 역할이며 서버가 따로 있는 것은 아닙니다.",
+        "enum": [
+          "consultation",
+          "design",
+          "validation",
+          "quotation"
+        ],
+        "title": "Team",
+        "type": "string"
+      },
+      "ValidationCheckOut": {
+        "properties": {
+          "check_code": {
+            "title": "Check Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "severity": {
+            "description": "info | warn | block — block 이 실패하면 후보 탈락",
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "check_code",
+          "passed",
+          "severity",
+          "detail"
+        ],
+        "title": "ValidationCheckOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WorkStatus": {
+        "description": "작업·실행 상태. 화면 애니메이션도 이 값만 따릅니다.",
+        "enum": [
+          "pending",
+          "running",
+          "needs_input",
+          "needs_revision",
+          "completed",
+          "failed",
+          "cancelled",
+          "superseded"
+        ],
+        "title": "WorkStatus",
+        "type": "string"
+      }
+    }
+  },
+  "info": {
+    "description": "\nBUILDWISE — 판매 기업의 상품 데이터와 정책을 연결해 AI 상담 직원을 만드는 플랫폼의 API 입니다.\n\n- 지금은 **Mock 모드**입니다. 업무팀은 규칙 코드로 동작하고 외부 AI 를 부르지 않습니다.\n- 상품 데이터는 모두 **테스트 데이터(가상 브랜드 · 가상 모델)** 입니다.\n- `X-Company-Id` 헤더는 시연용 기업 전환이며 **인증이 아닙니다**.\n",
+    "title": "BUILDWISE API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/companies": {
+      "get": {
+        "operationId": "get_companies_api_companies_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CompanyOut"
+                  },
+                  "title": "Response Get Companies Api Companies Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Companies",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/orders": {
+      "post": {
+        "operationId": "post_order_api_orders_post",
+        "parameters": [
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "주문 요청마다 새로 만드는 고유값(8~80자)",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "description": "주문 요청마다 새로 만드는 고유값(8~80자)",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderOut"
+                }
+              }
+            },
+            "description": "같은 Idempotency-Key 로 이미 만든 주문"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Order",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/orders/{order_id}": {
+      "get": {
+        "operationId": "get_order_by_id_api_orders__order_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "title": "Order Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Order By Id",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/api/sessions": {
+      "post": {
+        "operationId": "post_session_api_sessions_post",
+        "parameters": [
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Session",
+        "tags": [
+          "consultation"
+        ]
+      }
+    },
+    "/api/sessions/{session_id}": {
+      "get": {
+        "operationId": "get_session_api_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Session",
+        "tags": [
+          "consultation"
+        ]
+      }
+    },
+    "/api/sessions/{session_id}/events": {
+      "get": {
+        "operationId": "get_events_api_sessions__session_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "이 순번 다음 이벤트부터",
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "이 순번 다음 이벤트부터",
+              "minimum": 0,
+              "title": "After",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AgentEventOut"
+                  },
+                  "title": "Response Get Events Api Sessions  Session Id  Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Events",
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/api/sessions/{session_id}/events/stream": {
+      "get": {
+        "description": "실시간 이벤트(SSE). 연결이 끊겼다 다시 붙으면 브라우저가 보낸 Last-Event-ID 다음부터 다시 보냅니다.",
+        "operationId": "stream_events_api_sessions__session_id__events_stream_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "브라우저 EventSource 는 헤더를 못 보내서 여기서는 쿼리로 받습니다",
+            "in": "query",
+            "name": "company_id",
+            "required": true,
+            "schema": {
+              "description": "브라우저 EventSource 는 헤더를 못 보내서 여기서는 쿼리로 받습니다",
+              "title": "Company Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Last-Event-ID",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last-Event-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "SSE 이벤트 스트림"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stream Events",
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/api/sessions/{session_id}/quotation": {
+      "get": {
+        "operationId": "get_quotation_api_sessions__session_id__quotation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Quotation",
+        "tags": [
+          "quotations"
+        ]
+      }
+    },
+    "/api/sessions/{session_id}/recommendations": {
+      "get": {
+        "operationId": "get_recommendations_api_sessions__session_id__recommendations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecommendationOut"
+                  },
+                  "title": "Response Get Recommendations Api Sessions  Session Id  Recommendations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Recommendations",
+        "tags": [
+          "recommendations"
+        ]
+      }
+    },
+    "/api/sessions/{session_id}/requirements": {
+      "put": {
+        "operationId": "put_requirements_api_sessions__session_id__requirements_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequirementsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementsUpdateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Requirements",
+        "tags": [
+          "consultation"
+        ]
+      }
+    },
+    "/api/sessions/{session_id}/retry": {
+      "post": {
+        "operationId": "post_retry_api_sessions__session_id__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Retry",
+        "tags": [
+          "consultation"
+        ]
+      }
+    }
+  }
+}

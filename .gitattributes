@@ -1,0 +1,15 @@
+# 모든 텍스트 파일은 LF 줄바꿈으로 저장합니다.
+# Windows 에서 git 이 CRLF 로 바꾸면 컨테이너 안 셸 스크립트가 깨지고,
+# 포맷 검사·계약 비교가 모든 PR 에서 실패합니다.
+* text=auto eol=lf
+
+# 바이너리
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.pdf binary

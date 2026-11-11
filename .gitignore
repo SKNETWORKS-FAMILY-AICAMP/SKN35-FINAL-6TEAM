@@ -1,0 +1,39 @@
+# 환경변수 — 비밀값이 들어갑니다. .env.example 만 커밋합니다.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
+# AI 코딩 도구 개인 설정 (공용 규칙은 AGENTS.md · CLAUDE.md 에만 둡니다)
+.claude/settings.local.json
+.claude/*.local.*
+.codex/
+.cursor/
+.aider*
+
+# 편집기 · OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 로그
+*.log
