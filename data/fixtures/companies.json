@@ -1,0 +1,40 @@
+{
+  "_설명": "시연용 기업 2곳. 같은 엔진에 카탈로그 형식과 판매 정책만 다르게 연결합니다. 모두 테스트 데이터입니다.",
+  "companies": [
+    {
+      "slug": "public-demo",
+      "name": "공개 멀티브랜드 견본 카탈로그",
+      "description": "여러 가상 브랜드의 하드웨어를 모은 테스트 카탈로그입니다. 실제 제품·가격이 아닙니다.",
+      "domain": "hardware",
+      "source_format": "public_json",
+      "source_file": "public_catalog.json",
+      "policy": {
+        "supported_product_types": ["laptop", "desktop", "gpu", "server", "monitor"],
+        "shipping_fee": 0,
+        "free_shipping_over": null,
+        "discount_rate": 0.0,
+        "quote_valid_days": 3,
+        "max_candidates": 6
+      },
+      "is_test_data": true
+    },
+    {
+      "slug": "company-a",
+      "name": "가상 기업 A (컴퓨터 전문점)",
+      "description": "자체 상품표(CSV)를 연결한 가상 판매 기업입니다. 서버·그래픽카드는 취급하지 않습니다.",
+      "domain": "hardware",
+      "source_format": "company_csv",
+      "source_file": "company_a/products.csv",
+      "mapping_file": "company_a/mapping.json",
+      "policy": {
+        "supported_product_types": ["laptop", "desktop", "monitor"],
+        "shipping_fee": 5000,
+        "free_shipping_over": 1000000,
+        "discount_rate": 0.03,
+        "quote_valid_days": 7,
+        "max_candidates": 6
+      },
+      "is_test_data": true
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+# BUILDWISE 개발 환경 — `docker compose up -d` 하나로 DB · 백엔드 · 프론트가 함께 켜집니다.
+# .env 가 없어도 아래 기본값(${이름:-기본값})으로 실행됩니다. 값을 바꾸려면 .env.example 을 복사해 .env 를 만드세요.
+name: buildwise
+
+services:
+  db:
+    image: mysql:8.4.13
+    environment:
+      MYSQL_DATABASE: buildwise
+      MYSQL_USER: buildwise
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-buildwise}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-buildwise-root}
+      TZ: UTC
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./backend/docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  backend:
+    build: ./backend
+    environment:
+      BUILDWISE_DATABASE_URL: mysql+pymysql://buildwise:${MYSQL_PASSWORD:-buildwise}@db:3306/buildwise?charset=utf8mb4
+      BUILDWISE_TEST_DATABASE_URL: mysql+pymysql://buildwise:${MYSQL_PASSWORD:-buildwise}@db:3306/buildwise_test?charset=utf8mb4
+      BUILDWISE_MOCK_DELAY_MS: ${BUILDWISE_MOCK_DELAY_MS:-400}
+      API_PORT: ${API_PORT:-8000}
+      # Windows 에서 저장한 파일 변경을 컨테이너가 알아채게 합니다.
+      WATCHFILES_FORCE_POLLING: "true"
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - .:/workspace
+      - backend-venv:/opt/venv
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  frontend:
+    build: ./frontend
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8000
+      CHOKIDAR_USEPOLLING: "true"
+      WEB_PORT: ${WEB_PORT:-5173}
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/workspace/frontend
+      - ./contracts:/workspace/contracts
+      - frontend-node-modules:/workspace/frontend/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+volumes:
+  db-data:
+  backend-venv:
+  frontend-node-modules:

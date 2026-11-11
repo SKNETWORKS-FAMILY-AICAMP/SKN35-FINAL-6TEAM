@@ -1,0 +1,20 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false
+
+# Windows PowerShell 5.1 은 BOM 이 없는 UTF-8 파일의 한글을 깨뜨립니다.
+[*.ps1]
+charset = utf-8-bom
+indent_size = 4
