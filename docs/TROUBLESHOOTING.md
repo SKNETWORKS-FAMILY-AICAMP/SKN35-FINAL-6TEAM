@@ -49,21 +49,26 @@ netsh interface ipv4 show excludedportrange protocol=tcp
 ```text
 WEB_PORT=5174
 API_PORT=8001
-DB_PORT=3308
+DB_PORT=5434
 ```
 
 바꾼 뒤 `scripts/stop` → `scripts/dev` 로 다시 켭니다. 화면 주소도 바뀐 포트로 엽니다.
 
 ## 3. DB 에 연결되지 않음
 
-**증상:** 백엔드 로그에 `Can't connect to MySQL server` / `Access denied for user 'buildwise'`
+**증상:** 백엔드 로그에 `connection refused` · `could not connect to server` / `password authentication failed for user "buildwise"`
 
-**확인:** `docker compose ps` 에서 `db` 가 `healthy` 인지. 처음 켤 때는 MySQL 준비에 30초쯤 걸립니다.
+**확인:** `docker compose ps` 에서 `db` 가 `healthy` 인지. 처음 켤 때는 PostgreSQL 준비에 10~30초쯤 걸립니다.
 
 **해결**
 - `starting` 이면 조금 기다렸다 `scripts/dev` 를 다시 실행합니다.
-- `.env` 의 DB 비밀번호를 **나중에 바꿨다면** 기존 DB 볼륨은 옛 비밀번호를 기억합니다 → `scripts/reset`(개발 DB 초기화) 후 다시 켭니다.
-- Docker 없이 `uv run` 으로 백엔드를 직접 돌린다면 DB 주소는 `127.0.0.1:3307` 입니다(Compose 의 DB 가 켜져 있어야 함).
+- `.env` 의 DB 비밀번호(`POSTGRES_PASSWORD`)를 **나중에 바꿨다면** 기존 DB 볼륨은 옛 비밀번호를 기억합니다 → `scripts/reset`(개발 DB 초기화) 후 다시 켭니다.
+- Docker 없이 `uv run` 으로 백엔드를 직접 돌린다면 DB 주소는 `127.0.0.1:5433` 입니다(Compose 의 DB 가 켜져 있어야 함).
+  내 PC 에 PostgreSQL 을 따로 설치해 5432 를 쓰고 있어도 겹치지 않게 5433 을 씁니다.
+- `extension "vector" is not available` → DB 가 pgvector 이미지가 아닙니다. `compose.yaml` 의 `db` 이미지를 바꾸지 않았는지 확인합니다.
+
+**2026-11-12 이전(MySQL)에 한 번이라도 켰던 PC:** DB 가 PostgreSQL 로 바뀌면서 DB 볼륨 이름도 `pg-data` 로 새로 만듭니다.
+옛 MySQL 볼륨(`buildwise_db-data`)은 쓰지 않으니 디스크가 부족하면 `docker volume rm buildwise_db-data` 로 지워도 됩니다(개발 데이터만 들어 있음).
 
 ## 4. 환경변수 파일(.env)이 없음
 

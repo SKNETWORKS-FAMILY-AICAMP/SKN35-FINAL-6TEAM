@@ -5,9 +5,9 @@ Claude Code · Codex 등 AI 코딩 도구가 **작업 전에 반드시 읽는 �
 
 ## 프로젝트
 
-BUILDWISE 는 판매 기업이 자사 상품 데이터와 판매 정책을 연결해 AI 상담 직원을 두는 B2B2C 플랫폼입니다.
-첫 시연 도메인은 하드웨어 전체(노트북 · 데스크톱 · 그래픽카드 · 서버 · 모니터 …)입니다.
-지금은 **Mock 모드**(외부 AI 없음)이고 상품 데이터는 **가상 브랜드 테스트 데이터**입니다.
+BUILDWISE 는 판매 기업이 상품 DB · 판매 정책을 연결하면 고객 요구를 받아 추천 · 호환성 검증 · 견적까지 처리하는 AI 상담 직원 플랫폼(B2B2C)입니다.
+첫 시연은 AI 개발 입문자를 위한 개발 장비 상담(노트북 · 데스크톱 · GPU · 서버, 클라우드 GPU 비교)입니다.
+지금은 **Mock 모드**(외부 AI 없음)이고 상품 · 클라우드 가격 데이터는 **가상 브랜드 테스트 데이터**입니다. DB 는 PostgreSQL 18 + pgvector 입니다.
 
 ## 코드 지도
 
@@ -16,14 +16,15 @@ BUILDWISE 는 판매 기업이 자사 상품 데이터와 판매 정책을 연�
 | `backend/app/contracts/schemas.py` | **공통 계약** — API · 이벤트 · 상태값. 프론트 타입의 원본 |
 | `backend/app/agents/` | 업무팀 4개(상담 · 설계 · 검증 · 견적) — 도메인을 모르는 공통 엔진 |
 | `backend/app/workflows/runner.py` | 업무팀 실행 순서 · 오래된 결과 차단 · 재시도 |
-| `backend/app/domains/hardware/` | 하드웨어 전용 지식(사양 스키마 · 조건 규칙) |
+| `backend/app/domains/hardware/` | 하드웨어 전용 지식(사양 스키마 · 조건 규칙 · VRAM 추정 · 장비 진단 · 클라우드 비교 · 발화 규칙 · 채팅 답) |
+| `backend/app/chat/` · `backend/app/nlu/` | 채팅 상담(공통 엔진) · 발화 이해 인터페이스 · 지표 · 평가 스크립트 |
 | `backend/app/catalog/` | 공통 상품 형식 · 기업 데이터 적재 어댑터 |
 | `backend/app/events/service.py` | 이벤트 기록(순번 보장) · 조회 · SSE |
-| `backend/app/db/models.py` · `backend/migrations/` | DB 테이블 · 마이그레이션 |
+| `backend/app/db/models.py` · `backend/migrations/` | DB 테이블 · 마이그레이션 (PostgreSQL · JSONB · pgvector 확장) |
 | `frontend/src/features/` | 화면 기능별 폴더(office · consultation · recommendations · quotations · orders) |
 | `frontend/src/events/` | 이벤트 스트림(실제 SSE · 가짜 대본이 같은 인터페이스) |
 | `frontend/src/api/schema.d.ts` | **자동 생성** 타입 — 직접 고치지 않음 |
-| `data/fixtures/` | 견본 데이터(가상) |
+| `data/fixtures/` · `data/nlu/` | 견본 데이터(가상) · 상담 발화 평가셋(가상) |
 
 자세한 구조: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 

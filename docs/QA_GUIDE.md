@@ -29,6 +29,7 @@
 ## 2. 하나씩 검사 (빠르게 돌리고 싶을 때)
 
 ```bash
+docker compose exec -T backend uv run --frozen python -m app.nlu.evaluate --errors     # NLU 기준선 점수 · 틀린 발화
 docker compose exec -T backend uv run --frozen pytest -q                          # 백엔드 테스트 전부
 docker compose exec -T backend uv run --frozen pytest -q tests/test_orders.py     # 파일 하나
 docker compose exec -T backend uv run --frozen pytest -q -k stale                 # 이름에 stale 이 들어간 테스트
@@ -54,8 +55,14 @@ docker compose exec -T frontend npm run typecheck
 | `backend/tests/test_orders.py` | 같은 키 재요청 · **동시 요청에도 주문 1건**, 옛 견적 주문 거절 |
 | `backend/tests/test_tenancy_and_catalogs.py` | 같은 엔진 · 다른 기업 → 다른 후보 · 다른 견적, 취급 안 하는 유형, **다른 기업 데이터 접근 차단** |
 | `backend/tests/test_catalog_and_domain.py` | 기업 CSV 적재(엑셀 BOM 허용 · CP949 거절 · 잘못된 줄 위치 안내), 하드웨어 규칙 |
+| `backend/tests/test_postgres.py` | PostgreSQL 동시성 — READ COMMITTED, `FOR UPDATE` 기다림 뒤 최신 값, 동시 이벤트 순번 빈틈없음, **pgvector 저장 · 거리 정렬** |
+| `backend/tests/test_chat.py` | 채팅 상담 — 빠진 조건 되묻기 → 선택지 → 업무팀 실행, 예산 변경 시 옛 실행 차단, 진단 · 클라우드 비교 답, 잘못된 선택지 거절, **다른 기업 이력 접근 차단**, 도구 API |
+| `backend/tests/test_nlu.py` | NLU 지표 계산, 평가셋 형식(가상 발화 · 의도 균형), **규칙 기준선 회귀 방지 하한**, 슬롯 추출 규칙 |
+| `backend/tests/test_dialogue.py` | 채팅 다음 답(되묻기 · 요구사항 확정 · 진단 · 비교), 선택지 값 검사 |
+| `backend/tests/test_hardware_tools.py` | VRAM 공식 · 보유 장비 진단(업그레이드 / 새 장비) · 클라우드 손익분기 · 모델 크기 → 설계팀 조건 |
 | `frontend/src/features/office/officeState.test.ts` | 화면이 중복 · 옛 버전 이벤트를 무시하는지, 병렬 작업 표시 |
-| `frontend/e2e/smoke.spec.ts` | 실제 브라우저로 상담 → 견적 → 주문 → 예산 변경 → 기업 전환 |
+| `frontend/src/features/chat/chatState.test.ts` | 채팅 — 서버 메시지만 한 번씩 · id 순서, 보내는 중 표시, 선택지는 마지막 답의 것만 |
+| `frontend/e2e/smoke.spec.ts` | 실제 브라우저로 상담 → 견적 → 주문 → 예산 변경 → 기업 전환, 채팅 상담 → 선택지 → 견적 · 인쇄 버튼 |
 
 새 기능을 만들면 같은 위치에 테스트를 하나 이상 추가합니다.
 
