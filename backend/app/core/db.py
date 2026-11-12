@@ -1,9 +1,11 @@
-"""DB 연결.
+"""DB 연결 (PostgreSQL 18 + pgvector, 드라이버 psycopg 3).
 
-- 격리 수준은 READ COMMITTED 입니다. 이벤트를 주기적으로 다시 읽는 화면 스트림이
-  예전 스냅샷에 갇히지 않게 하려는 것입니다.
+- 격리 수준은 READ COMMITTED 입니다(PostgreSQL 기본값과 같지만 명시합니다). 문장마다 새 스냅샷을 보므로
+  이벤트를 주기적으로 다시 읽는 화면 스트림이 예전 스냅샷에 갇히지 않습니다.
 - 순서가 중요한 쓰기(이벤트 순번 · 요구사항 버전 확인)는 세션 행을 `SELECT ... FOR UPDATE` 로
-  잠그고 합니다(app/events/service.py 의 lock_session).
+  잠그고 합니다(app/events/service.py 의 lock_session). 기다리던 쪽은 앞 트랜잭션이 커밋한 최신 값을 받습니다.
+- PostgreSQL 은 오류(예: 유니크 위반)가 난 트랜잭션을 더 쓰지 못하게 막습니다. 오류 뒤에는 롤백하고
+  새 트랜잭션에서 다시 읽습니다(app/orders/service.py).
 """
 
 from collections.abc import Iterator

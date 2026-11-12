@@ -4,21 +4,22 @@ name: buildwise
 
 services:
   db:
-    image: mysql:8.4.13
+    # PostgreSQL 18 + pgvector 확장이 들어 있는 공식 이미지. 버전을 고른 근거는 README '기술 스택과 고정 버전'.
+    image: pgvector/pgvector:0.8.6-pg18-trixie
     environment:
-      MYSQL_DATABASE: buildwise
-      MYSQL_USER: buildwise
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-buildwise}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-buildwise-root}
+      POSTGRES_DB: buildwise
+      POSTGRES_USER: buildwise
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-buildwise}
       TZ: UTC
-    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
     ports:
-      - "${DB_PORT:-3307}:3306"
+      # 내 PC 에 PostgreSQL 을 따로 설치했어도(5432) 겹치지 않게 5433 으로 엽니다.
+      - "${DB_PORT:-5433}:5432"
     volumes:
-      - db-data:/var/lib/mysql
-      - ./backend/docker/mysql-init:/docker-entrypoint-initdb.d:ro
+      # PostgreSQL 18 이미지는 /var/lib/postgresql 아래(18/docker)에 데이터를 둡니다.
+      - pg-data:/var/lib/postgresql
+      - ./backend/docker/postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U buildwise -d buildwise"]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -27,8 +28,8 @@ services:
   backend:
     build: ./backend
     environment:
-      BUILDWISE_DATABASE_URL: mysql+pymysql://buildwise:${MYSQL_PASSWORD:-buildwise}@db:3306/buildwise?charset=utf8mb4
-      BUILDWISE_TEST_DATABASE_URL: mysql+pymysql://buildwise:${MYSQL_PASSWORD:-buildwise}@db:3306/buildwise_test?charset=utf8mb4
+      BUILDWISE_DATABASE_URL: postgresql+psycopg://buildwise:${POSTGRES_PASSWORD:-buildwise}@db:5432/buildwise
+      BUILDWISE_TEST_DATABASE_URL: postgresql+psycopg://buildwise:${POSTGRES_PASSWORD:-buildwise}@db:5432/buildwise_test
       BUILDWISE_MOCK_DELAY_MS: ${BUILDWISE_MOCK_DELAY_MS:-400}
       API_PORT: ${API_PORT:-8000}
       # Windows 에서 저장한 파일 변경을 컨테이너가 알아채게 합니다.
@@ -71,6 +72,6 @@ services:
       start_period: 30s
 
 volumes:
-  db-data:
+  pg-data:
   backend-venv:
   frontend-node-modules:

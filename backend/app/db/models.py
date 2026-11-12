@@ -1,4 +1,4 @@
-"""DB 테이블 정의 (MySQL 8.4).
+"""DB 테이블 정의 (PostgreSQL 18 + pgvector).
 
 이 파일을 바꾸면:
 1. `uv run alembic revision --autogenerate -m "무엇을 바꿨는지"` 로 마이그레이션을 만들고
@@ -7,15 +7,19 @@
 CI 의 `alembic check` 가 모델과 마이그레이션이 다르면 실패시킵니다.
 
 ERD 와 각 컬럼의 뜻은 docs/ARCHITECTURE.md 에 있습니다.
+
+- JSON 컬럼은 PostgreSQL JSONB 입니다(키 순서는 보존되지 않음 — 순서가 필요하면 리스트로 둡니다).
+- 시각은 UTC 를 시간대 없이 저장합니다(app/core/clock.py).
+- 벡터(pgvector) 컬럼은 5주차 벡터 DB 설계 때 추가합니다. 확장은 첫 마이그레이션이 이미 켜 둡니다.
 """
 
 from datetime import datetime
 from typing import Any
 
 from sqlalchemy import (
-    JSON,
     BigInteger,
     Boolean,
+    DateTime,
     Float,
     ForeignKey,
     Index,
@@ -24,7 +28,7 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.mysql import DATETIME
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.core.clock import utcnow
@@ -37,8 +41,8 @@ NAMING_CONVENTION = {
     "pk": "pk_%(table_name)s",
 }
 
-# 마이크로초까지 저장합니다(이벤트 지연 측정용).
-Timestamp = DATETIME(fsp=6)
+# timestamp without time zone — PostgreSQL 은 기본으로 마이크로초까지 저장합니다(이벤트 지연 측정용).
+Timestamp = DateTime(timezone=False)
 
 
 class Base(DeclarativeBase):
@@ -57,7 +61,7 @@ class Company(Base):
     description: Mapped[str] = mapped_column(String(255), default="")
     domain: Mapped[str] = mapped_column(String(30))
     source_format: Mapped[str] = mapped_column(String(30))
-    policy: Mapped[dict[str, Any]] = mapped_column(JSON)
+    policy: Mapped[dict[str, Any]] = mapped_column(JSONB)
     is_test_data: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
 
@@ -83,7 +87,7 @@ class Product(Base):
     data_status: Mapped[str] = mapped_column(String(20))
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     source_note: Mapped[str] = mapped_column(String(255), default="")
-    attributes: Mapped[dict[str, Any]] = mapped_column(JSON)
+    attributes: Mapped[dict[str, Any]] = mapped_column(JSONB)
     updated_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow, onupdate=utcnow)
 
 
@@ -110,7 +114,7 @@ class RequirementVersion(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     session_id: Mapped[str] = mapped_column(ForeignKey("consultation_sessions.id"))
     version: Mapped[int] = mapped_column(Integer)
-    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB)
     reason: Mapped[str] = mapped_column(String(255), default="")
     created_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
 
@@ -164,9 +168,9 @@ class AgentEvent(Base):
     type: Mapped[str] = mapped_column(String(50))
     status: Mapped[str] = mapped_column(String(20))
     message: Mapped[str] = mapped_column(String(500))
-    error: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    artifact: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
-    metrics: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    error: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    artifact: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    metrics: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     occurred_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
 
 
@@ -183,9 +187,9 @@ class Recommendation(Base):
     product_id: Mapped[int | None] = mapped_column(
         ForeignKey("products.id"), nullable=True, index=True
     )
-    product_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON)
+    product_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB)
     score: Mapped[float] = mapped_column(Float)
-    reasons: Mapped[list[str]] = mapped_column(JSON)
+    reasons: Mapped[list[str]] = mapped_column(JSONB)
     status: Mapped[str] = mapped_column(String(20))
     created_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
 
@@ -213,13 +217,13 @@ class Quotation(Base):
     run_id: Mapped[str] = mapped_column(ForeignKey("workflow_runs.id"), index=True)
     requirement_version: Mapped[int] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(20))
-    items: Mapped[list[dict[str, Any]]] = mapped_column(JSON)
+    items: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
     subtotal: Mapped[int] = mapped_column(Integer)
     shipping_fee: Mapped[int] = mapped_column(Integer)
     discount: Mapped[int] = mapped_column(Integer)
     total: Mapped[int] = mapped_column(Integer)
     currency: Mapped[str] = mapped_column(String(3))
-    notes: Mapped[list[str]] = mapped_column(JSON)
+    notes: Mapped[list[str]] = mapped_column(JSONB)
     valid_until: Mapped[datetime] = mapped_column(Timestamp)
     created_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
 

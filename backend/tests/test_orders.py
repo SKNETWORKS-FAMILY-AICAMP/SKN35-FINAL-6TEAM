@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
 from app.core.db import Database
+from app.core.errors import ConflictError
 from app.db.models import Order
 from app.orders.service import create_order
 from app.workflows.runner import WorkflowRunner
@@ -61,6 +62,36 @@ def test_concurrent_duplicate_requests_create_one_order(
         t.join(timeout=20)
 
     assert len(results) == 4 and len(set(results)) == 1
+    with database.session() as db:
+        assert db.scalar(select(func.count()).select_from(Order)) == 1
+
+
+def test_concurrent_same_key_on_two_quotes_is_one_order_and_one_conflict(
+    client: TestClient, runner: WorkflowRunner, database: Database, companies: dict[str, int]
+) -> None:
+    """서로 다른 세션의 견적 2개에 같은 키로 동시에 주문 — 세션 잠금으로는 줄 세워지지 않는 경우입니다.
+    PostgreSQL 유니크 위반 → 롤백 후 다시 읽기 경로를 지나도 주문은 1건, 나머지는 409 여야 합니다."""
+    cid = companies["public-demo"]
+    _, quote_a = _ready_quote(client, runner, cid)
+    _, quote_b = _ready_quote(client, runner, cid)
+    barrier = threading.Barrier(2)
+    outcomes: list[str] = []
+
+    def place(quote_id: str) -> None:
+        barrier.wait()
+        try:
+            _, created = create_order(database, cid, quote_id, "order-key-race-02")
+            outcomes.append("created" if created else "reused")
+        except ConflictError:
+            outcomes.append("conflict")
+
+    threads = [threading.Thread(target=place, args=(q,)) for q in (quote_a, quote_b)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=20)
+
+    assert sorted(outcomes) == ["conflict", "created"]
     with database.session() as db:
         assert db.scalar(select(func.count()).select_from(Order)) == 1
 
