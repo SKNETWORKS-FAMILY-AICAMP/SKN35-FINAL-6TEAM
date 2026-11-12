@@ -26,6 +26,7 @@ from sqlalchemy import (
     Integer,
     MetaData,
     String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -241,4 +242,20 @@ class Order(Base):
     idempotency_key: Mapped[str] = mapped_column(String(80))
     status: Mapped[str] = mapped_column(String(20))
     total: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)
+
+
+class ChatMessage(Base):
+    """채팅 상담 이력. 고객(user) 메시지에는 발화 이해 결과(nlu), 상담 직원(assistant) 메시지에는
+    제시한 선택지(quick_replies)가 붙습니다. 고객이 선택지를 눌렀으면 그 선택지를 quick_replies 에 남깁니다."""
+
+    __tablename__ = "chat_messages"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"))
+    session_id: Mapped[str] = mapped_column(ForeignKey("consultation_sessions.id"), index=True)
+    role: Mapped[str] = mapped_column(String(20))
+    content: Mapped[str] = mapped_column(Text)
+    quick_replies: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
+    nlu: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(Timestamp, default=utcnow)

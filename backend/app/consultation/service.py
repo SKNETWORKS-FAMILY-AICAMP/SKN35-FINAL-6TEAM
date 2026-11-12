@@ -78,65 +78,79 @@ def update_requirements(
         session_row = lock_session(db, session_id)
         if session_row.company_id != company_id:
             raise SessionNotFound(session_id)
-        pack = get_pack(get_company(db, company_id).domain)
+        return apply_requirements(db, session_row, req)
 
-        unknown_types = sorted(set(req.product_types) - set(pack.product_types()))
-        if unknown_types:
-            raise InvalidInputError(f"알 수 없는 상품 유형입니다: {unknown_types}")
-        unknown_prefs = sorted(set(req.preferences) - pack.preference_keys())
-        if unknown_prefs:
-            raise InvalidInputError(f"알 수 없는 세부 조건입니다: {unknown_prefs}")
 
+def apply_requirements(
+    db: Session, session_row: ConsultationSession, req: RequirementsIn
+) -> tuple[bool, str | None]:
+    """잠근 세션 행에 요구사항을 반영합니다 — 화면 입력(PUT)과 채팅 상담이 같은 길을 씁니다.
+
+    부르는 쪽이 트랜잭션을 열고 `lock_session` 으로 세션 행을 잠근 상태여야 합니다.
+    새 실행 id 는 커밋한 뒤에 실행기에 맡깁니다.
+    """
+    session_id = session_row.id
+    pack = get_pack(get_company(db, session_row.company_id).domain)
+
+    unknown_types = sorted(set(req.product_types) - set(pack.product_types()))
+    if unknown_types:
+        raise InvalidInputError(f"알 수 없는 상품 유형입니다: {unknown_types}")
+    unknown_prefs = sorted(set(req.preferences) - pack.preference_keys())
+    if unknown_prefs:
+        raise InvalidInputError(f"알 수 없는 세부 조건입니다: {unknown_prefs}")
+
+    try:
         payload = structure_requirements(req, pack)
-        latest = db.scalar(
-            select(RequirementVersion).where(
-                RequirementVersion.session_id == session_id,
-                RequirementVersion.version == session_row.current_requirement_version,
-            )
+    except ValueError as exc:
+        raise InvalidInputError(str(exc)) from exc
+    latest = db.scalar(
+        select(RequirementVersion).where(
+            RequirementVersion.session_id == session_id,
+            RequirementVersion.version == session_row.current_requirement_version,
         )
-        if latest is not None and latest.payload == payload:
-            return False, None
+    )
+    if latest is not None and latest.payload == payload:
+        return False, None
 
-        for run in db.scalars(
-            select(WorkflowRun).where(
-                WorkflowRun.session_id == session_id, WorkflowRun.status.in_(OPEN)
-            )
-        ):
-            run.status = WorkStatus.superseded.value
-            run.finished_at = utcnow()
-            append_event(
-                db,
-                session_row,
-                type=EventType.run_superseded,
-                status=WorkStatus.superseded,
-                message=f"요구사항이 바뀌어 v{run.requirement_version} 작업을 중단했습니다",
-                run_id=run.id,
-                requirement_version=run.requirement_version,
-            )
-
-        session_row.current_requirement_version += 1
-        version = session_row.current_requirement_version
-        db.add(
-            RequirementVersion(
-                session_id=session_id,
-                version=version,
-                payload=payload,
-                reason="첫 요구사항" if version == 1 else "요구사항 변경",
-            )
+    for run in db.scalars(
+        select(WorkflowRun).where(
+            WorkflowRun.session_id == session_id, WorkflowRun.status.in_(OPEN)
         )
-        types = ", ".join(pack.product_types().get(t, t) for t in req.product_types)
+    ):
+        run.status = WorkStatus.superseded.value
+        run.finished_at = utcnow()
         append_event(
             db,
             session_row,
-            type=EventType.requirements_updated,
-            status=WorkStatus.completed,
-            team=Team.consultation,
-            message=f"요구사항 v{version} 정리: {types} · 예산 {req.budget_max:,}원",
-            requirement_version=version,
-            artifact=ArtifactRef(kind=ArtifactKind.requirements, id=str(version)),
+            type=EventType.run_superseded,
+            status=WorkStatus.superseded,
+            message=f"요구사항이 바뀌어 v{run.requirement_version} 작업을 중단했습니다",
+            run_id=run.id,
+            requirement_version=run.requirement_version,
         )
-        run_id = _new_run(db, session_id, version)
-    return True, run_id
+
+    session_row.current_requirement_version += 1
+    version = session_row.current_requirement_version
+    db.add(
+        RequirementVersion(
+            session_id=session_id,
+            version=version,
+            payload=payload,
+            reason="첫 요구사항" if version == 1 else "요구사항 변경",
+        )
+    )
+    types = ", ".join(pack.product_types().get(t, t) for t in req.product_types)
+    append_event(
+        db,
+        session_row,
+        type=EventType.requirements_updated,
+        status=WorkStatus.completed,
+        team=Team.consultation,
+        message=f"요구사항 v{version} 정리: {types} · 예산 {req.budget_max:,}원",
+        requirement_version=version,
+        artifact=ArtifactRef(kind=ArtifactKind.requirements, id=str(version)),
+    )
+    return True, _new_run(db, session_id, version)
 
 
 def retry_current(database: Database, session_id: str, company_id: int) -> str:

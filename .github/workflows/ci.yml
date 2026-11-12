@@ -59,6 +59,8 @@ jobs:
         run: uv run --frozen ruff format --check .
       - name: 견본 데이터 형식 검사
         run: uv run --frozen python -m app.seed --check
+      - name: NLU 규칙 기준선 평가 (data/nlu 평가셋)
+        run: uv run --frozen python -m app.nlu.evaluate
       - name: 마이그레이션 — 빈 DB 에서 최신까지 (alembic upgrade head)
         run: uv run --frozen alembic upgrade head
       - name: DB 모델과 마이그레이션 일치 (alembic check)
@@ -158,7 +160,7 @@ jobs:
         working-directory: backend
         run: |
           uv sync --frozen
-          uv run --frozen pytest -q tests/test_catalog_and_domain.py
+          uv run --frozen pytest -q tests/test_catalog_and_domain.py tests/test_hardware_tools.py tests/test_nlu.py tests/test_dialogue.py
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}

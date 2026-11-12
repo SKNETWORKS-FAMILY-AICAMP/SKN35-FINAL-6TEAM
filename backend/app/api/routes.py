@@ -14,7 +14,9 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.companies.service import list_companies
+from app.catalog.repository import list_products
+from app.chat import service as chat_service
+from app.companies.service import get_company, list_companies
 from app.consultation import queries
 from app.consultation.service import (
     create_session,
@@ -24,7 +26,14 @@ from app.consultation.service import (
 )
 from app.contracts.schemas import (
     AgentEventOut,
+    ChatMessageIn,
+    ChatMessageOut,
+    ChatTurnOut,
+    CloudCompareIn,
+    CloudCompareOut,
     CompanyOut,
+    DiagnoseIn,
+    DiagnoseOut,
     HealthOut,
     OrderIn,
     OrderOut,
@@ -34,8 +43,13 @@ from app.contracts.schemas import (
     RequirementsUpdateOut,
     RunOut,
     SessionOut,
+    VramEstimateIn,
+    VramEstimateOut,
 )
 from app.core.db import Database
+from app.core.errors import InvalidInputError, NotFoundError
+from app.domains.hardware import tools as hardware_tools
+from app.domains.hardware.cloud import load_cloud_prices
 from app.events.service import fetch_events, format_sse, list_events
 from app.orders.service import create_order, get_order
 from app.quotations.service import current_quotation
@@ -129,6 +143,34 @@ def post_retry(
     run_id = retry_current(database, session_id, company_id)
     runner.submit(run_id)
     return queries.run_out_by_id(db, run_id)
+
+
+@router.post(
+    "/sessions/{session_id}/messages",
+    response_model=ChatTurnOut,
+    status_code=status.HTTP_201_CREATED,
+    tags=["chat"],
+)
+def post_message(
+    session_id: str,
+    body: ChatMessageIn,
+    request: Request,
+    company_id: CompanyId,
+    database: DatabaseDep,
+    runner: RunnerDep,
+) -> ChatTurnOut:
+    """채팅 상담 메시지 보내기. 조건이 다 모이면 요구사항 새 버전을 만들고 업무팀 실행을 시작합니다."""
+    fixtures_dir = request.app.state.settings.fixtures_dir
+    turn, run_id = chat_service.post_message(database, session_id, company_id, body, fixtures_dir)
+    if run_id is not None:
+        runner.submit(run_id)
+    return turn
+
+
+@router.get("/sessions/{session_id}/messages", response_model=list[ChatMessageOut], tags=["chat"])
+def get_messages(session_id: str, company_id: CompanyId, db: DbSession) -> list[ChatMessageOut]:
+    """채팅 상담 이력(오래된 것부터)."""
+    return chat_service.list_messages(db, get_session_for_company(db, session_id, company_id))
 
 
 @router.get("/sessions/{session_id}/events", response_model=list[AgentEventOut], tags=["events"])
@@ -230,3 +272,44 @@ def post_order(
 @router.get("/orders/{order_id}", response_model=OrderOut, tags=["orders"])
 def get_order_by_id(order_id: str, company_id: CompanyId, db: DbSession) -> OrderOut:
     return get_order(db, company_id, order_id)
+
+
+# ── 하드웨어 도구 — 도메인 팩 hardware 의 계산 규칙(공식 · 가정은 응답에 함께 실림) ─────────
+
+
+def _require_hardware(db: Session, company_id: int) -> None:
+    if get_company(db, company_id).domain != "hardware":
+        raise NotFoundError("이 기업의 도메인에는 하드웨어 도구가 없습니다")
+
+
+@router.post("/tools/vram-estimate", response_model=VramEstimateOut, tags=["tools"])
+def post_vram_estimate(
+    body: VramEstimateIn, company_id: CompanyId, db: DbSession
+) -> VramEstimateOut:
+    """모델 크기 · 정밀도 · 추론/LoRA 로 필요 VRAM 을 추정합니다(근사 — 공식과 가정이 응답에 있습니다)."""
+    _require_hardware(db, company_id)
+    return hardware_tools.estimate(body)
+
+
+@router.post("/tools/diagnose", response_model=DiagnoseOut, tags=["tools"])
+def post_diagnose(body: DiagnoseIn, company_id: CompanyId, db: DbSession) -> DiagnoseOut:
+    """보유 장비로 목표 작업이 되는지 — '업그레이드로 충분 / 새 장비 필요' 판정과 이유."""
+    _require_hardware(db, company_id)
+    products = list_products(db, company_id, list(hardware_tools.CATALOG_TYPES))
+    try:
+        return hardware_tools.diagnose_request(body, products)
+    except hardware_tools.OwnedProductNotFound as exc:
+        raise NotFoundError(str(exc)) from exc
+    except ValueError as exc:
+        raise InvalidInputError(str(exc)) from exc
+
+
+@router.post("/tools/cloud-compare", response_model=CloudCompareOut, tags=["tools"])
+def post_cloud_compare(
+    body: CloudCompareIn, request: Request, company_id: CompanyId, db: DbSession
+) -> CloudCompareOut:
+    """로컬 장비와 클라우드 GPU(가상 가격 견본)의 월 비용 · 손익분기 개월 수."""
+    _require_hardware(db, company_id)
+    sheet = load_cloud_prices(request.app.state.settings.fixtures_dir)
+    products = list_products(db, company_id, list(hardware_tools.CATALOG_TYPES))
+    return hardware_tools.cloud_compare_request(body, products, sheet)

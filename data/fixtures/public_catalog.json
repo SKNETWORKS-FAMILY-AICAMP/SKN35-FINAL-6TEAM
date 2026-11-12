@@ -1,55 +1,55 @@
 {
-  "_설명": "공개 멀티브랜드 견본 카탈로그. 브랜드·모델·사양·가격은 모두 가상입니다(data_status=test). 실제 공식 자료를 넣을 때는 source_url 과 data_status 를 채웁니다.",
+  "_설명": "공개 멀티브랜드 견본 카탈로그. 브랜드·모델·사양·가격은 모두 가상입니다(data_status=test). 램 온보드 여부·최대 램·빈 램 슬롯·빈 M.2 슬롯도 가상 값입니다(업그레이드 진단 견본). 실제 공식 자료를 넣을 때는 source_url 과 data_status 를 채웁니다.",
   "products": [
     {
       "sku": "PUB-LT-001", "product_type": "laptop", "brand": "알파컴(가상)", "model_name": "AirLite 14",
       "price_amount": 1290000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 8코어 저전력", "cpu_cores": 8, "ram_gb": 16, "storage_gb": 512, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "display_inch": 14.0, "weight_kg": 1.12, "battery_wh": 60}
+      "attributes": {"cpu": "가상 8코어 저전력", "cpu_cores": 8, "ram_gb": 16, "storage_gb": 512, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "display_inch": 14.0, "weight_kg": 1.12, "battery_wh": 60, "ram_onboard": true, "ram_max_gb": 16, "ram_slots_free": 0, "m2_slots_free": 0}
     },
     {
       "sku": "PUB-LT-002", "product_type": "laptop", "brand": "알파컴(가상)", "model_name": "AirLite 16 Pro",
       "price_amount": 2190000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 12코어", "cpu_cores": 12, "ram_gb": 32, "storage_gb": 1024, "gpu": "가상 외장 8GB", "gpu_vram_gb": 8, "display_inch": 16.0, "weight_kg": 1.85, "battery_wh": 80}
+      "attributes": {"cpu": "가상 12코어", "cpu_cores": 12, "ram_gb": 32, "storage_gb": 1024, "gpu": "가상 외장 8GB", "gpu_vram_gb": 8, "display_inch": 16.0, "weight_kg": 1.85, "battery_wh": 80, "ram_onboard": false, "ram_max_gb": 64, "ram_slots_free": 0, "m2_slots_free": 1}
     },
     {
       "sku": "PUB-LT-003", "product_type": "laptop", "brand": "베타테크(가상)", "model_name": "Creator 15",
       "price_amount": 3390000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 16코어", "cpu_cores": 16, "ram_gb": 64, "storage_gb": 2048, "gpu": "가상 외장 12GB", "gpu_vram_gb": 12, "display_inch": 15.6, "weight_kg": 2.1, "battery_wh": 90}
+      "attributes": {"cpu": "가상 16코어", "cpu_cores": 16, "ram_gb": 64, "storage_gb": 2048, "gpu": "가상 외장 12GB", "gpu_vram_gb": 12, "display_inch": 15.6, "weight_kg": 2.1, "battery_wh": 90, "ram_onboard": false, "ram_max_gb": 96, "ram_slots_free": 0, "m2_slots_free": 1}
     },
     {
       "sku": "PUB-LT-004", "product_type": "laptop", "brand": "베타테크(가상)", "model_name": "Office 15",
       "price_amount": 690000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 6코어", "cpu_cores": 6, "ram_gb": 8, "storage_gb": 256, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "display_inch": 15.6, "weight_kg": 1.7}
+      "attributes": {"cpu": "가상 6코어", "cpu_cores": 6, "ram_gb": 8, "storage_gb": 256, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "display_inch": 15.6, "weight_kg": 1.7, "ram_onboard": false, "ram_max_gb": 32, "ram_slots_free": 1, "m2_slots_free": 0}
     },
     {
       "sku": "PUB-LT-005", "product_type": "laptop", "brand": "감마시스템즈(가상)", "model_name": "Gamer 17",
       "price_amount": 2790000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 14코어", "cpu_cores": 14, "ram_gb": 32, "storage_gb": 1024, "gpu": "가상 외장 12GB", "gpu_vram_gb": 12, "display_inch": 17.3, "weight_kg": 2.6, "battery_wh": 90}
+      "attributes": {"cpu": "가상 14코어", "cpu_cores": 14, "ram_gb": 32, "storage_gb": 1024, "gpu": "가상 외장 12GB", "gpu_vram_gb": 12, "display_inch": 17.3, "weight_kg": 2.6, "battery_wh": 90, "ram_onboard": false, "ram_max_gb": 64, "ram_slots_free": 0, "m2_slots_free": 1}
     },
     {
       "sku": "PUB-LT-006", "product_type": "laptop", "brand": "델타비전(가상)", "model_name": "Slim 13",
       "price_amount": 1490000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 8코어", "cpu_cores": 8, "ram_gb": 16, "storage_gb": 512, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "display_inch": 13.3, "weight_kg": 0.99, "battery_wh": 55}
+      "attributes": {"cpu": "가상 8코어", "cpu_cores": 8, "ram_gb": 16, "storage_gb": 512, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "display_inch": 13.3, "weight_kg": 0.99, "battery_wh": 55, "ram_onboard": true, "ram_max_gb": 16, "ram_slots_free": 0, "m2_slots_free": 0}
     },
     {
       "sku": "PUB-DT-001", "product_type": "desktop", "brand": "감마시스템즈(가상)", "model_name": "Tower R7",
       "price_amount": 1890000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 8코어", "cpu_cores": 8, "ram_gb": 32, "storage_gb": 1024, "gpu": "가상 외장 12GB", "gpu_vram_gb": 12, "psu_w": 750, "form_factor": "미들타워"}
+      "attributes": {"cpu": "가상 8코어", "cpu_cores": 8, "ram_gb": 32, "storage_gb": 1024, "gpu": "가상 외장 12GB", "gpu_vram_gb": 12, "psu_w": 750, "form_factor": "미들타워", "ram_onboard": false, "ram_max_gb": 128, "ram_slots_free": 2, "m2_slots_free": 2}
     },
     {
       "sku": "PUB-DT-002", "product_type": "desktop", "brand": "감마시스템즈(가상)", "model_name": "Tower R9",
       "price_amount": 3990000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 16코어", "cpu_cores": 16, "ram_gb": 64, "storage_gb": 2048, "gpu": "가상 외장 24GB", "gpu_vram_gb": 24, "psu_w": 1000, "form_factor": "빅타워"}
+      "attributes": {"cpu": "가상 16코어", "cpu_cores": 16, "ram_gb": 64, "storage_gb": 2048, "gpu": "가상 외장 24GB", "gpu_vram_gb": 24, "psu_w": 1000, "form_factor": "빅타워", "ram_onboard": false, "ram_max_gb": 192, "ram_slots_free": 2, "m2_slots_free": 2}
     },
     {
       "sku": "PUB-DT-003", "product_type": "desktop", "brand": "알파컴(가상)", "model_name": "Mini Office",
       "price_amount": 590000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 6코어", "cpu_cores": 6, "ram_gb": 16, "storage_gb": 512, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "psu_w": 120, "form_factor": "미니PC"}
+      "attributes": {"cpu": "가상 6코어", "cpu_cores": 6, "ram_gb": 16, "storage_gb": 512, "gpu": "내장 그래픽", "gpu_vram_gb": 0, "psu_w": 120, "form_factor": "미니PC", "ram_onboard": false, "ram_max_gb": 64, "ram_slots_free": 1, "m2_slots_free": 1}
     },
     {
       "sku": "PUB-DT-004", "product_type": "desktop", "brand": "베타테크(가상)", "model_name": "Studio",
       "price_amount": 2690000, "price_status": "test", "data_status": "test", "source_note": "가상 견본",
-      "attributes": {"cpu": "가상 12코어", "cpu_cores": 12, "ram_gb": 32, "storage_gb": 2048, "gpu": "가상 외장 16GB", "gpu_vram_gb": 16, "psu_w": 850, "form_factor": "미들타워"}
+      "attributes": {"cpu": "가상 12코어", "cpu_cores": 12, "ram_gb": 32, "storage_gb": 2048, "gpu": "가상 외장 16GB", "gpu_vram_gb": 16, "psu_w": 850, "form_factor": "미들타워", "ram_onboard": false, "ram_max_gb": 128, "ram_slots_free": 2, "m2_slots_free": 1}
     },
     {
       "sku": "PUB-GPU-001", "product_type": "gpu", "brand": "오메가칩(가상)", "model_name": "G60 8GB",

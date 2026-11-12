@@ -103,14 +103,18 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.check:
-            for seed in read_seeds(settings.fixtures_dir):
+            seeds = read_seeds(settings.fixtures_dir)
+            for seed in seeds:
                 products = load_catalog(seed, settings.fixtures_dir)
                 print(f"[seed] {seed.slug}: 상품 {len(products)}개 형식 확인")
+            for domain in sorted({seed.domain for seed in seeds}):
+                for line in get_pack(domain).check_reference_data(settings.fixtures_dir):
+                    print(f"[seed] {domain}: {line}")
             return 0
         database = Database(settings.database_url)
         counts = seed_database(database, settings.fixtures_dir)
         database.dispose()
-    except CatalogLoadError as exc:
+    except (CatalogLoadError, ValueError) as exc:
         print(f"[seed] 실패: {exc}", file=sys.stderr)
         return 1
     for slug, count in counts.items():

@@ -8,7 +8,7 @@
 
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 
@@ -289,3 +289,195 @@ class HealthOut(ContractModel):
     status: str
     mode: str
     database: str
+
+
+# ── 하드웨어 도구 (도메인 팩 hardware 의 계산 규칙을 API 로 노출) ──────────
+
+
+class Precision(StrEnum):
+    """모델 가중치 정밀도. 파라미터 1개당 바이트: fp32 4 · fp16 2 · int8 1 · int4 0.5"""
+
+    fp32 = "fp32"
+    fp16 = "fp16"  # bf16 포함
+    int8 = "int8"
+    int4 = "int4"  # 4비트 양자화(QLoRA · GPTQ · AWQ 등)
+
+
+class Workload(StrEnum):
+    inference = "inference"  # 추론(모델 실행)
+    lora = "lora"  # LoRA · QLoRA 미세조정(학습)
+
+
+class VramEstimateIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    model_params_b: float = Field(
+        gt=0, le=2000, description="모델 파라미터 수(10억 단위). 예: 7B 모델 → 7"
+    )
+    precision: Precision = Field(default=Precision.fp16, description="가중치 정밀도")
+    workload: Workload = Field(default=Workload.inference, description="추론 또는 LoRA 학습")
+
+
+class VramEstimateOut(ContractModel):
+    model_params_b: float
+    precision: Precision
+    workload: Workload
+    bytes_per_param: float
+    weights_gb: float = Field(description="가중치 = 파라미터(B) × 정밀도별 바이트")
+    overhead_factor: float = Field(description="여유 계수(KV 캐시 · 활성값 · 런타임)")
+    training_extra_gb: float = Field(description="LoRA 학습 추가분. 추론이면 0")
+    required_vram_gb: float = Field(description="필요 VRAM(GB, 소수 첫째 자리 올림)")
+    formula: str
+    assumptions: list[str]
+
+
+class DiagnoseIn(BaseModel):
+    """보유 장비로 목표 작업이 되는지 진단. owned_sku 를 주면 그 상품 사양을 기본값으로 쓰고, 직접 준 값이 우선합니다."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    target: VramEstimateIn
+    owned_sku: str | None = Field(
+        default=None, max_length=64, description="이 기업 카탈로그의 상품코드(보유 장비)"
+    )
+    device_type: Literal["laptop", "desktop"] | None = Field(
+        default=None, description="보유 장비 종류. owned_sku 가 없으면 필요"
+    )
+    ram_gb: int | None = Field(default=None, ge=0, le=4096)
+    ram_onboard: bool | None = Field(
+        default=None, description="램이 기판에 붙어 있어(온보드) 증설 · 교체가 안 되는지"
+    )
+    ram_max_gb: int | None = Field(default=None, ge=1, le=4096, description="지원 최대 램")
+    ram_slots_free: int | None = Field(default=None, ge=0, le=16, description="빈 램 슬롯 수")
+    storage_gb: int | None = Field(default=None, ge=0, le=1_000_000)
+    m2_slots_free: int | None = Field(default=None, ge=0, le=16, description="빈 M.2 슬롯 수")
+    gpu_vram_gb: int | None = Field(default=None, ge=0, le=1024, description="0 이면 내장 그래픽")
+    needed_storage_gb: int | None = Field(
+        default=None, ge=1, le=1_000_000, description="필요 저장공간. 없으면 모델 크기로 추정"
+    )
+
+
+class DiagnosisItemOut(ContractModel):
+    component: str = Field(description="vram | ram | storage")
+    status: str = Field(description="ok | upgrade | new_device | unknown")
+    have: str
+    need: str
+    detail: str
+
+
+class DiagnoseOut(ContractModel):
+    verdict: str = Field(
+        description="no_change | upgrade_sufficient | new_device_needed | needs_check"
+    )
+    verdict_label: str
+    device_type: str | None
+    items: list[DiagnosisItemOut]
+    estimate: VramEstimateOut
+    required_ram_gb: int
+    required_storage_gb: int
+    reasons: list[str]
+    assumptions: list[str]
+
+
+class CloudCompareIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    target: VramEstimateIn
+    weekly_hours: float = Field(gt=0, le=168, description="주당 GPU 사용 시간")
+    local_price_krw: int | None = Field(
+        default=None,
+        gt=0,
+        le=1_000_000_000,
+        description="비교할 로컬 장비 가격. 없으면 이 기업 카탈로그에서 조건에 맞는 가장 싼 상품",
+    )
+
+
+class CloudOfferOut(ContractModel):
+    provider: str
+    gpu_name: str
+    vram_gb: int
+    price_per_hour_krw: int
+    data_status: str
+
+
+class LocalOptionOut(ContractModel):
+    source: str = Field(description="input(직접 입력) | catalog(이 기업 카탈로그)")
+    sku: str | None
+    label: str
+    price_krw: int
+    data_status: str
+
+
+class CloudCompareOut(ContractModel):
+    estimate: VramEstimateOut
+    weekly_hours: float
+    offer: CloudOfferOut | None = Field(description="조건을 만족하는 가장 싼 클라우드 GPU")
+    monthly_cloud_cost_krw: int | None
+    local_option: LocalOptionOut | None
+    breakeven_months: float | None = Field(
+        description="로컬 장비 가격 ÷ 월 클라우드 비용. 가격 미확인이면 null"
+    )
+    summary: str
+    assumptions: list[str]
+    is_test_data: bool = Field(default=True, description="가상 공급자 · 가상 가격(테스트 데이터)")
+
+
+# ── 채팅 상담 (텍스트 + 선택지) ───────────────────────────────────────
+
+SlotValue = int | float | str | list[str]
+
+
+class QuickReplyOut(ContractModel):
+    """선택지(칩). 누르면 label 을 메시지로 보내고 slot · value 를 함께 보냅니다."""
+
+    label: str
+    slot: str | None = Field(
+        default=None, description="이 선택지가 채우는 슬롯. intent 면 의도를 바꿉니다"
+    )
+    value: str | None = None
+
+
+class QuickReplyIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    slot: str = Field(min_length=1, max_length=40)
+    value: str = Field(min_length=1, max_length=80)
+
+
+class ChatMessageIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str = Field(
+        min_length=1, max_length=500, description="고객이 입력한 글(또는 고른 선택지의 글)"
+    )
+    quick_reply: QuickReplyIn | None = Field(default=None, description="선택지를 눌렀을 때만")
+
+
+class NluOut(ContractModel):
+    intent: str = Field(
+        description="new_recommendation | upgrade_diagnosis | compatibility_question"
+        " | quote_request | cloud_comparison | other"
+    )
+    confidence: float = Field(description="0~1. 규칙 기준선은 점수 비율(확률 보정 안 됨)")
+    slots: dict[str, SlotValue] = Field(description="발화에서 뽑은 조건. 예: budget_max, purpose")
+    source: str = Field(description="rules(규칙 기준선) — 3주차 학습 모델이면 model")
+
+
+class ChatMessageOut(ContractModel):
+    id: int
+    session_id: str
+    role: str = Field(description="user(고객) | assistant(AI 상담 직원)")
+    content: str
+    quick_replies: list[QuickReplyOut] = Field(
+        description="assistant: 제시한 선택지 · user: 고른 선택지(있으면)"
+    )
+    nlu: NluOut | None = Field(description="고객 메시지의 발화 이해 결과")
+    created_at: UtcDatetime
+
+
+class ChatTurnOut(ContractModel):
+    user_message: ChatMessageOut
+    assistant_message: ChatMessageOut
+    requirements_changed: bool = Field(description="이 메시지로 요구사항 새 버전이 생겼는지")
+    run_id: str | None = Field(description="새로 시작한 업무팀 실행 id")
+    requirement_version: int

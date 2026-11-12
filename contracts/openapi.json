@@ -137,6 +137,282 @@
         "title": "ArtifactRef",
         "type": "object"
       },
+      "ChatMessageIn": {
+        "additionalProperties": false,
+        "properties": {
+          "quick_reply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuickReplyIn"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "선택지를 눌렀을 때만"
+          },
+          "text": {
+            "description": "고객이 입력한 글(또는 고른 선택지의 글)",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "ChatMessageIn",
+        "type": "object"
+      },
+      "ChatMessageOut": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "nlu": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NluOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "고객 메시지의 발화 이해 결과"
+          },
+          "quick_replies": {
+            "description": "assistant: 제시한 선택지 · user: 고른 선택지(있으면)",
+            "items": {
+              "$ref": "#/components/schemas/QuickReplyOut"
+            },
+            "title": "Quick Replies",
+            "type": "array"
+          },
+          "role": {
+            "description": "user(고객) | assistant(AI 상담 직원)",
+            "title": "Role",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "role",
+          "content",
+          "quick_replies",
+          "nlu",
+          "created_at"
+        ],
+        "title": "ChatMessageOut",
+        "type": "object"
+      },
+      "ChatTurnOut": {
+        "properties": {
+          "assistant_message": {
+            "$ref": "#/components/schemas/ChatMessageOut"
+          },
+          "requirement_version": {
+            "title": "Requirement Version",
+            "type": "integer"
+          },
+          "requirements_changed": {
+            "description": "이 메시지로 요구사항 새 버전이 생겼는지",
+            "title": "Requirements Changed",
+            "type": "boolean"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "새로 시작한 업무팀 실행 id",
+            "title": "Run Id"
+          },
+          "user_message": {
+            "$ref": "#/components/schemas/ChatMessageOut"
+          }
+        },
+        "required": [
+          "user_message",
+          "assistant_message",
+          "requirements_changed",
+          "run_id",
+          "requirement_version"
+        ],
+        "title": "ChatTurnOut",
+        "type": "object"
+      },
+      "CloudCompareIn": {
+        "additionalProperties": false,
+        "properties": {
+          "local_price_krw": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1000000000.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "비교할 로컬 장비 가격. 없으면 이 기업 카탈로그에서 조건에 맞는 가장 싼 상품",
+            "title": "Local Price Krw"
+          },
+          "target": {
+            "$ref": "#/components/schemas/VramEstimateIn"
+          },
+          "weekly_hours": {
+            "description": "주당 GPU 사용 시간",
+            "exclusiveMinimum": 0.0,
+            "maximum": 168.0,
+            "title": "Weekly Hours",
+            "type": "number"
+          }
+        },
+        "required": [
+          "target",
+          "weekly_hours"
+        ],
+        "title": "CloudCompareIn",
+        "type": "object"
+      },
+      "CloudCompareOut": {
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "breakeven_months": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "로컬 장비 가격 ÷ 월 클라우드 비용. 가격 미확인이면 null",
+            "title": "Breakeven Months"
+          },
+          "estimate": {
+            "$ref": "#/components/schemas/VramEstimateOut"
+          },
+          "is_test_data": {
+            "default": true,
+            "description": "가상 공급자 · 가상 가격(테스트 데이터)",
+            "title": "Is Test Data",
+            "type": "boolean"
+          },
+          "local_option": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocalOptionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "monthly_cloud_cost_krw": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Cloud Cost Krw"
+          },
+          "offer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CloudOfferOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "조건을 만족하는 가장 싼 클라우드 GPU"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "weekly_hours": {
+            "title": "Weekly Hours",
+            "type": "number"
+          }
+        },
+        "required": [
+          "estimate",
+          "weekly_hours",
+          "offer",
+          "monthly_cloud_cost_krw",
+          "local_option",
+          "breakeven_months",
+          "summary",
+          "assumptions"
+        ],
+        "title": "CloudCompareOut",
+        "type": "object"
+      },
+      "CloudOfferOut": {
+        "properties": {
+          "data_status": {
+            "title": "Data Status",
+            "type": "string"
+          },
+          "gpu_name": {
+            "title": "Gpu Name",
+            "type": "string"
+          },
+          "price_per_hour_krw": {
+            "title": "Price Per Hour Krw",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "vram_gb": {
+            "title": "Vram Gb",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "provider",
+          "gpu_name",
+          "vram_gb",
+          "price_per_hour_krw",
+          "data_status"
+        ],
+        "title": "CloudOfferOut",
+        "type": "object"
+      },
       "CompanyOut": {
         "properties": {
           "description": {
@@ -228,6 +504,261 @@
         "title": "CompanyPolicyOut",
         "type": "object"
       },
+      "DiagnoseIn": {
+        "additionalProperties": false,
+        "description": "보유 장비로 목표 작업이 되는지 진단. owned_sku 를 주면 그 상품 사양을 기본값으로 쓰고, 직접 준 값이 우선합니다.",
+        "properties": {
+          "device_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "laptop",
+                  "desktop"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "보유 장비 종류. owned_sku 가 없으면 필요",
+            "title": "Device Type"
+          },
+          "gpu_vram_gb": {
+            "anyOf": [
+              {
+                "maximum": 1024.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "0 이면 내장 그래픽",
+            "title": "Gpu Vram Gb"
+          },
+          "m2_slots_free": {
+            "anyOf": [
+              {
+                "maximum": 16.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "빈 M.2 슬롯 수",
+            "title": "M2 Slots Free"
+          },
+          "needed_storage_gb": {
+            "anyOf": [
+              {
+                "maximum": 1000000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "필요 저장공간. 없으면 모델 크기로 추정",
+            "title": "Needed Storage Gb"
+          },
+          "owned_sku": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "이 기업 카탈로그의 상품코드(보유 장비)",
+            "title": "Owned Sku"
+          },
+          "ram_gb": {
+            "anyOf": [
+              {
+                "maximum": 4096.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ram Gb"
+          },
+          "ram_max_gb": {
+            "anyOf": [
+              {
+                "maximum": 4096.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "지원 최대 램",
+            "title": "Ram Max Gb"
+          },
+          "ram_onboard": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "램이 기판에 붙어 있어(온보드) 증설 · 교체가 안 되는지",
+            "title": "Ram Onboard"
+          },
+          "ram_slots_free": {
+            "anyOf": [
+              {
+                "maximum": 16.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "빈 램 슬롯 수",
+            "title": "Ram Slots Free"
+          },
+          "storage_gb": {
+            "anyOf": [
+              {
+                "maximum": 1000000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storage Gb"
+          },
+          "target": {
+            "$ref": "#/components/schemas/VramEstimateIn"
+          }
+        },
+        "required": [
+          "target"
+        ],
+        "title": "DiagnoseIn",
+        "type": "object"
+      },
+      "DiagnoseOut": {
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "device_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Type"
+          },
+          "estimate": {
+            "$ref": "#/components/schemas/VramEstimateOut"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DiagnosisItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "required_ram_gb": {
+            "title": "Required Ram Gb",
+            "type": "integer"
+          },
+          "required_storage_gb": {
+            "title": "Required Storage Gb",
+            "type": "integer"
+          },
+          "verdict": {
+            "description": "no_change | upgrade_sufficient | new_device_needed | needs_check",
+            "title": "Verdict",
+            "type": "string"
+          },
+          "verdict_label": {
+            "title": "Verdict Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "verdict_label",
+          "device_type",
+          "items",
+          "estimate",
+          "required_ram_gb",
+          "required_storage_gb",
+          "reasons",
+          "assumptions"
+        ],
+        "title": "DiagnoseOut",
+        "type": "object"
+      },
+      "DiagnosisItemOut": {
+        "properties": {
+          "component": {
+            "description": "vram | ram | storage",
+            "title": "Component",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "have": {
+            "title": "Have",
+            "type": "string"
+          },
+          "need": {
+            "title": "Need",
+            "type": "string"
+          },
+          "status": {
+            "description": "ok | upgrade | new_device | unknown",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "component",
+          "status",
+          "have",
+          "need",
+          "detail"
+        ],
+        "title": "DiagnosisItemOut",
+        "type": "object"
+      },
       "EventError": {
         "properties": {
           "code": {
@@ -308,6 +839,98 @@
         "title": "HealthOut",
         "type": "object"
       },
+      "LocalOptionOut": {
+        "properties": {
+          "data_status": {
+            "title": "Data Status",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "price_krw": {
+            "title": "Price Krw",
+            "type": "integer"
+          },
+          "sku": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sku"
+          },
+          "source": {
+            "description": "input(직접 입력) | catalog(이 기업 카탈로그)",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "sku",
+          "label",
+          "price_krw",
+          "data_status"
+        ],
+        "title": "LocalOptionOut",
+        "type": "object"
+      },
+      "NluOut": {
+        "properties": {
+          "confidence": {
+            "description": "0~1. 규칙 기준선은 점수 비율(확률 보정 안 됨)",
+            "title": "Confidence",
+            "type": "number"
+          },
+          "intent": {
+            "description": "new_recommendation | upgrade_diagnosis | compatibility_question | quote_request | cloud_comparison | other",
+            "title": "Intent",
+            "type": "string"
+          },
+          "slots": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "description": "발화에서 뽑은 조건. 예: budget_max, purpose",
+            "title": "Slots",
+            "type": "object"
+          },
+          "source": {
+            "description": "rules(규칙 기준선) — 3주차 학습 모델이면 model",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intent",
+          "confidence",
+          "slots",
+          "source"
+        ],
+        "title": "NluOut",
+        "type": "object"
+      },
       "OrderIn": {
         "additionalProperties": false,
         "properties": {
@@ -371,6 +994,17 @@
         ],
         "title": "OrderOut",
         "type": "object"
+      },
+      "Precision": {
+        "description": "모델 가중치 정밀도. 파라미터 1개당 바이트: fp32 4 · fp16 2 · int8 1 · int4 0.5",
+        "enum": [
+          "fp32",
+          "fp16",
+          "int8",
+          "int4"
+        ],
+        "title": "Precision",
+        "type": "string"
       },
       "ProductOut": {
         "properties": {
@@ -468,6 +1102,66 @@
           "label"
         ],
         "title": "ProductTypeOut",
+        "type": "object"
+      },
+      "QuickReplyIn": {
+        "additionalProperties": false,
+        "properties": {
+          "slot": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Slot",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slot",
+          "value"
+        ],
+        "title": "QuickReplyIn",
+        "type": "object"
+      },
+      "QuickReplyOut": {
+        "description": "선택지(칩). 누르면 label 을 메시지로 보내고 slot · value 를 함께 보냅니다.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "slot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "이 선택지가 채우는 슬롯. intent 면 의도를 바꿉니다",
+            "title": "Slot"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "QuickReplyOut",
         "type": "object"
       },
       "QuotationItemOut": {
@@ -1094,6 +1788,96 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "VramEstimateIn": {
+        "additionalProperties": false,
+        "properties": {
+          "model_params_b": {
+            "description": "모델 파라미터 수(10억 단위). 예: 7B 모델 → 7",
+            "exclusiveMinimum": 0.0,
+            "maximum": 2000.0,
+            "title": "Model Params B",
+            "type": "number"
+          },
+          "precision": {
+            "$ref": "#/components/schemas/Precision",
+            "default": "fp16",
+            "description": "가중치 정밀도"
+          },
+          "workload": {
+            "$ref": "#/components/schemas/Workload",
+            "default": "inference",
+            "description": "추론 또는 LoRA 학습"
+          }
+        },
+        "required": [
+          "model_params_b"
+        ],
+        "title": "VramEstimateIn",
+        "type": "object"
+      },
+      "VramEstimateOut": {
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "bytes_per_param": {
+            "title": "Bytes Per Param",
+            "type": "number"
+          },
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "model_params_b": {
+            "title": "Model Params B",
+            "type": "number"
+          },
+          "overhead_factor": {
+            "description": "여유 계수(KV 캐시 · 활성값 · 런타임)",
+            "title": "Overhead Factor",
+            "type": "number"
+          },
+          "precision": {
+            "$ref": "#/components/schemas/Precision"
+          },
+          "required_vram_gb": {
+            "description": "필요 VRAM(GB, 소수 첫째 자리 올림)",
+            "title": "Required Vram Gb",
+            "type": "number"
+          },
+          "training_extra_gb": {
+            "description": "LoRA 학습 추가분. 추론이면 0",
+            "title": "Training Extra Gb",
+            "type": "number"
+          },
+          "weights_gb": {
+            "description": "가중치 = 파라미터(B) × 정밀도별 바이트",
+            "title": "Weights Gb",
+            "type": "number"
+          },
+          "workload": {
+            "$ref": "#/components/schemas/Workload"
+          }
+        },
+        "required": [
+          "model_params_b",
+          "precision",
+          "workload",
+          "bytes_per_param",
+          "weights_gb",
+          "overhead_factor",
+          "training_extra_gb",
+          "required_vram_gb",
+          "formula",
+          "assumptions"
+        ],
+        "title": "VramEstimateOut",
+        "type": "object"
+      },
       "WorkStatus": {
         "description": "작업·실행 상태. 화면 애니메이션도 이 값만 따릅니다.",
         "enum": [
@@ -1107,6 +1891,14 @@
           "superseded"
         ],
         "title": "WorkStatus",
+        "type": "string"
+      },
+      "Workload": {
+        "enum": [
+          "inference",
+          "lora"
+        ],
+        "title": "Workload",
         "type": "string"
       }
     }
@@ -1548,6 +2340,126 @@
         ]
       }
     },
+    "/api/sessions/{session_id}/messages": {
+      "get": {
+        "description": "채팅 상담 이력(오래된 것부터).",
+        "operationId": "get_messages_api_sessions__session_id__messages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMessageOut"
+                  },
+                  "title": "Response Get Messages Api Sessions  Session Id  Messages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Messages",
+        "tags": [
+          "chat"
+        ]
+      },
+      "post": {
+        "description": "채팅 상담 메시지 보내기. 조건이 다 모이면 요구사항 새 버전을 만들고 업무팀 실행을 시작합니다.",
+        "operationId": "post_message_api_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatMessageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatTurnOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Message",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
     "/api/sessions/{session_id}/quotation": {
       "get": {
         "operationId": "get_quotation_api_sessions__session_id__quotation_get",
@@ -1771,6 +2683,171 @@
         "summary": "Post Retry",
         "tags": [
           "consultation"
+        ]
+      }
+    },
+    "/api/tools/cloud-compare": {
+      "post": {
+        "description": "로컬 장비와 클라우드 GPU(가상 가격 견본)의 월 비용 · 손익분기 개월 수.",
+        "operationId": "post_cloud_compare_api_tools_cloud_compare_post",
+        "parameters": [
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudCompareIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudCompareOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Cloud Compare",
+        "tags": [
+          "tools"
+        ]
+      }
+    },
+    "/api/tools/diagnose": {
+      "post": {
+        "description": "보유 장비로 목표 작업이 되는지 — '업그레이드로 충분 / 새 장비 필요' 판정과 이유.",
+        "operationId": "post_diagnose_api_tools_diagnose_post",
+        "parameters": [
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnoseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnoseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Diagnose",
+        "tags": [
+          "tools"
+        ]
+      }
+    },
+    "/api/tools/vram-estimate": {
+      "post": {
+        "description": "모델 크기 · 정밀도 · 추론/LoRA 로 필요 VRAM 을 추정합니다(근사 — 공식과 가정이 응답에 있습니다).",
+        "operationId": "post_vram_estimate_api_tools_vram_estimate_post",
+        "parameters": [
+          {
+            "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": true,
+            "schema": {
+              "description": "시연용 기업 전환 값입니다. 인증이 아닙니다.",
+              "title": "X-Company-Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VramEstimateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VramEstimateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Vram Estimate",
+        "tags": [
+          "tools"
         ]
       }
     }

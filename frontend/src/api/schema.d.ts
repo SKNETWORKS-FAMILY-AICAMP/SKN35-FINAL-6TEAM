@@ -143,6 +143,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sessions/{session_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Messages
+         * @description 채팅 상담 이력(오래된 것부터).
+         */
+        get: operations["get_messages_api_sessions__session_id__messages_get"];
+        put?: never;
+        /**
+         * Post Message
+         * @description 채팅 상담 메시지 보내기. 조건이 다 모이면 요구사항 새 버전을 만들고 업무팀 실행을 시작합니다.
+         */
+        post: operations["post_message_api_sessions__session_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sessions/{session_id}/quotation": {
         parameters: {
             query?: never;
@@ -211,6 +235,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/cloud-compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Cloud Compare
+         * @description 로컬 장비와 클라우드 GPU(가상 가격 견본)의 월 비용 · 손익분기 개월 수.
+         */
+        post: operations["post_cloud_compare_api_tools_cloud_compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/diagnose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Diagnose
+         * @description 보유 장비로 목표 작업이 되는지 — '업그레이드로 충분 / 새 장비 필요' 판정과 이유.
+         */
+        post: operations["post_diagnose_api_tools_diagnose_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tools/vram-estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Vram Estimate
+         * @description 모델 크기 · 정밀도 · 추론/LoRA 로 필요 VRAM 을 추정합니다(근사 — 공식과 가정이 응답에 있습니다).
+         */
+        post: operations["post_vram_estimate_api_tools_vram_estimate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -265,6 +349,112 @@ export interface components {
             id: string;
             kind: components["schemas"]["ArtifactKind"];
         };
+        /** ChatMessageIn */
+        ChatMessageIn: {
+            /** @description 선택지를 눌렀을 때만 */
+            quick_reply?: components["schemas"]["QuickReplyIn"] | null;
+            /**
+             * Text
+             * @description 고객이 입력한 글(또는 고른 선택지의 글)
+             */
+            text: string;
+        };
+        /** ChatMessageOut */
+        ChatMessageOut: {
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** @description 고객 메시지의 발화 이해 결과 */
+            nlu: components["schemas"]["NluOut"] | null;
+            /**
+             * Quick Replies
+             * @description assistant: 제시한 선택지 · user: 고른 선택지(있으면)
+             */
+            quick_replies: components["schemas"]["QuickReplyOut"][];
+            /**
+             * Role
+             * @description user(고객) | assistant(AI 상담 직원)
+             */
+            role: string;
+            /** Session Id */
+            session_id: string;
+        };
+        /** ChatTurnOut */
+        ChatTurnOut: {
+            assistant_message: components["schemas"]["ChatMessageOut"];
+            /** Requirement Version */
+            requirement_version: number;
+            /**
+             * Requirements Changed
+             * @description 이 메시지로 요구사항 새 버전이 생겼는지
+             */
+            requirements_changed: boolean;
+            /**
+             * Run Id
+             * @description 새로 시작한 업무팀 실행 id
+             */
+            run_id: string | null;
+            user_message: components["schemas"]["ChatMessageOut"];
+        };
+        /** CloudCompareIn */
+        CloudCompareIn: {
+            /**
+             * Local Price Krw
+             * @description 비교할 로컬 장비 가격. 없으면 이 기업 카탈로그에서 조건에 맞는 가장 싼 상품
+             */
+            local_price_krw?: number | null;
+            target: components["schemas"]["VramEstimateIn"];
+            /**
+             * Weekly Hours
+             * @description 주당 GPU 사용 시간
+             */
+            weekly_hours: number;
+        };
+        /** CloudCompareOut */
+        CloudCompareOut: {
+            /** Assumptions */
+            assumptions: string[];
+            /**
+             * Breakeven Months
+             * @description 로컬 장비 가격 ÷ 월 클라우드 비용. 가격 미확인이면 null
+             */
+            breakeven_months: number | null;
+            estimate: components["schemas"]["VramEstimateOut"];
+            /**
+             * Is Test Data
+             * @description 가상 공급자 · 가상 가격(테스트 데이터)
+             * @default true
+             */
+            is_test_data: boolean;
+            local_option: components["schemas"]["LocalOptionOut"] | null;
+            /** Monthly Cloud Cost Krw */
+            monthly_cloud_cost_krw: number | null;
+            /** @description 조건을 만족하는 가장 싼 클라우드 GPU */
+            offer: components["schemas"]["CloudOfferOut"] | null;
+            /** Summary */
+            summary: string;
+            /** Weekly Hours */
+            weekly_hours: number;
+        };
+        /** CloudOfferOut */
+        CloudOfferOut: {
+            /** Data Status */
+            data_status: string;
+            /** Gpu Name */
+            gpu_name: string;
+            /** Price Per Hour Krw */
+            price_per_hour_krw: number;
+            /** Provider */
+            provider: string;
+            /** Vram Gb */
+            vram_gb: number;
+        };
         /** CompanyOut */
         CompanyOut: {
             /** Description */
@@ -299,6 +489,99 @@ export interface components {
             /** Shipping Fee */
             shipping_fee: number;
         };
+        /**
+         * DiagnoseIn
+         * @description 보유 장비로 목표 작업이 되는지 진단. owned_sku 를 주면 그 상품 사양을 기본값으로 쓰고, 직접 준 값이 우선합니다.
+         */
+        DiagnoseIn: {
+            /**
+             * Device Type
+             * @description 보유 장비 종류. owned_sku 가 없으면 필요
+             */
+            device_type?: "laptop" | "desktop" | null;
+            /**
+             * Gpu Vram Gb
+             * @description 0 이면 내장 그래픽
+             */
+            gpu_vram_gb?: number | null;
+            /**
+             * M2 Slots Free
+             * @description 빈 M.2 슬롯 수
+             */
+            m2_slots_free?: number | null;
+            /**
+             * Needed Storage Gb
+             * @description 필요 저장공간. 없으면 모델 크기로 추정
+             */
+            needed_storage_gb?: number | null;
+            /**
+             * Owned Sku
+             * @description 이 기업 카탈로그의 상품코드(보유 장비)
+             */
+            owned_sku?: string | null;
+            /** Ram Gb */
+            ram_gb?: number | null;
+            /**
+             * Ram Max Gb
+             * @description 지원 최대 램
+             */
+            ram_max_gb?: number | null;
+            /**
+             * Ram Onboard
+             * @description 램이 기판에 붙어 있어(온보드) 증설 · 교체가 안 되는지
+             */
+            ram_onboard?: boolean | null;
+            /**
+             * Ram Slots Free
+             * @description 빈 램 슬롯 수
+             */
+            ram_slots_free?: number | null;
+            /** Storage Gb */
+            storage_gb?: number | null;
+            target: components["schemas"]["VramEstimateIn"];
+        };
+        /** DiagnoseOut */
+        DiagnoseOut: {
+            /** Assumptions */
+            assumptions: string[];
+            /** Device Type */
+            device_type: string | null;
+            estimate: components["schemas"]["VramEstimateOut"];
+            /** Items */
+            items: components["schemas"]["DiagnosisItemOut"][];
+            /** Reasons */
+            reasons: string[];
+            /** Required Ram Gb */
+            required_ram_gb: number;
+            /** Required Storage Gb */
+            required_storage_gb: number;
+            /**
+             * Verdict
+             * @description no_change | upgrade_sufficient | new_device_needed | needs_check
+             */
+            verdict: string;
+            /** Verdict Label */
+            verdict_label: string;
+        };
+        /** DiagnosisItemOut */
+        DiagnosisItemOut: {
+            /**
+             * Component
+             * @description vram | ram | storage
+             */
+            component: string;
+            /** Detail */
+            detail: string;
+            /** Have */
+            have: string;
+            /** Need */
+            need: string;
+            /**
+             * Status
+             * @description ok | upgrade | new_device | unknown
+             */
+            status: string;
+        };
         /** EventError */
         EventError: {
             /**
@@ -329,6 +612,47 @@ export interface components {
             mode: string;
             /** Status */
             status: string;
+        };
+        /** LocalOptionOut */
+        LocalOptionOut: {
+            /** Data Status */
+            data_status: string;
+            /** Label */
+            label: string;
+            /** Price Krw */
+            price_krw: number;
+            /** Sku */
+            sku: string | null;
+            /**
+             * Source
+             * @description input(직접 입력) | catalog(이 기업 카탈로그)
+             */
+            source: string;
+        };
+        /** NluOut */
+        NluOut: {
+            /**
+             * Confidence
+             * @description 0~1. 규칙 기준선은 점수 비율(확률 보정 안 됨)
+             */
+            confidence: number;
+            /**
+             * Intent
+             * @description new_recommendation | upgrade_diagnosis | compatibility_question | quote_request | cloud_comparison | other
+             */
+            intent: string;
+            /**
+             * Slots
+             * @description 발화에서 뽑은 조건. 예: budget_max, purpose
+             */
+            slots: {
+                [key: string]: number | string | string[];
+            };
+            /**
+             * Source
+             * @description rules(규칙 기준선) — 3주차 학습 모델이면 model
+             */
+            source: string;
         };
         /** OrderIn */
         OrderIn: {
@@ -363,6 +687,12 @@ export interface components {
             /** Total */
             total: number;
         };
+        /**
+         * Precision
+         * @description 모델 가중치 정밀도. 파라미터 1개당 바이트: fp32 4 · fp16 2 · int8 1 · int4 0.5
+         * @enum {string}
+         */
+        Precision: "fp32" | "fp16" | "int8" | "int4";
         /** ProductOut */
         ProductOut: {
             /** Attributes */
@@ -402,6 +732,28 @@ export interface components {
             code: string;
             /** Label */
             label: string;
+        };
+        /** QuickReplyIn */
+        QuickReplyIn: {
+            /** Slot */
+            slot: string;
+            /** Value */
+            value: string;
+        };
+        /**
+         * QuickReplyOut
+         * @description 선택지(칩). 누르면 label 을 메시지로 보내고 slot · value 를 함께 보냅니다.
+         */
+        QuickReplyOut: {
+            /** Label */
+            label: string;
+            /**
+             * Slot
+             * @description 이 선택지가 채우는 슬롯. intent 면 의도를 바꿉니다
+             */
+            slot?: string | null;
+            /** Value */
+            value?: string | null;
         };
         /** QuotationItemOut */
         QuotationItemOut: {
@@ -633,12 +985,68 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** VramEstimateIn */
+        VramEstimateIn: {
+            /**
+             * Model Params B
+             * @description 모델 파라미터 수(10억 단위). 예: 7B 모델 → 7
+             */
+            model_params_b: number;
+            /**
+             * @description 가중치 정밀도
+             * @default fp16
+             */
+            precision: components["schemas"]["Precision"];
+            /**
+             * @description 추론 또는 LoRA 학습
+             * @default inference
+             */
+            workload: components["schemas"]["Workload"];
+        };
+        /** VramEstimateOut */
+        VramEstimateOut: {
+            /** Assumptions */
+            assumptions: string[];
+            /** Bytes Per Param */
+            bytes_per_param: number;
+            /** Formula */
+            formula: string;
+            /** Model Params B */
+            model_params_b: number;
+            /**
+             * Overhead Factor
+             * @description 여유 계수(KV 캐시 · 활성값 · 런타임)
+             */
+            overhead_factor: number;
+            precision: components["schemas"]["Precision"];
+            /**
+             * Required Vram Gb
+             * @description 필요 VRAM(GB, 소수 첫째 자리 올림)
+             */
+            required_vram_gb: number;
+            /**
+             * Training Extra Gb
+             * @description LoRA 학습 추가분. 추론이면 0
+             */
+            training_extra_gb: number;
+            /**
+             * Weights Gb
+             * @description 가중치 = 파라미터(B) × 정밀도별 바이트
+             */
+            weights_gb: number;
+            workload: components["schemas"]["Workload"];
+        };
         /**
          * WorkStatus
          * @description 작업·실행 상태. 화면 애니메이션도 이 값만 따릅니다.
          * @enum {string}
          */
         WorkStatus: "pending" | "running" | "needs_input" | "needs_revision" | "completed" | "failed" | "cancelled" | "superseded";
+        /**
+         * Workload
+         * @enum {string}
+         */
+        Workload: "inference" | "lora";
     };
     responses: never;
     parameters: never;
@@ -910,6 +1318,78 @@ export interface operations {
             };
         };
     };
+    get_messages_api_sessions__session_id__messages_get: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 시연용 기업 전환 값입니다. 인증이 아닙니다. */
+                "X-Company-Id": number;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessageOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_message_api_sessions__session_id__messages_post: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 시연용 기업 전환 값입니다. 인증이 아닙니다. */
+                "X-Company-Id": number;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatMessageIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatTurnOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_quotation_api_sessions__session_id__quotation_get: {
         parameters: {
             query?: never;
@@ -1037,6 +1517,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_cloud_compare_api_tools_cloud_compare_post: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 시연용 기업 전환 값입니다. 인증이 아닙니다. */
+                "X-Company-Id": number;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloudCompareIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CloudCompareOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_diagnose_api_tools_diagnose_post: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 시연용 기업 전환 값입니다. 인증이 아닙니다. */
+                "X-Company-Id": number;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiagnoseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnoseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_vram_estimate_api_tools_vram_estimate_post: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 시연용 기업 전환 값입니다. 인증이 아닙니다. */
+                "X-Company-Id": number;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VramEstimateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VramEstimateOut"];
                 };
             };
             /** @description Validation Error */
