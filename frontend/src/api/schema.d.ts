@@ -498,7 +498,7 @@ export interface components {
              * Device Type
              * @description 보유 장비 종류. owned_sku 가 없으면 필요
              */
-            device_type?: "laptop" | "desktop" | null;
+            device_type?: ("laptop" | "desktop") | null;
             /**
              * Gpu Vram Gb
              * @description 0 이면 내장 그래픽
