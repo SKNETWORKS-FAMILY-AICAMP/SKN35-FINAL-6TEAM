@@ -38,7 +38,9 @@ export function QuotationTable({ quotation, companyName }: Props) {
       ) : (
         <>
           <p className="print-only">{printTitle}</p>
-          <p className="test-mark" data-testid="quotation-test-mark">{mark}</p>
+          <p className="test-mark" data-testid="quotation-test-mark">
+            {mark}
+          </p>
           <table data-testid="quotation">
             <thead>
               <tr>
