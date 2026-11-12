@@ -21,7 +21,7 @@ BUILDWISE 는 판매 기업이 상품 DB · 판매 정책을 연결하면 고객
 | `backend/app/catalog/` | 공통 상품 형식 · 기업 데이터 적재 어댑터 |
 | `backend/app/events/service.py` | 이벤트 기록(순번 보장) · 조회 · SSE |
 | `backend/app/db/models.py` · `backend/migrations/` | DB 테이블 · 마이그레이션 (PostgreSQL · JSONB · pgvector 확장) |
-| `frontend/src/features/` | 화면 기능별 폴더(office · consultation · recommendations · quotations · orders) |
+| `frontend/src/features/` | 화면 기능별 폴더(office · consultation · chat · recommendations · quotations · orders) |
 | `frontend/src/events/` | 이벤트 스트림(실제 SSE · 가짜 대본이 같은 인터페이스) |
 | `frontend/src/api/schema.d.ts` | **자동 생성** 타입 — 직접 고치지 않음 |
 | `data/fixtures/` · `data/nlu/` | 견본 데이터(가상) · 상담 발화 평가셋(가상) |
@@ -47,7 +47,7 @@ BUILDWISE 는 판매 기업이 상품 DB · 판매 정책을 연결하면 고객
 12. **프로젝트를 새로 만들지 않는다.** 문제가 생겨도 `npm create` · `uv init` 등으로 갈아엎지 않는다. [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) 부터 본다.
 13. **데이터를 지어내지 않는다.** 실제 제품의 가격 · 사양을 확인하지 못했으면 `unconfirmed` · `unverified` 로 둔다. 테스트 데이터에는 표시를 남긴다.
 14. **화면 상태는 이벤트로만 바꾼다.** 끝나지 않은 작업을 끝난 것처럼 보이게 하지 않는다.
-15. **작업 하나 = 기능 브랜치 하나 = PR 하나.** `main` 에 직접 커밋하지 않는다.
+15. **작업 하나 = 기능 브랜치 하나 = PR 하나.** 브랜치 이름은 `이니셜/영역-내용`(영문 소문자, 예: `hgd/office-desk-log`). `main` 에 직접 커밋하지 않는다.
 
 ## 자주 쓰는 명령 (저장소 맨 위 폴더에서)
 

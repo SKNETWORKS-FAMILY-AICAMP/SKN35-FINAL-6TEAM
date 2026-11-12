@@ -73,7 +73,7 @@ AI 가 읽는 원문은 [AGENTS.md](../AGENTS.md) 이고, 이 문서는 사람�
 | 항목 | 규칙 |
 |---|---|
 | 브랜치 | `main` 하나 + 짧은 기능 브랜치. `develop` 브랜치는 쓰지 않습니다 |
-| 브랜치 이름 | `종류/영역-내용` — 예: `feat/office-desk-log`, `fix/quote-total`, `docs/start-here-mac`, `chore/ci-cache` |
+| 브랜치 이름 | `이니셜/영역-내용` — 맨 앞은 내 영문 이니셜(소문자). 예: `hgd/office-desk-log`, `hgd/quote-total`, `hgd/start-here-mac` (홍길동 → `hgd`). 이름만 봐도 누구 작업인지 보이게 하고, 무슨 종류의 작업인지는 커밋 메시지 · PR 제목에 씁니다 |
 | 커밋 메시지 | 한국어로 무엇을 했는지 한 줄. 예: `견적 표에 할인 금액 줄 추가` |
 | PR | 리뷰 1명 승인 + CI 통과 뒤 **Squash and merge** |
 | 병합 뒤 | 그 브랜치는 끝. 다음 작업은 최신 `main` 에서 새 브랜치를 만듭니다 |
