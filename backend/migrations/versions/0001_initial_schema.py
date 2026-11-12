@@ -1,25 +1,30 @@
-"""처음 스키마: 기업 · 상품 · 상담 · 실행 · 이벤트 · 추천 · 검증 · 견적 · 가상 주문
+"""처음 스키마 (PostgreSQL): pgvector 확장 · 기업 · 상품 · 상담 · 실행 · 이벤트 · 추천 · 검증 · 견적 · 가상 주문
 
 Revision ID: 0001
 Revises:
-Create Date: 2026-11-11
+Create Date: 2026-11-11 (2026-11-12 PostgreSQL 기준으로 다시 씀 — main 병합 전이라 이력을 새로 시작)
 """
 
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects import mysql
+from sqlalchemy.dialects import postgresql
 
 revision: str = "0001"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
-TS = mysql.DATETIME(fsp=6)
+TS = sa.DateTime(timezone=False)  # timestamp without time zone (마이크로초까지)
+JSONB = postgresql.JSONB(astext_type=sa.Text())
 
 
 def upgrade() -> None:
+    # pgvector — 5주차 벡터 DB 를 위해 지금 켜 둡니다. 벡터 컬럼이 있는 테이블은 아직 없습니다.
+    # (컨테이너의 DB 사용자는 슈퍼유저라 바로 켜집니다. AWS RDS 에서는 rds_superuser 권한이 필요합니다.)
+    op.execute("CREATE EXTENSION IF NOT EXISTS vector")
+
     op.create_table(
         "companies",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
@@ -28,7 +33,7 @@ def upgrade() -> None:
         sa.Column("description", sa.String(length=255), nullable=False),
         sa.Column("domain", sa.String(length=30), nullable=False),
         sa.Column("source_format", sa.String(length=30), nullable=False),
-        sa.Column("policy", sa.JSON(), nullable=False),
+        sa.Column("policy", JSONB, nullable=False),
         sa.Column("is_test_data", sa.Boolean(), nullable=False),
         sa.Column("created_at", TS, nullable=False),
         sa.PrimaryKeyConstraint("id", name="pk_companies"),
@@ -49,7 +54,7 @@ def upgrade() -> None:
         sa.Column("data_status", sa.String(length=20), nullable=False),
         sa.Column("source_url", sa.String(length=500), nullable=True),
         sa.Column("source_note", sa.String(length=255), nullable=False),
-        sa.Column("attributes", sa.JSON(), nullable=False),
+        sa.Column("attributes", JSONB, nullable=False),
         sa.Column("updated_at", TS, nullable=False),
         sa.ForeignKeyConstraint(
             ["company_id"], ["companies.id"], name="fk_products_company_id_companies"
@@ -86,7 +91,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("session_id", sa.String(length=36), nullable=False),
         sa.Column("version", sa.Integer(), nullable=False),
-        sa.Column("payload", sa.JSON(), nullable=False),
+        sa.Column("payload", JSONB, nullable=False),
         sa.Column("reason", sa.String(length=255), nullable=False),
         sa.Column("created_at", TS, nullable=False),
         sa.ForeignKeyConstraint(
@@ -151,9 +156,9 @@ def upgrade() -> None:
         sa.Column("type", sa.String(length=50), nullable=False),
         sa.Column("status", sa.String(length=20), nullable=False),
         sa.Column("message", sa.String(length=500), nullable=False),
-        sa.Column("error", sa.JSON(), nullable=True),
-        sa.Column("artifact", sa.JSON(), nullable=True),
-        sa.Column("metrics", sa.JSON(), nullable=True),
+        sa.Column("error", JSONB, nullable=True),
+        sa.Column("artifact", JSONB, nullable=True),
+        sa.Column("metrics", JSONB, nullable=True),
         sa.Column("occurred_at", TS, nullable=False),
         sa.ForeignKeyConstraint(
             ["session_id"],
@@ -172,9 +177,9 @@ def upgrade() -> None:
         sa.Column("requirement_version", sa.Integer(), nullable=False),
         sa.Column("rank", sa.Integer(), nullable=False),
         sa.Column("product_id", sa.Integer(), nullable=True),
-        sa.Column("product_snapshot", sa.JSON(), nullable=False),
+        sa.Column("product_snapshot", JSONB, nullable=False),
         sa.Column("score", sa.Float(), nullable=False),
-        sa.Column("reasons", sa.JSON(), nullable=False),
+        sa.Column("reasons", JSONB, nullable=False),
         sa.Column("status", sa.String(length=20), nullable=False),
         sa.Column("created_at", TS, nullable=False),
         sa.ForeignKeyConstraint(
@@ -220,13 +225,13 @@ def upgrade() -> None:
         sa.Column("run_id", sa.String(length=36), nullable=False),
         sa.Column("requirement_version", sa.Integer(), nullable=False),
         sa.Column("status", sa.String(length=20), nullable=False),
-        sa.Column("items", sa.JSON(), nullable=False),
+        sa.Column("items", JSONB, nullable=False),
         sa.Column("subtotal", sa.Integer(), nullable=False),
         sa.Column("shipping_fee", sa.Integer(), nullable=False),
         sa.Column("discount", sa.Integer(), nullable=False),
         sa.Column("total", sa.Integer(), nullable=False),
         sa.Column("currency", sa.String(length=3), nullable=False),
-        sa.Column("notes", sa.JSON(), nullable=False),
+        sa.Column("notes", JSONB, nullable=False),
         sa.Column("valid_until", TS, nullable=False),
         sa.Column("created_at", TS, nullable=False),
         sa.ForeignKeyConstraint(
@@ -287,3 +292,4 @@ def downgrade() -> None:
         "companies",
     ):
         op.drop_table(table)
+    # vector 확장은 다른 마이그레이션 · 수동 실험이 쓰고 있을 수 있어 지우지 않습니다.

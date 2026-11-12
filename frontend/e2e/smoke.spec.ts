@@ -32,3 +32,21 @@ test("상담부터 가상 주문까지", async ({ page }) => {
   await expect(page.getByTestId("run-status")).toContainText("완료", { timeout: 30_000 });
   await expect(page.getByTestId("quotation-total")).toContainText("1,930,300원");
 });
+
+// 채팅 상담: 빠진 조건을 선택지로 채우면 업무팀이 시작되고, 견적은 인쇄 · PDF 저장으로 받습니다.
+test("채팅 상담에서 선택지로 조건을 채우면 견적까지 이어진다", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("connection")).toContainText("실시간 연결됨");
+
+  await page.getByTestId("chat-input").fill("LLM 파인튜닝용 데스크톱 추천해 주세요");
+  await page.getByTestId("chat-send").click();
+  await expect(page.getByTestId("chat-assistant").last()).toContainText("예산");
+
+  await page.getByTestId("chat-chip").filter({ hasText: "300만 원" }).click();
+  await expect(page.getByTestId("chat-assistant").last()).toContainText("조건을 정리했어요");
+  await expect(page.getByTestId("run-status")).toContainText("요구사항 v1");
+  await expect(page.getByTestId("run-status")).toContainText("완료", { timeout: 30_000 });
+  await expect(page.getByTestId("quotation-total")).toContainText("2,690,000원");
+  await expect(page.getByTestId("quotation-test-mark")).toContainText("테스트 데이터");
+  await expect(page.getByTestId("print-quotation")).toBeVisible();
+});

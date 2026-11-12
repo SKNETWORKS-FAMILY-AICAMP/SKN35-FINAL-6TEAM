@@ -24,6 +24,11 @@ class LaptopSpec(_Spec):
     display_inch: float = Field(gt=0)
     weight_kg: float = Field(gt=0)
     battery_wh: int | None = Field(default=None, ge=1)
+    # 업그레이드 진단용(모르면 비워 둡니다 → 진단에서 '확인 필요')
+    ram_onboard: bool | None = None  # 램이 기판에 붙어 있으면(온보드) 증설 · 교체 불가
+    ram_max_gb: int | None = Field(default=None, ge=1)
+    ram_slots_free: int | None = Field(default=None, ge=0)
+    m2_slots_free: int | None = Field(default=None, ge=0)
 
 
 class DesktopSpec(_Spec):
@@ -35,6 +40,11 @@ class DesktopSpec(_Spec):
     gpu_vram_gb: int = Field(default=0, ge=0)
     psu_w: int = Field(ge=1)
     form_factor: str
+    # 업그레이드 진단용(모르면 비워 둡니다 → 진단에서 '확인 필요')
+    ram_onboard: bool | None = None
+    ram_max_gb: int | None = Field(default=None, ge=1)
+    ram_slots_free: int | None = Field(default=None, ge=0)
+    m2_slots_free: int | None = Field(default=None, ge=0)
 
 
 class GpuSpec(_Spec):

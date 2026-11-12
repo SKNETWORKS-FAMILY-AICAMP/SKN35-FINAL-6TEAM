@@ -54,7 +54,11 @@ PREFERENCE_RULES: tuple[PreferenceRule, ...] = (
     PreferenceRule("max_rack_u", ("rack_u",), "max", "랙 높이", "U", "COMPAT_RACK_U", "compat"),
 )
 
-KNOWN_PREFERENCE_KEYS = frozenset(rule.key for rule in PREFERENCE_RULES)
+# AI 모델 조건 — model_params_b(필수) · precision · workload 를 주면 필요 VRAM 을 계산해
+# min_vram_gb 조건으로 바꿉니다(sizing.py · pack.derive_preferences). 사양 비교 규칙이 아니라 계산 입력입니다.
+MODEL_PREFERENCE_KEYS = frozenset({"model_params_b", "precision", "workload"})
+
+KNOWN_PREFERENCE_KEYS = frozenset(rule.key for rule in PREFERENCE_RULES) | MODEL_PREFERENCE_KEYS
 
 # 사용 목적 문장에 이 낱말이 있으면 조건을 추론합니다. 고객이 직접 준 값이 항상 우선합니다.
 PURPOSE_RULES: tuple[tuple[tuple[str, ...], dict[str, int | float | bool]], ...] = (

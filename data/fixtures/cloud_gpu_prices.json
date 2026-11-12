@@ -1,0 +1,13 @@
+{
+  "_설명": "가상 클라우드 GPU 시간당 가격 견본입니다. 공급자 · 상품 · 가격은 모두 가상(테스트 데이터)이며 실제 서비스 가격이 아닙니다. 실제 가격은 이용 허락된 자료로만 바꾸고 data_status 를 고칩니다.",
+  "currency": "KRW",
+  "data_status": "test",
+  "offers": [
+    { "provider": "구름컴퓨트(가상)", "gpu_name": "가상 C12", "vram_gb": 12, "price_per_hour_krw": 450 },
+    { "provider": "구름컴퓨트(가상)", "gpu_name": "가상 C24", "vram_gb": 24, "price_per_hour_krw": 1100 },
+    { "provider": "하늘GPU(가상)", "gpu_name": "가상 H16", "vram_gb": 16, "price_per_hour_krw": 690 },
+    { "provider": "하늘GPU(가상)", "gpu_name": "가상 H24", "vram_gb": 24, "price_per_hour_krw": 990 },
+    { "provider": "하늘GPU(가상)", "gpu_name": "가상 H48", "vram_gb": 48, "price_per_hour_krw": 2400 },
+    { "provider": "누리클라우드(가상)", "gpu_name": "가상 N80", "vram_gb": 80, "price_per_hour_krw": 4900 }
+  ]
+}

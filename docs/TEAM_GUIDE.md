@@ -32,13 +32,15 @@
 ```bash
 git switch main
 git pull
-git switch -c feat/office-desk-log
+git switch -c hgd/office-desk-log
 ```
 
-- 브랜치 이름: `종류/영역-내용` — `feat`(새 기능) · `fix`(버그) · `docs`(문서) · `chore`(설정 · 정리)
-- 예: `feat/consultation-voice`, `fix/quote-shipping-fee`, `docs/start-here-mac`
+- 브랜치 이름: `이니셜/영역-내용` — 맨 앞은 **내 영문 이니셜(소문자)** 입니다. 예: 홍길동 → `hgd`
+- 이 문서의 `hgd` 는 예시입니다. 내 이니셜로 바꿔 씁니다
+- 예: `hgd/consultation-voice`, `hgd/quote-shipping-fee`, `hgd/start-here-mac`
+- 작업마다 새 브랜치를 만들고, PR 이 병합되면 그 브랜치는 끝입니다(오래 쓰는 개인 브랜치를 두지 않습니다)
 
-**성공하면:** `Switched to a new branch 'feat/office-desk-log'`
+**성공하면:** `Switched to a new branch 'hgd/office-desk-log'`
 **실패하면:** `error: Your local changes ... would be overwritten` → 아직 커밋 안 한 변경이 있다는 뜻입니다. [14번](#14-실수로-main-에서-작업했을-때)을 보세요.
 
 ## 3. Claude Code 또는 Codex 에 일 맡기기
@@ -95,7 +97,7 @@ git commit -m "검증팀 칸에 후보별 검증 결과 표시"
 ## 7. GitHub 에 올리기(푸시)
 
 ```bash
-git push -u origin feat/office-desk-log
+git push -u origin hgd/office-desk-log
 ```
 
 처음 한 번만 `-u origin 브랜치이름` 을 붙이고, 그다음부터는 `git push` 만 치면 됩니다.
@@ -123,7 +125,7 @@ git push -u origin feat/office-desk-log
 ```bash
 git switch main
 git pull
-git switch feat/office-desk-log
+git switch hgd/office-desk-log
 git merge main
 ```
 
@@ -163,7 +165,7 @@ git push
 API 필드 · 이벤트 타입 · 상태값은 5명이 함께 쓰는 약속입니다.
 
 1. 팀 채팅에 먼저 알립니다: "`QuotationOut` 에 `delivery_days` 필드를 추가하려고 합니다. 이유: …"
-2. 동의를 받으면 **계약 변경만 담은 PR** 을 따로 만듭니다(`feat/contract-delivery-days`).
+2. 동의를 받으면 **계약 변경만 담은 PR** 을 따로 만듭니다(`hgd/contract-delivery-days`).
 3. `backend/app/contracts/schemas.py` 를 고치고 계약 파일을 다시 만듭니다.
 
    | Windows PowerShell | macOS · Linux |
@@ -223,7 +225,7 @@ git push -u origin feat/내작업이름
 
 | 영역 | 폴더 | 담당 |
 |---|---|---|
-| 상담 · 음성 | `frontend/src/features/consultation/`, `backend/app/agents/consultation.py` | (미정) |
+| 상담 · 음성 | `frontend/src/features/consultation/`, `frontend/src/features/chat/`, `backend/app/agents/consultation.py` | (미정) |
 | 오피스 화면 | `frontend/src/features/office/` | (미정) |
 | 설계 · 검증 엔진 | `backend/app/agents/`, `backend/app/workflows/` | (미정) |
 | 하드웨어 데이터 · 규칙 | `backend/app/domains/hardware/`, `data/fixtures/` | (미정) |

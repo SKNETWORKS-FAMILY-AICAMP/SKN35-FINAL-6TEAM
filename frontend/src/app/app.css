@@ -273,3 +273,149 @@ td {
   color: var(--bad);
   font-size: 13px;
 }
+
+/* 채팅 상담 */
+.chat {
+  display: grid;
+  gap: 8px;
+}
+
+.chat h2 {
+  margin: 0;
+}
+
+.chat-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 320px;
+  overflow: auto;
+  font-size: 13px;
+}
+
+.chat-msg {
+  padding: 8px 10px;
+  border-radius: 10px;
+  white-space: pre-line;
+  max-width: 92%;
+}
+
+.chat-user {
+  justify-self: end;
+  background: #e8efff;
+}
+
+.chat-assistant {
+  justify-self: start;
+  background: #f3f4f6;
+}
+
+.chat-pending {
+  opacity: 0.6;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.chat-form {
+  display: flex;
+  gap: 6px;
+}
+
+.chat-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.chat-form button {
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+/* 견적 인쇄 · PDF 저장 */
+.print-button {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.test-mark {
+  font-size: 12px;
+  color: #7a5200;
+  background: #fff4d6;
+  border: 1px solid #f0d58a;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 0 8px;
+}
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 16mm;
+  }
+
+  :root,
+  body {
+    background: #fff;
+  }
+
+  main {
+    padding: 0;
+  }
+
+  .top,
+  .connection,
+  main > .error,
+  .layout .panel:not(.print-area),
+  .no-print {
+    display: none !important;
+  }
+
+  .layout {
+    display: block;
+  }
+
+  .print-area {
+    border: 0;
+    padding: 0;
+  }
+
+  .print-only {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .test-mark {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

@@ -3,6 +3,8 @@
 - 요청마다 `Idempotency-Key` 헤더가 필요합니다. 같은 키로 다시 보내면 새로 만들지 않고 처음 주문을 돌려줍니다
   (버튼을 두 번 누르거나 네트워크가 재전송해도 주문은 1건).
 - DB 에도 (company_id, idempotency_key) 유니크 제약이 있어 동시에 들어와도 1건만 남습니다.
+  PostgreSQL 은 유니크 위반이 난 트랜잭션을 더 쓰지 못하게 하므로, 그때는 그 트랜잭션을 롤백하고
+  새 트랜잭션에서 먼저 들어간 주문을 다시 읽습니다(아래 except).
 - 요구사항이 바뀐 뒤의 옛 견적으로는 주문할 수 없습니다(409).
 """
 
@@ -82,11 +84,16 @@ def create_order(
             )
             return OrderOut.model_validate(order), True
     except IntegrityError:
-        # 아주 드물게 두 요청이 동시에 넣으려 할 때 — 먼저 들어간 주문을 돌려줍니다.
+        # 아주 드물게 같은 키가 서로 다른 세션 행을 잠근 두 요청에서 동시에 들어올 때입니다.
+        # database.transaction() 이 실패한 트랜잭션을 이미 롤백했으므로, 새 세션으로 먼저 들어간 주문을 읽습니다.
         with database.session() as db:
             existing = _find(db, company_id, key)
             if existing is None:
                 raise
+            if existing.quotation_id != quotation_id:
+                raise ConflictError(
+                    "같은 Idempotency-Key 가 다른 견적의 주문에 이미 쓰였습니다"
+                ) from None
             return OrderOut.model_validate(existing), False
 
 

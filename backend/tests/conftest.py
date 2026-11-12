@@ -1,6 +1,6 @@
 """테스트 공통 준비.
 
-- DB 테스트는 개발 DB 가 아니라 `buildwise_test` DB 를 씁니다(compose 가 처음 만들 때 생성).
+- DB 테스트는 개발 DB 가 아니라 `buildwise_test` DB(PostgreSQL)를 씁니다(compose 가 처음 만들 때 생성).
 - 테스트 세션 시작 때 테이블을 모두 지우고 Alembic 마이그레이션으로 다시 만듭니다 → 마이그레이션도 함께 검사됩니다.
 - 테스트마다 테이블을 비우고 견본 데이터를 다시 넣습니다.
 """
@@ -26,7 +26,7 @@ from app.workflows.runner import WorkflowRunner
 
 TEST_DATABASE_URL = os.environ.get(
     "BUILDWISE_TEST_DATABASE_URL",
-    "mysql+pymysql://buildwise:buildwise@127.0.0.1:3307/buildwise_test?charset=utf8mb4",
+    "postgresql+psycopg://buildwise:buildwise@127.0.0.1:5433/buildwise_test",
 )
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
@@ -36,10 +36,11 @@ def migrated_database_url() -> str:
     engine = create_engine(TEST_DATABASE_URL)
     try:
         with engine.begin() as conn:
-            conn.execute(text("SET FOREIGN_KEY_CHECKS=0"))
-            for (name,) in conn.execute(text("SHOW TABLES")).all():
-                conn.execute(text(f"DROP TABLE `{name}`"))
-            conn.execute(text("SET FOREIGN_KEY_CHECKS=1"))
+            names = conn.scalars(
+                text("SELECT tablename FROM pg_tables WHERE schemaname = current_schema()")
+            ).all()
+            for name in names:
+                conn.execute(text(f'DROP TABLE IF EXISTS "{name}" CASCADE'))
     except OperationalError as exc:
         pytest.exit(
             "테스트 DB 에 연결할 수 없습니다. `docker compose up -d db` 로 DB 를 켜고 다시 실행하세요.\n"
@@ -70,11 +71,9 @@ def settings(migrated_database_url: str) -> Settings:
 @pytest.fixture
 def database(settings: Settings) -> Iterator[Database]:
     db = Database(settings.database_url)
+    tables = ", ".join(f'"{table.name}"' for table in Base.metadata.sorted_tables)
     with db.engine.begin() as conn:
-        conn.execute(text("SET FOREIGN_KEY_CHECKS=0"))
-        for table in Base.metadata.sorted_tables:
-            conn.execute(text(f"TRUNCATE TABLE `{table.name}`"))
-        conn.execute(text("SET FOREIGN_KEY_CHECKS=1"))
+        conn.execute(text(f"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE"))
     seed_database(db, settings.fixtures_dir)
     yield db
     db.dispose()

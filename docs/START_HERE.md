@@ -82,7 +82,7 @@ git config --global user.email "123456+내GitHub아이디@users.noreply.github.c
 ## 4. Docker 설치
 
 **지금 하는 일:** 팀원마다 다른 PC 환경 차이를 없애 주는 실행 도구(Docker)를 설치합니다.
-Docker 가 Python · Node · MySQL 을 **정해진 버전 그대로** 상자(컨테이너)에 담아 실행해 주기 때문에, 내 PC 에 따로 설치할 필요가 없습니다.
+Docker 가 Python · Node · PostgreSQL(+ pgvector) 을 **정해진 버전 그대로** 상자(컨테이너)에 담아 실행해 주기 때문에, 내 PC 에 따로 설치할 필요가 없습니다.
 
 1. https://www.docker.com/products/docker-desktop/ 에서 내 OS 용 **Docker Desktop** 을 받아 설치합니다.
    - Windows: 설치 중 **Use WSL 2** 를 켠 상태로 둡니다.
@@ -168,7 +168,7 @@ code .
 
 ## 9. Docker 로 프로젝트 실행
 
-**지금 하는 일:** DB(MySQL) · 백엔드 · 프론트엔드 세 컨테이너를 한 번에 켭니다. 처음에는 이미지 다운로드 때문에 5~10분 걸립니다.
+**지금 하는 일:** DB(PostgreSQL 18 + pgvector) · 백엔드 · 프론트엔드 세 컨테이너를 한 번에 켭니다. 처음에는 이미지 다운로드 때문에 5~10분 걸립니다.
 
 **Windows:**
 

@@ -12,7 +12,7 @@ from app.domains.base import DomainPack
 
 def structure_requirements(req: RequirementsIn, pack: DomainPack) -> dict[str, Any]:
     """요구사항 버전에 저장할 내용. 고객이 직접 준 조건이 추론한 조건보다 우선합니다."""
-    derived = pack.derive_preferences(req.purpose)
+    derived = pack.derive_preferences(req.purpose, req.preferences)
     effective = {**derived, **req.preferences}
     return {
         "input": req.model_dump(mode="json"),

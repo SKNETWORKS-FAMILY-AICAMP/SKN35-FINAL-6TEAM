@@ -16,6 +16,10 @@ export type AgentEvent = Schemas["AgentEventOut"];
 export type Team = Schemas["Team"];
 export type WorkStatus = Schemas["WorkStatus"];
 export type EventError = Schemas["EventError"];
+export type ChatMessage = Schemas["ChatMessageOut"];
+export type ChatTurn = Schemas["ChatTurnOut"];
+export type QuickReply = Schemas["QuickReplyOut"];
+export type QuickReplyIn = Schemas["QuickReplyIn"];
 
 // 같은 주소의 /api 로 보내면 Vite 개발 서버가 백엔드로 넘겨 줍니다(vite.config.ts 의 proxy).
 export const api = createClient<paths>({ baseUrl: "" });
