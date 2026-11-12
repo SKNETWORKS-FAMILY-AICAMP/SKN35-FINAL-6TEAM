@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, errorMessage, type Company } from "../api/client";
+import { ChatPanel } from "../features/chat/ChatPanel";
+import { useChat } from "../features/chat/useChat";
 import { ConsultationForm } from "../features/consultation/ConsultationForm";
 import { OfficeBoard } from "../features/office/OfficeBoard";
 import { OrderButton } from "../features/orders/OrderButton";
@@ -19,6 +21,7 @@ const CONNECTION_LABEL = {
 function Workspace({ company }: { company: Company | null }) {
   const { office, connection, recommendations, quotation, error, submit, retry, sessionId } =
     useConsultation(company, MOCK);
+  const { chat, sendChat } = useChat(MOCK ? null : sessionId, company?.id ?? null);
 
   return (
     <>
@@ -29,6 +32,7 @@ function Workspace({ company }: { company: Company | null }) {
       {error && <p className="error">{error}</p>}
       <div className="layout">
         <div className="column">
+          {company && <ChatPanel state={chat} disabled={MOCK || !sessionId} onSend={sendChat} />}
           {company && (
             <ConsultationForm company={company} disabled={MOCK || !sessionId} onSubmit={submit} />
           )}
@@ -38,7 +42,7 @@ function Workspace({ company }: { company: Company | null }) {
           <RecommendationList items={recommendations} />
         </div>
         <div className="column">
-          <QuotationTable quotation={quotation} />
+          <QuotationTable quotation={quotation} companyName={company?.name} />
           {company && <OrderButton companyId={company.id} quotation={quotation} />}
         </div>
       </div>
