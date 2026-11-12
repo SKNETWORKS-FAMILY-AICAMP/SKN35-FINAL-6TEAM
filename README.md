@@ -105,6 +105,15 @@ PM 과 팀원 전원이 2026-11-12 에 합의한 결정과, 그에 맞춰 저장
 | 벡터 파이썬 | `pgvector==0.5.1` | PyPI — 2026-10-09 업로드, 순수 파이썬 휠, 필수 의존성 없음(numpy 불필요) |
 | lockfile | `backend/uv.lock` | 패키지 추가 · 제거(psycopg · psycopg-binary · pgvector · tzdata ↔ pymysql · cryptography · cffi · pycparser) 외에는 기존 내용과 같음을 확인. CI 의 uv 0.13.7 `uv sync --frozen` 으로 설치 통과 |
 
+### 2026-11-12 검증 결과
+
+| 환경 | 무엇을 돌렸나 | 결과 |
+|---|---|---|
+| GitHub Actions(수동 실행 `workflow_dispatch`, 실행 번호 43142412975) — Ubuntu 24.04 · PostgreSQL 18 + pgvector 서비스 | 백엔드 린트 · 포맷 · 견본 데이터 · NLU 평가 · `alembic upgrade`/`check` · pytest | 통과 — pytest **91 passed**(기존 29개 포함), NLU 의도 정확도 0.903 · macro-F1 0.904 · 슬롯 F1 0.900 |
+| 같은 실행 — 통합 | `docker compose up --wait`(pgvector 이미지) → `scripts/check.sh` 12단계 → Playwright | 통과 — 12/12 PASS, 브라우저 2 passed(기존 흐름 + 채팅 → 선택지 → 견적) |
+| 같은 실행 — 계약 · 프론트 · 윈도우 · 비밀값 | 계약 파일 재생성 비교 · eslint · prettier · tsc · vitest · build · PowerShell 5.1 · gitleaks | 통과 — vitest 9 passed |
+| 작업 PC | Docker 를 쓰지 않음(디스크 부족) — DB 없는 테스트 · ruff 만 | DB 없는 pytest 58 passed, ruff check · format 통과 |
+
 ## 이번에 한 일과 통합 방식 (2026-11-11, PM)
 
 > 이 절은 초기 환경을 세우면서 무엇을 했는지 기록한 것입니다. 팀이 자리를 잡으면 줄이거나 다른 문서로 옮겨도 됩니다.
