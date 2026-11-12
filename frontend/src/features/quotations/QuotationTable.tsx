@@ -13,7 +13,9 @@ interface Props {
 
 export function QuotationTable({ quotation, companyName }: Props) {
   const isTestData = quotation?.items.some((item) => item.data_status === "test") ?? false;
-  const printTitle = `BUILDWISE 참고 견적서${companyName ? ` · ${companyName}` : ""}`;
+  const company = companyName ? ` · ${companyName}` : "";
+  const today = new Date().toLocaleDateString("ko-KR");
+  const printTitle = `BUILDWISE 참고 견적서${company} · 출력일 ${today}`;
   const mark = `참고 견적 · 실제 판매가 아님${isTestData ? " · 테스트 데이터(가상 상품)" : ""}`;
 
   return (
@@ -35,9 +37,7 @@ export function QuotationTable({ quotation, companyName }: Props) {
         <p className="muted">견적이 아직 없습니다.</p>
       ) : (
         <>
-          <p className="print-only">
-            {printTitle} · 출력일 {new Date().toLocaleDateString("ko-KR")}
-          </p>
+          <p className="print-only">{printTitle}</p>
           <p className="test-mark" data-testid="quotation-test-mark">{mark}</p>
           <table data-testid="quotation">
             <thead>
