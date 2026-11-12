@@ -27,12 +27,16 @@ export function useChat(sessionId: string | null, companyId: number | null) {
       dispatch({ type: "sent", text });
       const params = { header: { "X-Company-Id": companyId }, path: { session_id: sessionId } };
       const body = { text, quick_reply: quickReply };
-      const { data, error } = await api.POST("/api/sessions/{session_id}/messages", {
-        params,
-        body,
-      });
-      if (data) dispatch({ type: "received", turn: data });
-      else dispatch({ type: "failed", error: errorMessage(error) });
+      try {
+        const { data, error } = await api.POST("/api/sessions/{session_id}/messages", {
+          params,
+          body,
+        });
+        if (data) dispatch({ type: "received", turn: data });
+        else dispatch({ type: "failed", error: errorMessage(error) });
+      } catch (error) {
+        dispatch({ type: "failed", error: errorMessage(error) });
+      }
     },
     [sessionId, companyId],
   );
