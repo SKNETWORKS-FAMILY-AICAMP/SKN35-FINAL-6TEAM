@@ -3,6 +3,9 @@
 # 포맷 검사·계약 비교가 모든 PR 에서 실패합니다.
 * text=auto eol=lf
 
+# 수집 원본의 SHA-256 검증을 위해 다운로드 바이트(줄바꿈 포함)를 보존합니다.
+data/hardware/raw/** -text
+
 # 바이너리
 *.png binary
 *.jpg binary

@@ -17,12 +17,10 @@ docker compose up -d --build --wait
 if ($LASTEXITCODE -ne 0) {
     Write-Host '실행에 실패했습니다. 아래 명령으로 원인을 확인하세요. (docs/TROUBLESHOOTING.md)' -ForegroundColor Red
     Write-Host '  docker compose ps'
-    Write-Host '  docker compose logs backend --tail 50'
     exit 1
 }
 
 Write-Host '[3/3] 준비 완료' -ForegroundColor Green
 Write-Host '  화면       http://localhost:5173'
-Write-Host '  API 문서   http://localhost:8000/docs'
 Write-Host '  전체 검사  .\scripts\check.ps1'
 Write-Host '  끄기       .\scripts\stop.ps1'
