@@ -1,0 +1,320 @@
+{
+  "updated_on": "2026-11-17",
+  "archive": {
+    "path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+    "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip",
+    "size_bytes": 76628126,
+    "sha256": "1085284418344EE4F8B4710546D501BC8E7C98B89BACB0A67AF08C15D77DA4E0",
+    "contains": [
+      "benchmark_runs_load_ready.csv",
+      "benchmark_runs_preview.csv",
+      "benchmark_run_parts_preview.csv",
+      "parts_with_benchmark_references_preview.csv",
+      "unmatched_hardware.csv",
+      "unmatched_hardware_summary.csv",
+      "parts_import_preview.csv",
+      "source_part_crosswalk.csv",
+      "benchmark_import_manifest.json",
+      "parts_import_manifest.json"
+    ]
+  },
+  "files": [
+    {
+      "path": "normalized/benchmarks/benchmark_runs_load_ready.csv",
+      "bytes": 257271546,
+      "status": "압축 묶음에 포함",
+      "reason": "개별 CSV가 GitHub 100 MiB 한도를 넘어 ZIP으로 제공",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/benchmarks/benchmark_runs_preview.csv",
+      "bytes": 329280292,
+      "status": "압축 묶음에 포함",
+      "reason": "개별 CSV가 GitHub 100 MiB 한도를 넘어 ZIP으로 제공",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "raw/collection_log.json",
+      "bytes": 526,
+      "status": "내부 실행 로그 제외",
+      "reason": "데이터 수신에 불필요한 로컬 실행 이력",
+      "alternative_path": null,
+      "download_url": null
+    },
+    {
+      "path": "raw/blender_open_data_cc0_20261116/blender_open_data_v4plus.csv",
+      "bytes": 109040012,
+      "status": "공식 출처 링크",
+      "reason": "원본 데이터는 저장소에 복제하지 않고 공식 다운로드 페이지 안내",
+      "alternative_path": null,
+      "download_url": "https://opendata.blender.org/download/"
+    },
+    {
+      "path": "raw/blender_open_data_cc0_20261116/blender_open_data_v4plus.summary.json",
+      "bytes": 1513,
+      "status": "공식 출처 링크",
+      "reason": "원본 데이터는 저장소에 복제하지 않고 공식 다운로드 페이지 안내",
+      "alternative_path": null,
+      "download_url": "https://opendata.blender.org/download/"
+    },
+    {
+      "path": "raw/blender_open_data_cc0_20261116/opendata-latest.zip",
+      "bytes": 102618641,
+      "status": "공식 출처 링크",
+      "reason": "원본 데이터는 저장소에 복제하지 않고 공식 다운로드 페이지 안내",
+      "alternative_path": null,
+      "download_url": "https://opendata.blender.org/download/"
+    },
+    {
+      "path": "raw/blender_open_data_cc0_20261116/opendata-latest.zip.metadata.json",
+      "bytes": 1380,
+      "status": "공식 출처 링크",
+      "reason": "원본 데이터는 저장소에 복제하지 않고 공식 다운로드 페이지 안내",
+      "alternative_path": null,
+      "download_url": "https://opendata.blender.org/download/"
+    },
+    {
+      "path": "raw/llmspeed_llm_inference_benchmarks_20261116_460d03927e5e8b68/runs.csv",
+      "bytes": 45788,
+      "status": "고정 revision 링크",
+      "reason": "원본을 저장소에 복제하지 않고 고정 revision에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://huggingface.co/datasets/llmspeed/llm-speed-benchmarks/resolve/460d03927e5e8b68cb65fb3c6aede6c9e9f5187f/runs.csv?download=true"
+    },
+    {
+      "path": "raw/llmspeed_llm_inference_benchmarks_20261116_460d03927e5e8b68/runs.csv.metadata.json",
+      "bytes": 1492,
+      "status": "고정 revision 링크",
+      "reason": "원본을 저장소에 복제하지 않고 고정 revision에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://huggingface.co/datasets/llmspeed/llm-speed-benchmarks"
+    },
+    {
+      "path": "raw/opengpubenchmarks_48310db/games.yaml",
+      "bytes": 2389,
+      "status": "고정 커밋 링크",
+      "reason": "CC BY 4.0 원본 파일은 저장소에 복제하지 않고 출처·라이선스 링크 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/MattyStacks/open-gpu-benchmarks/tree/48310dbad3af46c21918cd0aeeabf6e2d51514c6"
+    },
+    {
+      "path": "raw/opengpubenchmarks_48310db/LICENSE.txt",
+      "bytes": 19863,
+      "status": "고정 커밋 링크",
+      "reason": "CC BY 4.0 원본 파일은 저장소에 복제하지 않고 출처·라이선스 링크 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/MattyStacks/open-gpu-benchmarks/tree/48310dbad3af46c21918cd0aeeabf6e2d51514c6"
+    },
+    {
+      "path": "raw/opengpubenchmarks_48310db/result_20261109_openbenchmarker_neon_flythrough.yaml",
+      "bytes": 16566,
+      "status": "고정 커밋 링크",
+      "reason": "CC BY 4.0 원본 파일은 저장소에 복제하지 않고 출처·라이선스 링크 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/MattyStacks/open-gpu-benchmarks/blob/48310dbad3af46c21918cd0aeeabf6e2d51514c6/data/official/steam_machine_8gb_valve/result_20261109_openbenchmarker_neon_flythrough.yaml"
+    },
+    {
+      "path": "raw/opengpubenchmarks_48310db/result_20261109_openbenchmarker_neon_flythrough.yaml.metadata.json",
+      "bytes": 2520,
+      "status": "고정 커밋 링크",
+      "reason": "CC BY 4.0 원본 파일은 저장소에 복제하지 않고 출처·라이선스 링크 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/MattyStacks/open-gpu-benchmarks/tree/48310dbad3af46c21918cd0aeeabf6e2d51514c6"
+    },
+    {
+      "path": "raw/opengpubenchmarks_48310db/testbenches.yaml",
+      "bytes": 3352,
+      "status": "고정 커밋 링크",
+      "reason": "CC BY 4.0 원본 파일은 저장소에 복제하지 않고 출처·라이선스 링크 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/MattyStacks/open-gpu-benchmarks/tree/48310dbad3af46c21918cd0aeeabf6e2d51514c6"
+    },
+    {
+      "path": "raw/pc-part-dataset_c52a04ca/csv/case.csv",
+      "bytes": 404399,
+      "status": "원본 저장소 링크",
+      "reason": "원본 파일을 복제하지 않고 고정 커밋에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/case.csv"
+    },
+    {
+      "path": "raw/pc-part-dataset_c52a04ca/csv/cpu-cooler.csv",
+      "bytes": 145911,
+      "status": "원본 저장소 링크",
+      "reason": "원본 파일을 복제하지 않고 고정 커밋에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/cpu-cooler.csv"
+    },
+    {
+      "path": "raw/pc-part-dataset_c52a04ca/csv/cpu.csv",
+      "bytes": 75541,
+      "status": "원본 저장소 링크",
+      "reason": "원본 파일을 복제하지 않고 고정 커밋에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/cpu.csv"
+    },
+    {
+      "path": "raw/pc-part-dataset_c52a04ca/csv/internal-hard-drive.csv",
+      "bytes": 352455,
+      "status": "원본 저장소 링크",
+      "reason": "원본 파일을 복제하지 않고 고정 커밋에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/internal-hard-drive.csv"
+    },
+    {
+      "path": "raw/pc-part-dataset_c52a04ca/csv/memory.csv",
+      "bytes": 873872,
+      "status": "원본 저장소 링크",
+      "reason": "원본 파일을 복제하지 않고 고정 커밋에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/memory.csv"
+    },
+    {
+      "path": "raw/pc-part-dataset_c52a04ca/csv/motherboard.csv",
+      "bytes": 273399,
+      "status": "원본 저장소 링크",
+      "reason": "원본 파일을 복제하지 않고 고정 커밋에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/motherboard.csv"
+    },
+    {
+      "path": "raw/pc-part-dataset_c52a04ca/csv/power-supply.csv",
+      "bytes": 160073,
+      "status": "원본 저장소 링크",
+      "reason": "원본 파일을 복제하지 않고 고정 커밋에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/power-supply.csv"
+    },
+    {
+      "path": "raw/pc-part-dataset_c52a04ca/csv/video-card.csv",
+      "bytes": 420291,
+      "status": "원본 저장소 링크",
+      "reason": "원본 파일을 복제하지 않고 고정 커밋에서 내려받도록 안내",
+      "alternative_path": null,
+      "download_url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/video-card.csv"
+    },
+    {
+      "path": "GoogleSheets_성욱자료_신규작성/성욱자료_공식근거_벤치마크_양식.xlsx",
+      "bytes": 16759,
+      "status": "오래된 로컬 내보내기 제외",
+      "reason": "현재 공유 시트와 내용이 일치하지 않는 파일 또는 내부 검사 자료",
+      "alternative_path": null,
+      "download_url": "https://docs.google.com/spreadsheets/d/1fulqsRrHVriKkrGvz5519E7K9cvfnGbmpMyb-HfbVho/edit"
+    },
+    {
+      "path": "GoogleSheets_성욱자료_신규작성/성욱자료_크롤링원문_양식.xlsx",
+      "bytes": 6563,
+      "status": "오래된 로컬 내보내기 제외",
+      "reason": "현재 공유 시트와 내용이 일치하지 않는 파일 또는 내부 검사 자료",
+      "alternative_path": null,
+      "download_url": "https://docs.google.com/spreadsheets/d/12_xSIi6L61M7BDBZe8gjZFN_Doi7vC39MFktG3TuDlE/edit"
+    },
+    {
+      "path": "GoogleSheets_성욱자료_신규작성/미리보기_개요.png",
+      "bytes": 71908,
+      "status": "오래된 로컬 내보내기 제외",
+      "reason": "현재 공유 시트와 내용이 일치하지 않는 파일 또는 내부 검사 자료",
+      "alternative_path": null,
+      "download_url": "https://docs.google.com/spreadsheets/d/1fulqsRrHVriKkrGvz5519E7K9cvfnGbmpMyb-HfbVho/edit"
+    },
+    {
+      "path": "GoogleSheets_성욱자료_신규작성/미리보기_벤치마크.png",
+      "bytes": 111527,
+      "status": "오래된 로컬 내보내기 제외",
+      "reason": "현재 공유 시트와 내용이 일치하지 않는 파일 또는 내부 검사 자료",
+      "alternative_path": null,
+      "download_url": "https://docs.google.com/spreadsheets/d/1fulqsRrHVriKkrGvz5519E7K9cvfnGbmpMyb-HfbVho/edit"
+    },
+    {
+      "path": "GoogleSheets_성욱자료_신규작성/미리보기_크롤링.png",
+      "bytes": 260390,
+      "status": "오래된 로컬 내보내기 제외",
+      "reason": "현재 공유 시트와 내용이 일치하지 않는 파일 또는 내부 검사 자료",
+      "alternative_path": null,
+      "download_url": "https://docs.google.com/spreadsheets/d/12_xSIi6L61M7BDBZe8gjZFN_Doi7vC39MFktG3TuDlE/edit"
+    },
+    {
+      "path": "GoogleSheets_성욱자료_신규작성/성욱자료_공식근거_벤치마크_양식.xlsx.inspect.ndjson",
+      "bytes": 213003,
+      "status": "오래된 로컬 내보내기 제외",
+      "reason": "현재 공유 시트와 내용이 일치하지 않는 파일 또는 내부 검사 자료",
+      "alternative_path": null,
+      "download_url": "https://docs.google.com/spreadsheets/d/1fulqsRrHVriKkrGvz5519E7K9cvfnGbmpMyb-HfbVho/edit"
+    },
+    {
+      "path": "GoogleSheets_성욱자료_신규작성/성욱자료_크롤링원문_양식.xlsx.inspect.ndjson",
+      "bytes": 92468,
+      "status": "오래된 로컬 내보내기 제외",
+      "reason": "현재 공유 시트와 내용이 일치하지 않는 파일 또는 내부 검사 자료",
+      "alternative_path": null,
+      "download_url": "https://docs.google.com/spreadsheets/d/12_xSIi6L61M7BDBZe8gjZFN_Doi7vC39MFktG3TuDlE/edit"
+    },
+    {
+      "path": "normalized/benchmarks/benchmark_run_parts_preview.csv",
+      "bytes": 92461791,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/benchmarks/parts_with_benchmark_references_preview.csv",
+      "bytes": 31011903,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/benchmarks/unmatched_hardware.csv",
+      "bytes": 24968742,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/benchmarks/unmatched_hardware_summary.csv",
+      "bytes": 308096,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/benchmarks/benchmark_import_manifest.json",
+      "bytes": 2950,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/pc-part-dataset_c52a04ca/parts_import_preview.csv",
+      "bytes": 30856314,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/pc-part-dataset_c52a04ca/source_part_crosswalk.csv",
+      "bytes": 17262893,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/pc-part-dataset_c52a04ca/import_manifest.json",
+      "bytes": 12021,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    }
+  ],
+  "note": "공유 대상 생성 데이터 10개는 ZIP에 포함했습니다. 원본 데이터는 출처 링크로 안내하며, 낡은 시트 내보내기와 내부 로그는 공유 자료에서 제외했습니다."
+}

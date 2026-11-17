@@ -1,0 +1,41 @@
+{
+  "checked_at": "2026-11-17T00:22:35+00:00",
+  "errors": [
+    {
+      "category": "3D·CAD·게임 개발",
+      "platform": "github",
+      "query": "Unreal Engine benchmark dataset",
+      "error": "GitHub API HTTP 403; Retry-After=없음"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "github",
+      "query": "MLPerf Inference results",
+      "error": "GitHub API HTTP 403; Retry-After=없음"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "github",
+      "query": "MLPerf benchmark dataset",
+      "error": "GitHub API HTTP 403; Retry-After=없음"
+    },
+    {
+      "category": "RAG·하드웨어 공식 문서",
+      "platform": "github",
+      "query": "pc-part-dataset",
+      "error": "GitHub API HTTP 403; Retry-After=없음"
+    },
+    {
+      "category": "RAG·하드웨어 공식 문서",
+      "platform": "github",
+      "query": "hardware compatibility documentation",
+      "error": "GitHub API HTTP 403; Retry-After=없음"
+    },
+    {
+      "category": "RAG·하드웨어 공식 문서",
+      "platform": "github",
+      "query": "CPU GPU motherboard manuals",
+      "error": "GitHub API HTTP 403; Retry-After=없음"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "topics": [
+    {
+      "category": "음악 제작",
+      "queries": ["DAWbench", "audio benchmark"]
+    },
+    {
+      "category": "영상 편집",
+      "queries": ["Premiere Pro benchmark", "DaVinci Resolve benchmark"]
+    },
+    {
+      "category": "게임",
+      "queries": ["GPU game benchmark", "Open GPU Benchmarks"]
+    },
+    {
+      "category": "사진 편집",
+      "queries": ["Lightroom benchmark", "Photoshop benchmark"]
+    },
+    {
+      "category": "3D·CAD·게임 개발",
+      "queries": ["Blender Open Data", "Unreal Engine benchmark"]
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "queries": ["llm-speed-benchmarks", "MLPerf Inference"]
+    }
+  ]
+}
