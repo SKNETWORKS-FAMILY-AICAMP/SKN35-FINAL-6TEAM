@@ -2,7 +2,7 @@
  * 화면 상태를 한곳에서 관리합니다.
  * - 기업을 고르면 상담 세션을 새로 만들고 이벤트 스트림을 구독합니다.
  * - 이벤트로 오피스 상태를 바꾸고, 결과물이 생겼다는 이벤트가 오면 후보·견적을 다시 불러옵니다.
- * - ?mock=1 이면 백엔드 없이 가짜 이벤트 대본만 재생합니다.
+ * - ?mock=1 이면 백엔드 없이 가짜 이벤트 대본만 재생합니다. intervalMs 는 대본 재생 간격입니다(mockPace.ts).
  */
 import { useCallback, useEffect, useReducer, useState } from "react";
 import {
@@ -29,7 +29,7 @@ const REFRESH_TYPES = new Set<AgentEvent["type"]>([
   "run.needs_input",
 ]);
 
-export function useConsultation(company: Company | null, mock: boolean) {
+export function useConsultation(company: Company | null, mock: boolean, intervalMs?: number) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [office, dispatch] = useReducer(officeReducer, undefined, initialOfficeState);
   const [connection, setConnection] = useState<ConnectionState>("closed");
@@ -61,13 +61,13 @@ export function useConsultation(company: Company | null, mock: boolean) {
     if (!mock && (sessionId === null || companyId === null)) return;
     const stream =
       mock || sessionId === null || companyId === null
-        ? createMockEventStream()
+        ? createMockEventStream(intervalMs)
         : createServerEventStream(sessionId, companyId);
     return stream.subscribe((event) => {
       dispatch(event);
       if (REFRESH_TYPES.has(event.type)) setRefreshTick((tick) => tick + 1);
     }, setConnection);
-  }, [sessionId, companyId, mock]);
+  }, [sessionId, companyId, mock, intervalMs]);
 
   // 결과물 다시 불러오기
   useEffect(() => {

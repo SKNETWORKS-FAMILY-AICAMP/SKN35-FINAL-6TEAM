@@ -29,7 +29,11 @@ const SCRIPT: Step[] = [
   ["run.completed", "completed", null, "추천 · 검증 · 견적이 끝났습니다"],
 ];
 
-export function buildMockEvents(sessionId = "mock-session", companyId = 0): AgentEvent[] {
+export function buildMockEvents(
+  sessionId = "mock-session",
+  companyId = 0,
+  intervalMs = 700,
+): AgentEvent[] {
   const start = Date.now();
   return SCRIPT.map(([type, status, team, message], index) => ({
     seq: index + 1,
@@ -40,7 +44,7 @@ export function buildMockEvents(sessionId = "mock-session", companyId = 0): Agen
     team,
     type,
     status,
-    occurred_at: new Date(start + index * 700).toISOString(),
+    occurred_at: new Date(start + index * intervalMs).toISOString(),
     message,
     error: null,
     artifact: null,
@@ -51,7 +55,7 @@ export function buildMockEvents(sessionId = "mock-session", companyId = 0): Agen
 export function createMockEventStream(intervalMs = 700): EventStream {
   return {
     subscribe(onEvent, onState) {
-      const events = buildMockEvents();
+      const events = buildMockEvents("mock-session", 0, intervalMs);
       let index = 0;
       onState("open");
       const timer = setInterval(() => {
