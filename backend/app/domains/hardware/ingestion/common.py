@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-from app.domains.hardware.ingestion.paths import DATA
+from app.domains.hardware.ingestion.paths import DATA as DATA
 
 CATEGORIES = ("cpu", "motherboard", "ram", "gpu", "storage", "psu", "case", "cooler")
 TABLES = (
@@ -25,29 +25,12 @@ def utc_now():
     return datetime.now(UTC).isoformat()
 
 
-def stamp():
-    return datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
-
-
 def read_json(path):
     return json.loads(Path(path).read_text(encoding="utf-8-sig"))
 
 
-def write_json(path, data):
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".tmp")
-    temporary.write_text(
-        json.dumps(data, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8"
-    )
-    temporary.replace(path)
-
-
-def report(kind, data):
-    path = DATA / "reports" / f"{kind}-{stamp()}.json"
-    write_json(path, {"reported_at_utc": utc_now(), **data})
-    print(json.dumps({"report": str(path), **data}, ensure_ascii=False, default=str))
-    return path
+def read_specs(value):
+    return json.loads(value) if isinstance(value, (str, bytes)) else value
 
 
 def sql_time(value):

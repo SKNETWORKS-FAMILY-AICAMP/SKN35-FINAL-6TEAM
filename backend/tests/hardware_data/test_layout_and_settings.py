@@ -1,6 +1,5 @@
 """Regression checks for the move into the shared backend structure."""
 
-import hashlib
 import os
 import tempfile
 import unittest
@@ -11,7 +10,7 @@ from app.db.connection import connection_settings
 from app.db.render_erd import ERD
 from app.db.schema import SCHEMA_PATH
 from app.domains.hardware.ingestion.common import read_json
-from app.domains.hardware.ingestion.paths import DATA, REPO_ROOT, TOOLS
+from app.domains.hardware.ingestion.paths import DATA, REPO_ROOT
 
 
 class SettingsTests(unittest.TestCase):
@@ -73,32 +72,11 @@ class SettingsTests(unittest.TestCase):
 
 
 class LayoutTests(unittest.TestCase):
-    def test_manifest_and_price_evidence_paths_survive_relocation(self):
-        manifest = read_json(DATA / "raw/collection_manifest.json")
-        self.assertTrue((DATA / manifest["catalog"]["path"]).is_file())
-        for entry in manifest["danawa"]:
-            record = read_json(DATA / entry["path"])
-            evidence = record.get("price_evidence") or {}
-            if evidence.get("path"):
-                self.assertTrue((DATA / evidence["path"]).is_file())
-
-    def test_historical_raw_files_match_pre_move_git_snapshot(self):
-        # Download hashes refer to bytes before Git normalized mixed line endings.
-        # The relocation audit records the already stored bytes, without rewriting
-        # those original source hashes or claiming to reconstruct downloaded bytes.
-        audit = read_json(DATA / "reports/layout_integrity.json")
-        for item in audit["files"]:
-            with self.subTest(path=item["path"]):
-                self.assertEqual(
-                    hashlib.sha256((DATA / item["path"]).read_bytes()).hexdigest(),
-                    item["stored_sha256"],
-                )
-
     def test_schema_tools_and_erd_are_outside_data(self):
         self.assertEqual(DATA, REPO_ROOT / "data/hardware")
         self.assertTrue(SCHEMA_PATH.is_file())
         self.assertEqual(SCHEMA_PATH.parent, REPO_ROOT / "backend/app/db/sql")
-        self.assertTrue((TOOLS / "package-lock.json").is_file())
+        self.assertTrue(read_json(DATA / "docyx_compatibility.json")["records"])
         self.assertEqual(ERD, REPO_ROOT / "docs/database/erd")
         for extension in ("mmd", "dot", "svg", "png"):
             with self.subTest(extension=extension):

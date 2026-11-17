@@ -1,5 +1,0 @@
-{
-  "name": "pc-catalog-collection-tools",
-  "private": true,
-  "dependencies": { "danawa-cli": "3.0.0" }
-}

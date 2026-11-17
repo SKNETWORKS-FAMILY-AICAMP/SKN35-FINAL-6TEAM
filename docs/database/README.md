@@ -1,6 +1,6 @@
 # PC 부품 데이터 관리
 
-MySQL `dev_database`의 8개 테이블과 실제 부품·호환성 수집 자료를 관리합니다.
+MySQL `dev_database`의 부품·판매 상품·호환성 수집 자료를 관리합니다.
 모든 명령은 저장소 루트에서 실행합니다. 로컬 MySQL은 Docker 없이 사용합니다.
 `--directory backend`는 실행 위치와 Python 환경을 함께 백엔드로 지정합니다.
 
@@ -51,6 +51,10 @@ DBeaver에서도 [최초 생성 SQL](../../backend/app/db/sql/parts_catalog.sql)
 대상 스키마는 `dev_database`입니다. 생성 후 탐색기에서 새로고침하면 됩니다.
 `CREATE TABLE IF NOT EXISTS`는 이미 존재하는 테이블을 새 구조로 변경하지 않습니다.
 기존 테이블에 첫 변경이 생기면 `backend/app/db/sql/migrations/`에 변경 SQL을 추가하고 ERD를 갱신합니다.
+기존 DB에 판매 상품 기능을 도입할 때는 [001_add_part_offers.sql](../../backend/app/db/sql/migrations/001_add_part_offers.sql)을 적용합니다.
+이 마이그레이션은 `part_offers` 테이블만 생성합니다. 적재는 미리보기를 확인한 뒤 `import_parts --apply`로 실행합니다.
+이미 `001`을 적용한 DB에서 중고 판매 상품을 받으려면 [002_allow_used_part_offers.sql](../../backend/app/db/sql/migrations/002_allow_used_part_offers.sql)을 적용합니다.
+`002`는 상품 상태 제약만 변경합니다. 최신 `parts_catalog.sql`로 만든 DB에는 해당 제약이 포함되어 있습니다.
 MySQL의 테이블 생성 DDL은 전체 롤백이 되지 않습니다. 데이터 가져오기는 트랜잭션으로 처리합니다.
 
 ## 수집 환경과 갱신
@@ -63,15 +67,26 @@ MySQL의 테이블 생성 DDL은 전체 롤백이 되지 않습니다. 데이터
 npm --prefix scripts/data/tools ci --cache scripts/data/.npm-cache --ignore-scripts --no-audit --no-fund
 uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.collect_parts
 
-# 사양 원본 또는 가격만 갱신
+# BuildCores 스냅샷 또는 가격만 갱신
 uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.collect_parts --source catalog
 uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.collect_parts --source danawa
 
 # 특정 제품만 다시 검색
 uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.collect_parts --source danawa --only amd-ryzen-5-7600
+
+# BuildCores UUID 또는 품목 배치로 검색
+uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.collect_parts --source danawa --only 0bd31f89-46f3-487c-83d4-878518c4455a
+uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.collect_parts --source danawa --category storage --offset 0 --limit 20
 ```
 
-한 제품당 한 검색, 최대 20개 후보를 조회합니다. 검색 실패와 빈 결과도 원본에 남깁니다.
+기본 원본은 [BuildCores OpenDB](https://github.com/buildcores/buildcores-open-db)입니다. `--catalog-revision`으로 40자리 스냅샷 SHA를 지정할 수 있습니다.
+수집기는 지원 품목 8개를 변환하고, `raw/buildcores/`에 원본 아카이브·정규화 자료·출처 리비전을 보존합니다.
+기본 가격 갱신은 검토 매핑의 부품을 검색합니다. `--only`와 `--category`로 검토 매핑이 없는 부품도 후보를 수집할 수 있습니다.
+품목 배치는 수집한 스냅샷의 UUID 정렬 순서를 사용합니다. 다음 묶음은 같은 스냅샷에서 `--offset`을 늘리세요.
+
+검색당 최대 20개 후보를 조회합니다. 일반 검색에서 해당 모델의 중고·리퍼비시 후보를 확인하지 못하면 각 키워드를 붙여 검색합니다.
+필요한 경우 `part_matches.json`의 `used_query`와 `refurbished_query`로 추가 검색어를 지정합니다.
+검색 실패와 빈 결과도 원본에 남깁니다.
 실패는 국내 미판매·단종·호환 불가의 증거가 아닙니다. 수집 결과 중 보류가 있으면 종료 코드 2를 반환합니다.
 원본은 UTC 시각별 폴더에 저장하며 `raw/collection_manifest.json`은 최신 파일을 가리킵니다.
 각 실행의 manifest도 `raw/manifests/`에 보관합니다. `--only`는 그 제품의 포인터만 바꿉니다.
@@ -83,13 +98,13 @@ uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.inges
 |---|---|
 | `backend/app/db/connection.py` | 로컬 MySQL 연결 및 환경변수 |
 | `backend/app/db/schema.py` | 연결 확인 및 최초 테이블 생성 CLI |
-| `backend/app/db/sql/parts_catalog.sql` | 기존 8개 테이블의 PK·FK·CHECK·인덱스 |
+| `backend/app/db/sql/parts_catalog.sql` | 부품 DB 최초 생성 SQL과 PK·FK·CHECK·인덱스 |
 | `backend/app/domains/hardware/ingestion/` | 수집·가격 추출·부품/호환성 가져오기·무결성 점검 |
 | `backend/tests/hardware_data/` | 정규화·가격·호환성·경로·설정 및 MySQL 제약 검증 |
 | `scripts/data/tools/` | danawa-cli 3.0.0과 npm lockfile |
 | `data/hardware/part_matches.json` | 원본 ID, 제품 식별, 선택 상품코드, 검토 상태 |
 | `data/hardware/reviewed_specs_overrides.json` | 수동 검토 원본은 보존하고, 적용할 사양 보정과 제조사 출처 키를 지정 |
-| `data/hardware/raw/` | PC Builder 원본, 다나와 응답/HTML, 제조사 수동 검토, manifest |
+| `data/hardware/raw/` | BuildCores 스냅샷, 이전 PC Builder 원본, 다나와 응답/HTML, 제조사 수동 검토, manifest |
 | `data/hardware/processed/` | 가져오기에 사용하는 정규화 결과 |
 | `data/hardware/reports/` | 실행 보고서, 무결성 점검, DB 부품 스냅샷 |
 | `docs/database/erd/` | Mermaid, Graphviz, SVG, PNG |
@@ -110,10 +125,10 @@ manifest의 상대 경로는 이 기준 디렉터리 내부를 가리키므로 �
 결과를 옮긴 **수동 검토 기록**입니다. 제조사 HTML 원문 전체를 다운로드한 파일로 표시하지 않습니다.
 자동 QVL 크롤러는 구현하지 않았습니다. 추가 자료는 원문을 확인한 뒤 이 기록에 추가합니다.
 
-## 최초 입력 범위
+## 최초 표본 기록
 
-- 이전 표본 30개 중 구체적 제품 27개를 저장합니다. 국내 가격 매칭이 보류된 제품도
-  원본에서 구체적인 모델이 식별되면 사양을 저장하고 가격을 비워 둡니다.
+- 기존 스냅샷은 30개 표본 중 구체적 제품 27개를 저장한 기록입니다. 이후 정확한 QVL RAM을 한 개 추가했습니다.
+  신규 적재는 아래 판매 상품 검증 기준을 적용합니다.
 - `RTX 5060 Ti 16GB` 제품군 1개, 정확한 MPN이 없는 삼성 16GB/32GB 집계상품 2개는
   `part_matches.json`의 `import_enabled=false`로 보류합니다.
 - ASRock QVL에서 확인한 삼성 `M323R2GA3DB0-CWMOD`를 별도 추가하여 총 28개입니다.
@@ -131,17 +146,31 @@ manifest의 상대 경로는 이 기준 디렉터리 내부를 가리키므로 �
 이름 유사도만으로 후보를 선택하지 않습니다. 가격 연결에는 검토한 상품코드와 전체 상품명이 모두 필요합니다.
 키트 수량, RGB, 세대, 색상, OC, 방열판, 모델 접미사를 다른 제품으로 구분합니다.
 정규 제품명 변경·중복 키·모델번호 변경은 수동 검토 후 수정하세요.
+기존 검토 모델은 BuildCores UUID를 `buildcores_id`로 연결하거나 제조사·정확한 모델 식별자가 유일하게 일치할 때 기존 `source_key`를 재사용합니다.
+BuildCores 전용 검토 모델은 `buildcores_parts`에 기록합니다. 검토 매핑 없이 조회한 모델은 품목과 유일한 MPN이 다나와 상품명에 정확히 일치할 때만 자동 연결합니다.
+
+`part_matches.json`의 모델에 `danawa_offers` 배열을 추가하면 검토한 상품코드를 여러 건 연결할 수 있습니다.
+각 항목에 `danawa_product_code`와 `expected_listing_name`을 기록합니다. 기존 최상위 상품코드는 기본 매핑입니다.
+상품 상세의 제목 표기나 `itemCondition`으로 상태를 확인합니다. 같은 다나와 상품코드 상세에서 수동으로 상태를 검토한 경우에는
+해당 상품에 `condition_review`를 추가하고 `condition`, 실제 표기를 담은 `evidence`, 같은 상품코드의 `source_url`을 남깁니다.
+미검토 후보는 미리보기의 `listing_reviews`에 나옵니다. 제목·상세·수동 검토가 서로 불일치하면 보류합니다.
 
 호환성 근거의 고유 키는 `conditions._record_key`에 보존합니다.
 같은 부품 두 개라도 CPU 계열·QVL 조건·출처가 다르면 여러 근거 행이 존재할 수 있습니다.
 가져오기 명령끼리는 MySQL named lock으로 직렬화합니다. 재실행 시 기존 ID를 유지해 갱신합니다.
 오류가 나면 해당 가져오기 작업의 DML을 모두 롤백합니다.
+가격 조건으로 부품이 아직 적재되지 않은 호환성 근거는 `PART_NOT_IMPORTED`로 보고하고 원본에 보존합니다.
 
 ## 가격 정책
 
 금액은 KRW, `DECIMAL(15,2)`입니다. 배송비·조립비 컬럼은 없습니다.
 본체 총액은 견적 항목의 `unit_price × quantity` 합계입니다.
 가격 미확인 상태는 `NULL`이며 0원으로 대체하지 않습니다.
+새 부품은 **검색에서 반환된 정확한 상품코드의 신품·중고·리퍼비시 가격을 하나 이상 검증한 경우** 적재합니다.
+`part_offers`에는 검증된 `NEW`, `USED`, `REFURBISHED`의 상품가를 상품코드별로 저장합니다.
+미확인·가격 보류 건과 상태별 준비 건수는 미리보기에서 확인합니다.
+`parts.current_price`는 검증된 기본 신품 가격을 담는 기존 필드입니다. 리퍼비시만 가격을 확인한 모델의
+가격과 중고 가격은 `part_offers`에서 확인합니다. 기존 부품과 호환성 행은 자동 삭제하지 않습니다.
 
 CLI의 `minPrice`는 원본 응답에 보존합니다. 현재 수집기는 매칭한 상품의 페이지도 확인하여
 `sell-price`의 **`data-base-price`와 `data-delivery-price`가 별도 제공되는 경우** 상품 금액만 사용합니다.
@@ -151,6 +180,7 @@ CLI의 `minPrice`는 원본 응답에 보존합니다. 현재 수집기는 매�
 초기 매핑은 모두 `UNVERIFIED`입니다.
 
 수집 실패·잘못된 가격·이전 시각의 가격으로 기존 유효 가격을 덮어쓰지 않습니다.
+상세 페이지에서 명시적 품절을 확인하면 기존 판매 상품의 판매 상태만 갱신합니다. 검색 실패와 재고 미확인은 그대로 보류합니다.
 `parts.current_price` 갱신은 `quote_items.unit_price`를 변경하지 않습니다.
 가격 확인은 재고, 결제 가능 여부, 국내 최저 구매비용 전체를 보장하지 않습니다.
 
@@ -207,6 +237,7 @@ Remove-Item Env:RUN_MYSQL_TESTS
 
 ## 출처
 
+- [BuildCores OpenDB](https://github.com/buildcores/buildcores-open-db) ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)). 부품 사양 일부의 필드와 표기를 프로젝트 형식으로 변환했습니다. 사용한 리비전과 원본 링크는 수집 manifest와 부품 출처에 기록합니다.
 - TechFuelHQ PC Builder Parts Dataset (CC BY 4.0): https://techfuelhq.com/tools/pc-builder/
   원본: https://github.com/iBlessi/pc-builder-parts . 선택·정규화·공식 사양 보완을 수행했습니다.
 - danawa-cli 3.0.0: https://github.com/tellang/danawa-cli . 코드 라이선스 및 이용 안내는 해당 저장소 참고.

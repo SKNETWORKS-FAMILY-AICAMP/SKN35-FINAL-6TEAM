@@ -48,7 +48,7 @@ def main():
     mermaid = ["erDiagram"]
     dot = [
         "digraph ERD {",
-        'graph [rankdir=LR, bgcolor="white", nodesep=0.7, ranksep=1.5, pad=0.4, splines=spline, fontname="Malgun Gothic", label="PC 견적 데이터베이스 | 8 tables | 점선: 비식별관계 | 금액: 본체 부품만 합산", labelloc=t, fontsize=20];',
+        f'graph [rankdir=LR, bgcolor="white", nodesep=0.7, ranksep=1.5, pad=0.4, splines=spline, fontname="Malgun Gothic", label="PC 견적 데이터베이스 | {len(definitions)} tables | 점선: 비식별관계 | 금액: 본체 부품만 합산", labelloc=t, fontsize=20];',
         'node [shape=plain, fontname="Malgun Gothic"];',
         'edge [style=dashed, color="#64748b", fontname="Malgun Gothic", fontsize=11, dir=both];',
     ]
@@ -90,8 +90,8 @@ def main():
     dot.append("}")
     out = ERD
     out.mkdir(parents=True, exist_ok=True)
-    (out / "schema.mmd").write_text("\n".join(mermaid) + "\n", encoding="utf-8")
-    (out / "schema.dot").write_text("\n".join(dot) + "\n", encoding="utf-8")
+    (out / "schema.mmd").write_text("\n".join(mermaid) + "\n", encoding="utf-8", newline="\n")
+    (out / "schema.dot").write_text("\n".join(dot) + "\n", encoding="utf-8", newline="\n")
     executable = shutil.which("dot")
     if not executable:
         raise ValueError("SVG/PNG 생성에는 Graphviz의 dot 명령이 필요합니다.")
@@ -106,6 +106,8 @@ def main():
             ],
             check=True,
         )
+    svg = out / "schema.svg"
+    svg.write_text(svg.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
     print("ERD 저장 완료: " + str(out / "schema.svg"))
 
 

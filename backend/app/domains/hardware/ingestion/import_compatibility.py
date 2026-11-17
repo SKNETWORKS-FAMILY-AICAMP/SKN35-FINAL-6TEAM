@@ -1,26 +1,18 @@
 """Import reviewed official evidence. Does not infer support from missing rows."""
 
-import argparse
-from contextlib import closing
-
-from app.db.connection import get_connection
 from app.domains.hardware.ingestion.common import (
-    DATA,
-    import_transaction,
     json_text,
-    read_json,
-    report,
-    run_cli,
+    read_specs,
     sql_time,
-    utc_now,
-    write_json,
 )
-from app.domains.hardware.ingestion.import_parts import read_specs
 
 
 def validate_records(records, matches):
-    products = {m["source_key"]: m for m in matches if m["import_enabled"]}
+    products = {part["source_key"]: part for part in matches}
+    if len(products) != len(matches):
+        raise ValueError("검토한 부품의 source_key가 중복됐습니다.")
     keys = set()
+    cpu_pairs = set()
     for record in records:
         key = record["record_key"]
         if key in keys:
@@ -32,8 +24,13 @@ def validate_records(records, matches):
         kind = record["check_type"]
         if kind not in ("CPU_SUPPORT", "MEMORY_QVL", "KNOWN_CONFLICT"):
             raise ValueError(key + ": 알 수 없는 검사 유형입니다.")
-        if kind == "CPU_SUPPORT" and b["category"] != "cpu":
-            raise ValueError(key + ": CPU가 아닙니다.")
+        if kind == "CPU_SUPPORT":
+            if b["category"] != "cpu":
+                raise ValueError(key + ": CPU가 아닙니다.")
+            pair = (record["part_a_key"], record["part_b_key"])
+            if pair in cpu_pairs:
+                raise ValueError(key + ": 같은 메인보드와 CPU의 지원 근거가 중복됐습니다.")
+            cpu_pairs.add(pair)
         if record["support_status"] not in ("SUPPORTED", "CONDITIONAL", "UNSUPPORTED"):
             raise ValueError(key + ": 지원 상태를 확인하세요.")
         scope, minimum = record["bios_scope"], record.get("min_bios_version")
@@ -60,7 +57,7 @@ def validate_records(records, matches):
 
 
 def upsert_compatibility(connection, records, checked_at):
-    counts = {"inserted": 0, "updated": 0}
+    counts = {"inserted": 0, "updated": 0, "withheld": []}
     with connection.cursor(dictionary=True) as cursor:
         cursor.execute("SELECT part_id,model_number,specs FROM parts")
         products = {}
@@ -73,7 +70,10 @@ def upsert_compatibility(connection, records, checked_at):
         for record in records:
             a, b = products.get(record["part_a_key"]), products.get(record["part_b_key"])
             if not a or not b:
-                raise ValueError("부품을 먼저 저장하세요: " + record["record_key"])
+                counts["withheld"].append(
+                    {"record_key": record["record_key"], "reason": "PART_NOT_IMPORTED"}
+                )
+                continue
             if (
                 record["check_type"] == "MEMORY_QVL"
                 and b["model_number"] != record["conditions"]["ram_model_number"]
@@ -83,7 +83,7 @@ def upsert_compatibility(connection, records, checked_at):
                 **record["conditions"],
                 "_record_key": record["record_key"],
                 "evidence_checked_on": record["evidence_checked_on"],
-                "evidence_kind": "manually_reviewed_transcription",
+                "evidence_kind": record.get("evidence_kind", "manually_reviewed_transcription"),
                 "source_date_precision": "day" if record.get("source_updated_on") else None,
             }
             cursor.execute(
@@ -121,24 +121,3 @@ def upsert_compatibility(connection, records, checked_at):
                 )
                 counts["inserted"] += 1
     return counts
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--apply", action="store_true")
-    args = parser.parse_args()
-    source = read_json(DATA / "raw/manufacturer/compatibility_review.json")
-    records = validate_records(source["records"], read_json(DATA / "part_matches.json")["parts"])
-    checked_at = utc_now()
-    write_json(
-        DATA / "processed/compatibility.json", {"normalized_at_utc": checked_at, "records": records}
-    )
-    result = {"mode": "apply" if args.apply else "preview", "prepared": len(records)}
-    if args.apply:
-        with closing(get_connection()) as connection, import_transaction(connection):
-            result.update(upsert_compatibility(connection, records, checked_at))
-    report("import-compatibility", result)
-
-
-if __name__ == "__main__":
-    raise SystemExit(run_cli(main))

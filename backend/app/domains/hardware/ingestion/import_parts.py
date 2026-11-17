@@ -1,295 +1,215 @@
-"""Normalize reviewed identities, then preview or transactionally import parts."""
+"""Preview or import docyx prices and reviewed compatibility into local MySQL."""
 
 import argparse
-import html
-import re
+import json
 from contextlib import closing
+from datetime import date
+from decimal import Decimal, InvalidOperation
+from pathlib import Path
 
-from app.db.connection import get_connection
+from app.db.connection import connection_settings, get_connection
+from app.db.schema import initialize_schema
 from app.domains.hardware.ingestion.common import (
     CATEGORIES,
     DATA,
+    TABLES,
     import_transaction,
     json_text,
-    price_value,
     read_json,
-    report,
+    read_specs,
     run_cli,
     sql_time,
     utc_now,
-    write_json,
+)
+from app.domains.hardware.ingestion.docyx import REVISION, prepare_parts, read_snapshot
+from app.domains.hardware.ingestion.import_compatibility import (
+    upsert_compatibility,
+    validate_records,
+)
+
+FX_URL = "https://www.federalreserve.gov/releases/h10/hist/dat00_ko.htm"
+DROP_OFFERS = (
+    Path(__file__).resolve().parents[3] / "db/sql/migrations/003_remove_legacy_part_offers.sql"
 )
 
 
-def clean_name(value):
-    return " ".join(re.sub(r"<[^>]*>", "", html.unescape(value or "")).split())
+def upsert_parts(connection, parts):
+    rows = [
+        (
+            part["category"],
+            part["brand"],
+            part["name"],
+            part["model_number"],
+            json_text(part["specs"]),
+            part["source_url"],
+            part["verified_at"],
+            part["current_price"],
+            part["price_source_url"],
+            sql_time(part["price_checked_at"]),
+        )
+        for part in parts
+    ]
+    query = """
+        INSERT INTO parts
+            (category,brand,name,model_number,specs,source_url,verified_at,
+             current_price,currency,price_source_url,price_checked_at)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,'KRW',%s,%s) AS incoming
+        ON DUPLICATE KEY UPDATE model_number=incoming.model_number,specs=incoming.specs,
+             source_url=incoming.source_url,verified_at=incoming.verified_at,
+             current_price=incoming.current_price,currency=incoming.currency,
+             price_source_url=incoming.price_source_url,price_checked_at=incoming.price_checked_at
+    """
+    with connection.cursor() as cursor:
+        for start in range(0, len(rows), 400):
+            cursor.executemany(query, rows[start : start + 400])
 
 
-def load_reviewed_specs():
-    reviewed = read_json(DATA / "raw/manufacturer/pilot_specs_review.json")
-    for key, fields in read_json(DATA / "reviewed_specs_overrides.json").items():
-        part = reviewed["parts"].setdefault(key, {})
-        sources = [*part.get("sources", []), *fields.get("sources", [])]
-        part.update(fields)
-        part["sources"] = list(dict.fromkeys(sources))
+def refresh_reviewed_specs(connection, parts):
+    """Apply reviewed fields in place without rewriting price or price provenance."""
+    reviewed = 0
+    with connection.cursor(dictionary=True) as cursor:
+        for part in parts:
+            incoming = part["specs"]["_provenance"]
+            if "reviewed_fields" not in incoming:
+                continue
+            cursor.execute(
+                "SELECT part_id,specs FROM parts WHERE category=%s AND brand=%s AND name=%s FOR UPDATE",
+                (part["category"], part["brand"], part["name"]),
+            )
+            existing = cursor.fetchone()
+            if not existing:
+                raise ValueError(f"{part['name']}: 검토 사양을 연결할 부품이 DB에 없습니다.")
+            specs = read_specs(existing["specs"])
+            saved = specs.get("_provenance", {})
+            if any(saved.get(key) != incoming[key] for key in ("source", "revision", "raw_name")):
+                raise ValueError(f"{part['name']}: DB 부품의 docyx 출처가 일치하지 않습니다.")
+            for field in incoming["reviewed_fields"]:
+                specs[field] = part["specs"][field]
+            saved.update(
+                {
+                    key: incoming[key]
+                    for key in ("source_key", "reviewed_fields", "reviewed_specs_url")
+                }
+            )
+            cursor.execute(
+                "UPDATE parts SET model_number=%s,specs=%s WHERE part_id=%s",
+                (part["model_number"], json_text(specs), existing["part_id"]),
+            )
+            reviewed += 1
     return reviewed
 
 
-def reviewed_price(match, observations):
-    """Product code AND reviewed name must agree. Unreviewed delivery basis is withheld."""
-    code = match.get("danawa_product_code")
-    expected = match.get("expected_listing_name")
-    if not code or not expected:
-        return None, "NO_REVIEWED_LISTING"
-    candidates = []
-    for record in observations:
-        if not (record.get("response") or {}).get("ok"):
-            continue
-        for item in record["response"].get("items", []):
-            if str(item.get("productCode")) == code:
-                candidates.append((record, item))
-    if not candidates:
-        return None, "LISTING_NOT_RETURNED"
-    record, item = max(candidates, key=lambda pair: sql_time(pair[0]["queried_at_utc"]))
-    if clean_name(item.get("productName")) != clean_name(expected):
-        return None, "LISTING_NAME_CHANGED"
-    price = price_value(item.get("minPrice"))
-    if price is None:
-        return None, "INVALID_PRICE"
-    evidence = record.get("price_evidence") or {}
-    if evidence.get("verified"):
-        source_url = f"https://prod.danawa.com/info/?pcode={code}"
-        page_price = price_value(evidence.get("component_price"))
-        if (
-            evidence.get("product_code") != code
-            or evidence.get("source_url") != source_url
-            or clean_name(evidence.get("product_name")) != clean_name(expected)
-            or page_price is None
-            or not evidence.get("checked_at_utc")
-        ):
-            return None, "PRICE_EVIDENCE_MISMATCH"
-        sql_time(evidence["checked_at_utc"])
-        return {
-            "value": str(page_price),
-            "source_url": source_url,
-            "checked_at": evidence["checked_at_utc"],
-        }, "VERIFIED_COMPONENT_PRICE"
-    if match.get("price_basis") != "COMPONENT_ONLY" or not match.get("price_basis_source_url"):
-        return None, "PRICE_BASIS_UNVERIFIED"
-    return {
-        "value": str(price),
-        "source_url": f"https://prod.danawa.com/info/?pcode={code}",
-        "checked_at": record["queried_at_utc"],
-    }, "VERIFIED"
-
-
-def normalize_parts(catalog, matches, reviewed_specs, observations, checked_at):
-    origin = {
-        row["id"]: (category, row) for category in CATEGORIES for row in catalog.get(category, [])
-    }
-    if len({row["source_key"] for row in matches}) != len(matches):
-        raise ValueError("매칭 파일에 중복 source_key가 있습니다.")
-    rows, withheld = [], []
-    for match in matches:
-        if not match["import_enabled"]:
-            withheld.append({"source_key": match["source_key"], "reason": match["review_note"]})
-            continue
-        key = match["source_key"]
-        if match["category"] not in CATEGORIES or not all(match.get(k) for k in ("brand", "name")):
-            raise ValueError(f"{key}: 제품 식별 필드가 부족합니다.")
-        original = origin.get(match.get("catalog_id"))
-        if match.get("catalog_id") and original is None:
-            raise ValueError(f"{key}: 원본 ID가 사라졌습니다. 검토가 필요합니다.")
-        if original and original[0] != match["category"]:
-            raise ValueError(f"{key}: 부품 분류가 원본과 다릅니다.")
-        raw = original[1] if original else {}
-        # Editorial recommendation labels are not treated as hardware facts.
-        excluded = {
-            "id",
-            "vendor",
-            "model",
-            "source",
-            "last_verified",
-            "notes",
-            "performance_tier",
-            "use_cases",
-        }
-        specs = {k: v for k, v in raw.items() if k not in excluded}
-        curated = reviewed_specs["parts"].get(key, {})
-        for field, value in curated.items():
-            if field not in ("sources", "supported_cpus", "bundled_cooler"):
-                specs[field] = value
-        # A cooler bundled with a chosen retail package is not a CPU-wide fact.
-        if curated.get("bundled_cooler"):
-            specs["listing_options"] = {
-                "danawa_product_code": match.get("danawa_product_code"),
-                "bundled_cooler": curated["bundled_cooler"],
-            }
-        specs.update(match.get("spec_overrides", {}))
-        aliases = {
-            "module_gb": "module_capacity_gb",
-            "max_gpu_mm": "max_gpu_length_mm",
-            "max_cooler_mm": "max_cpu_cooler_mm",
-            "max_psu_mm": "max_psu_length_mm",
-        }
-        for old, new in aliases.items():
-            if old in specs:
-                specs[new] = specs.pop(old)
-        if specs.get("form_factor") == "Micro-ATX":
-            specs["form_factor"] = "mATX"
-        if match["category"] == "psu":
-            standard = re.fullmatch(r"ATX\s+(\d+\.\d+)", raw.get("form_factor", ""))
-            if standard:
-                specs["atx_version"] = standard[1]
-                specs["form_factor"] = "ATX"
-            if "gpu16" in curated and "pcie_5_connectors" in specs:
-                # The original count mixes PSU-side sockets with bundled GPU cables.
-                specs.pop("pcie_5_connectors")
-        if match["category"] == "ram" and isinstance(specs.get("kit"), str):
-            kit = re.fullmatch(r"(\d+)x(\d+)GB", specs["kit"])
-            if kit:
-                specs["modules_per_item"], specs["module_capacity_gb"] = map(int, kit.groups())
-        sources = [reviewed_specs["sources"][s] for s in curated.get("sources", [])]
-        primary_url = match.get("spec_source_url") or (
-            sources[0]["url"] if sources else raw.get("source")
-        )
-        primary_url = (
-            primary_url
-            or "https://github.com/iBlessi/pc-builder-parts/blob/main/pc-builder-parts.json"
-        )
-        price, price_status = reviewed_price(match, observations)
-        specs["_provenance"] = {
-            "source_key": key,
-            "catalog_id": match.get("catalog_id"),
-            "catalog_version": catalog["_meta"].get("version"),
-            "source_verified_on": raw.get("last_verified"),
-            "reviewed_on": reviewed_specs["checked_on"],
-            "review_status": match["review_status"],
-            "review_note": match["review_note"],
-            "spec_sources": sources,
-            "danawa_product_code": match.get("danawa_product_code"),
-            "price_status": price_status,
-            "price_basis_source_url": price["source_url"]
-            if price
-            else match.get("price_basis_source_url"),
-        }
-        if "gpu16" in curated and "pcie_5_connectors" in raw:
-            specs["_provenance"]["catalog_ambiguous_connector_count"] = raw["pcie_5_connectors"]
-        rows.append(
-            {
-                "source_key": key,
-                "category": match["category"],
-                "brand": match["brand"],
-                "name": match["name"],
-                "model_number": match.get("model_number"),
-                "specs": specs,
-                "source_url": primary_url,
-                "verified_at": checked_at,
-                "current_price": price["value"] if price else None,
-                "currency": "KRW",
-                "price_source_url": price["source_url"] if price else None,
-                "price_checked_at": price["checked_at"] if price else None,
-            }
-        )
-    identities = [(r["category"], r["brand"], r["name"]) for r in rows]
-    if len(identities) != len(set(identities)):
-        raise ValueError("중복 정규 제품명이 있습니다.")
-    return rows, withheld
-
-
-def upsert_parts(connection, rows):
-    counts = {"inserted": 0, "updated": 0, "preserved_prices": 0}
-    with connection.cursor(dictionary=True) as cursor:
-        for row in rows:
-            cursor.execute(
-                "SELECT * FROM parts WHERE category=%s AND brand=%s AND name=%s FOR UPDATE",
-                (row["category"], row["brand"], row["name"]),
-            )
-            existing = cursor.fetchone()
-            price, price_url, price_time = (
-                row["current_price"],
-                row["price_source_url"],
-                sql_time(row["price_checked_at"]),
-            )
-            if existing:
-                old_specs = read_specs(existing["specs"])
-                old_key = old_specs.get("_provenance", {}).get("source_key")
-                if old_key and old_key != row["source_key"]:
-                    raise ValueError(f"제품 식별 충돌: {row['source_key']}")
-                if existing["model_number"] and existing["model_number"] != row["model_number"]:
-                    raise ValueError(f"모델번호 변경은 수동 검토가 필요합니다: {row['source_key']}")
-                if existing["current_price"] is not None and (
-                    price is None
-                    or (existing["price_checked_at"] and price_time < existing["price_checked_at"])
-                ):
-                    price, price_url, price_time = (
-                        existing["current_price"],
-                        existing["price_source_url"],
-                        existing["price_checked_at"],
+def apply_catalog(parts, records, checked_at, *, reset=False, specs_only=False):
+    if specs_only and reset:
+        raise ValueError("사양 갱신과 초기화를 동시에 실행할 수 없습니다.")
+    if reset and connection_settings()["host"].lower() not in ("localhost", "127.0.0.1", "::1"):
+        raise ValueError("--reset은 로컬 dev_database에서만 사용할 수 있습니다.")
+    if not specs_only:
+        initialize_schema()
+    with closing(get_connection()) as connection, import_transaction(connection):
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW FULL TABLES")
+            tables = {name: kind for name, kind in cursor.fetchall()}
+            legacy = "part_offers" in tables
+            if legacy and not reset:
+                raise ValueError(
+                    "이전 판매 상품 테이블이 있습니다. 기존 DB 교체에는 --apply --reset을 사용하세요."
+                )
+            if reset:
+                unexpected = set(tables) - set(TABLES) - {"part_offers"}
+                if unexpected or any(kind != "BASE TABLE" for kind in tables.values()):
+                    raise ValueError(
+                        "dev_database에 프로젝트 초기화 범위 밖의 테이블 또는 뷰가 있습니다."
                     )
-                    counts["preserved_prices"] += 1
-            values = (
-                row["model_number"],
-                json_text(row["specs"]),
-                row["source_url"],
-                sql_time(row["verified_at"]),
-                price,
-                row["currency"],
-                price_url,
-                price_time,
-            )
-            if existing:
-                cursor.execute(
-                    "UPDATE parts SET model_number=%s,specs=%s,source_url=%s,verified_at=%s,current_price=%s,currency=%s,price_source_url=%s,price_checked_at=%s WHERE part_id=%s",
-                    (*values, existing["part_id"]),
-                )
-                counts["updated"] += 1
-            else:
-                cursor.execute(
-                    "INSERT INTO parts (category,brand,name,model_number,specs,source_url,verified_at,current_price,currency,price_source_url,price_checked_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                    (row["category"], row["brand"], row["name"], *values),
-                )
-                counts["inserted"] += 1
-    return counts
-
-
-def read_specs(value):
-    import json
-
-    return json.loads(value) if isinstance(value, str) else value
+                for table in reversed(TABLES):
+                    if table == "parts" and legacy:
+                        cursor.execute("DELETE FROM part_offers")
+                    cursor.execute(f"DELETE FROM {table}")
+        updated = {}
+        if specs_only:
+            updated["reviewed_specs_refreshed"] = refresh_reviewed_specs(connection, parts)
+        else:
+            upsert_parts(connection, parts)
+        evidence = upsert_compatibility(connection, records, checked_at)
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM parts")
+            count = cursor.fetchone()[0]
+            if reset and count != len(parts):
+                raise ValueError("정규화된 부품 수와 DB 행 수가 달라 초기화를 롤백합니다.")
+            if reset and legacy:
+                # MySQL DDL commits independently. All replacement rows must succeed first.
+                connection.commit()
+                cursor.execute(DROP_OFFERS.read_text(encoding="utf-8").strip().removesuffix(";"))
+        return {"parts_in_database": count, "compatibility": evidence, "reset": reset, **updated}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--apply", action="store_true", help="실제 DB에 저장. 기본은 미리보기")
+    parser.add_argument("--source-dir", type=Path, help="고정 리비전의 data/json 파일이 있는 폴더")
+    parser.add_argument("--krw-per-usd", help="1 USD당 KRW 기준환율")
+    parser.add_argument("--fx-date", type=date.fromisoformat, help="환율 기준일 YYYY-MM-DD")
+    parser.add_argument("--fx-source", help="환율 출처 HTTPS URL")
+    parser.add_argument("--apply", action="store_true", help="미리보기 대신 MySQL에 저장")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--reset", action="store_true", help="기존 로컬 dev_database 행을 모두 교체")
+    mode.add_argument(
+        "--specs-only",
+        action="store_true",
+        help="부품 ID와 가격을 유지하고 검토 사양과 근거만 갱신",
+    )
     args = parser.parse_args()
-    manifest_path = DATA / "raw" / "collection_manifest.json"
-    manifest = read_json(manifest_path) if manifest_path.exists() else {}
-    catalog_path = DATA / manifest.get("catalog", {}).get(
-        "path", "raw/pc_builder/2026-11-11/pc-builder-parts.json"
+    if args.reset and not args.apply:
+        parser.error("--reset에는 --apply가 필요합니다.")
+    if args.specs_only and (
+        not args.apply or args.krw_per_usd is not None or args.fx_date or args.fx_source
+    ):
+        parser.error("--specs-only에는 --apply가 필요하며 환율 옵션과 함께 사용할 수 없습니다.")
+    if args.krw_per_usd is None:
+        if args.fx_date or args.fx_source:
+            parser.error("다른 환율을 지정하려면 세 환율 옵션을 함께 입력하세요.")
+        rate, fx_date, source = Decimal("1361.89"), date(2026, 11, 6), FX_URL
+    else:
+        if not args.fx_date or not args.fx_source or not args.fx_source.startswith("https://"):
+            parser.error("--krw-per-usd에는 --fx-date와 HTTPS --fx-source가 필요합니다.")
+        try:
+            rate = Decimal(args.krw_per_usd)
+        except InvalidOperation:
+            parser.error("--krw-per-usd는 숫자여야 합니다.")
+        fx_date, source = args.fx_date, args.fx_source
+
+    snapshot = read_snapshot(args.source_dir)
+    reviews = read_json(DATA / "docyx_compatibility.json")
+    records = validate_records(reviews["records"], reviews["parts"])
+    checked_at = utc_now()
+    parts, counts, unmatched = prepare_parts(
+        snapshot, reviews["parts"], rate, fx_date, source, checked_at
     )
-    observations = [read_json(DATA / r["path"]) for r in manifest.get("danawa", [])]
-    rows, withheld = normalize_parts(
-        read_json(catalog_path),
-        read_json(DATA / "part_matches.json")["parts"],
-        load_reviewed_specs(),
-        observations,
-        utc_now(),
-    )
-    write_json(
-        DATA / "processed/parts.json",
-        {"normalized_at_utc": utc_now(), "parts": rows, "withheld": withheld},
-    )
+    if set(counts) != set(CATEGORIES) or any(not info["ready"] for info in counts.values()):
+        raise ValueError("적재 가능한 부품이 없는 카테고리가 있습니다.")
+    keys = {row["specs"]["_provenance"]["source_key"] for row in parts}
     result = {
         "mode": "apply" if args.apply else "preview",
-        "prepared": len(rows),
-        "withheld": withheld,
-        "missing_price_count": sum(row["current_price"] is None for row in rows),
+        "revision": REVISION,
+        "fx_date": fx_date.isoformat(),
+        "krw_per_usd": str(rate),
+        "parts_ready": len(parts),
+        "categories": counts,
+        "unmatched_reviewed_parts": unmatched,
+        "compatibility_ready": sum({r["part_a_key"], r["part_b_key"]} <= keys for r in records),
     }
     if args.apply:
-        with closing(get_connection()) as connection, import_transaction(connection):
-            result.update(upsert_parts(connection, rows))
-    report("import-parts", result)
+        if args.specs_only and unmatched:
+            raise ValueError("일부 검토 사양을 원본에서 정확히 식별할 수 없습니다.")
+        result.update(
+            apply_catalog(
+                parts,
+                records,
+                checked_at,
+                reset=args.reset,
+                specs_only=args.specs_only,
+            )
+        )
+    print(json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == "__main__":
