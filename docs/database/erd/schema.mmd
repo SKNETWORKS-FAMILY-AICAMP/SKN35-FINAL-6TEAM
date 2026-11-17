@@ -1,0 +1,94 @@
+erDiagram
+    users {
+        bigint user_id PK
+        varchar display_name
+        datetime created_at
+    }
+    consultations {
+        bigint consultation_id PK
+        bigint user_id FK
+        varchar purpose
+        json requirements
+        datetime created_at
+    }
+    messages {
+        bigint message_id PK
+        bigint consultation_id FK
+        varchar role
+        text content
+        datetime created_at
+    }
+    parts {
+        bigint part_id PK
+        varchar category
+        varchar brand
+        varchar name
+        varchar model_number
+        json specs
+        text source_url
+        datetime verified_at
+        decimal current_price
+        char currency
+        text price_source_url
+        datetime price_checked_at
+    }
+    quotes {
+        bigint quote_id PK
+        bigint consultation_id FK
+        int version
+        varchar status
+        char currency
+        decimal total_amount
+        datetime created_at
+        datetime updated_at
+    }
+    quote_items {
+        bigint quote_item_id PK
+        bigint quote_id FK
+        bigint part_id FK
+        varchar part_name_snapshot
+        int quantity
+        decimal unit_price
+        text price_source_url
+        datetime price_checked_at
+        json configuration
+    }
+    part_compatibility {
+        bigint compatibility_id PK
+        bigint part_a_id FK
+        bigint part_b_id FK
+        varchar check_type
+        varchar support_status
+        varchar bios_scope
+        varchar min_bios_version
+        json conditions
+        varchar source_publisher
+        text source_url
+        datetime source_updated_at
+        datetime verified_at
+    }
+    quote_validations {
+        bigint validation_id PK
+        bigint quote_id FK
+        int quote_version
+        bigint item_a_id FK
+        bigint item_b_id FK
+        bigint compatibility_id FK
+        varchar check_type
+        varchar result
+        text reason
+        json input_snapshot
+        json evidence_snapshot
+        datetime checked_at
+    }
+    users ||..o{ consultations : "상담 생성"
+    consultations ||..o{ messages : "대화 기록"
+    consultations ||..o{ quotes : "견적 생성"
+    quotes ||..o{ quote_items : "견적 구성"
+    parts ||..o{ quote_items : "선택 부품"
+    parts ||..o{ part_compatibility : "부품 A"
+    parts ||..o{ part_compatibility : "부품 B"
+    quotes ||..o{ quote_validations : "견적 검증"
+    quote_items |o..o{ quote_validations : "검증 대상 A"
+    quote_items |o..o{ quote_validations : "검증 대상 B"
+    part_compatibility |o..o{ quote_validations : "참조 근거"
