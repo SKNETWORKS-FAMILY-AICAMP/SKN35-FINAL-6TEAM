@@ -15,12 +15,10 @@ echo "[2/3] 컨테이너를 만들고 켭니다 (처음에는 5~10분 걸릴 수
 if ! docker compose up -d --build --wait; then
   echo "실행에 실패했습니다. 아래 명령으로 원인을 확인하세요. (docs/TROUBLESHOOTING.md)" >&2
   echo "  docker compose ps" >&2
-  echo "  docker compose logs backend --tail 50" >&2
   exit 1
 fi
 
 echo "[3/3] 준비 완료"
 echo "  화면       http://localhost:${WEB_PORT:-5173}"
-echo "  API 문서   http://localhost:${API_PORT:-8000}/docs"
 echo "  전체 검사  ./scripts/check.sh"
 echo "  끄기       ./scripts/stop.sh"

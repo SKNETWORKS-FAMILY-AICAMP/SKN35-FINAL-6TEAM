@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "topics": [
+    {"category": "음악 제작", "queries": ["DAWbench", "audio workstation benchmark dataset"]},
+    {"category": "영상 편집", "queries": ["PugetBench Premiere Pro results", "DaVinci Resolve benchmark dataset"]},
+    {"category": "사진 편집", "queries": ["PugetBench Lightroom results", "Photoshop benchmark dataset"]},
+    {"category": "게임", "queries": ["game GPU benchmark results dataset", "3DMark benchmark results dataset"]},
+    {"category": "3D·CAD·게임 개발", "queries": ["CAD workstation benchmark dataset", "SPECviewperf results dataset", "Unreal Engine benchmark dataset"]},
+    {"category": "로컬 AI·모델 개발", "queries": ["MLPerf Inference results", "MLPerf benchmark dataset"]},
+    {"category": "RAG·하드웨어 공식 문서", "queries": ["pc-part-dataset", "hardware compatibility documentation", "CPU GPU motherboard manuals"]}
+  ]
+}
