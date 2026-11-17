@@ -1,13 +1,21 @@
 {
   "updated_on": "2026-11-17",
   "archive": {
-    "path": "2026-11-17/다운로드/benchmark_datasets_2026-11-17.zip",
-    "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C/benchmark_datasets_2026-11-17.zip",
-    "size_bytes": 57531539,
-    "sha256": "57B8458E2813EFA16283BE37534257A80158F3E14BF933E9BC327A676E23AFA3",
+    "path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+    "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip",
+    "size_bytes": 76628126,
+    "sha256": "1085284418344EE4F8B4710546D501BC8E7C98B89BACB0A67AF08C15D77DA4E0",
     "contains": [
       "benchmark_runs_load_ready.csv",
-      "benchmark_runs_preview.csv"
+      "benchmark_runs_preview.csv",
+      "benchmark_run_parts_preview.csv",
+      "parts_with_benchmark_references_preview.csv",
+      "unmatched_hardware.csv",
+      "unmatched_hardware_summary.csv",
+      "parts_import_preview.csv",
+      "source_part_crosswalk.csv",
+      "benchmark_import_manifest.json",
+      "parts_import_manifest.json"
     ]
   },
   "files": [
@@ -16,16 +24,16 @@
       "bytes": 257271546,
       "status": "압축 묶음에 포함",
       "reason": "개별 CSV가 GitHub 100 MiB 한도를 넘어 ZIP으로 제공",
-      "alternative_path": "2026-11-17/다운로드/benchmark_datasets_2026-11-17.zip",
-      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C/benchmark_datasets_2026-11-17.zip"
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
     },
     {
       "path": "normalized/benchmarks/benchmark_runs_preview.csv",
       "bytes": 329280292,
       "status": "압축 묶음에 포함",
       "reason": "개별 CSV가 GitHub 100 MiB 한도를 넘어 ZIP으로 제공",
-      "alternative_path": "2026-11-17/다운로드/benchmark_datasets_2026-11-17.zip",
-      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C/benchmark_datasets_2026-11-17.zip"
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
     },
     {
       "path": "raw/collection_log.json",
@@ -242,7 +250,71 @@
       "reason": "현재 공유 시트와 내용이 일치하지 않는 파일 또는 내부 검사 자료",
       "alternative_path": null,
       "download_url": "https://docs.google.com/spreadsheets/d/12_xSIi6L61M7BDBZe8gjZFN_Doi7vC39MFktG3TuDlE/edit"
+    },
+    {
+      "path": "normalized/benchmarks/benchmark_run_parts_preview.csv",
+      "bytes": 92461791,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/benchmarks/parts_with_benchmark_references_preview.csv",
+      "bytes": 31011903,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/benchmarks/unmatched_hardware.csv",
+      "bytes": 24968742,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/benchmarks/unmatched_hardware_summary.csv",
+      "bytes": 308096,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/benchmarks/benchmark_import_manifest.json",
+      "bytes": 2950,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/pc-part-dataset_c52a04ca/parts_import_preview.csv",
+      "bytes": 30856314,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/pc-part-dataset_c52a04ca/source_part_crosswalk.csv",
+      "bytes": 17262893,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
+    },
+    {
+      "path": "normalized/pc-part-dataset_c52a04ca/import_manifest.json",
+      "bytes": 12021,
+      "status": "압축 묶음에 포함",
+      "reason": "공유 데이터 전체 ZIP 안에 포함",
+      "alternative_path": "docs/데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip",
+      "download_url": "https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip"
     }
   ],
-  "note": "두 대용량 정규화 CSV는 archive에 포함했습니다. 나머지 원본 데이터는 고정 출처 링크로 제공하며, 오래된 로컬 Google Sheets 내보내기는 최신 공유 시트를 사용하세요."
+  "note": "공유 대상 생성 데이터 10개는 ZIP에 포함했습니다. 원본 데이터는 출처 링크로 안내하며, 낡은 시트 내보내기와 내부 로그는 공유 자료에서 제외했습니다."
 }
