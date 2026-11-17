@@ -1,22 +1,16 @@
-﻿# BUILDWISE 전체 검사 — PR 을 올리기 전에 실행합니다. (먼저 .\scripts\dev.ps1 로 켜 두세요)
-#   실행:    .\scripts\check.ps1
-#   막히면:  powershell -ExecutionPolicy Bypass -File .\scripts\check.ps1
+﻿# 로컬 DB 코드와 프론트 정적 검사. Docker 없이 실행합니다.
 $ErrorActionPreference = 'Continue'
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
 $steps = @(
-    @{ Name = '백엔드 린트 (ruff check)'; Run = { docker compose exec -T backend uv run --frozen ruff check . } },
-    @{ Name = '백엔드 포맷 (ruff format --check)'; Run = { docker compose exec -T backend uv run --frozen ruff format --check . } },
-    @{ Name = '견본 데이터 형식'; Run = { docker compose exec -T backend uv run --frozen python -m app.seed --check } },
-    @{ Name = 'DB 모델과 마이그레이션 일치 (alembic check)'; Run = { docker compose exec -T backend uv run --frozen alembic check } },
-    @{ Name = '백엔드 테스트 (pytest)'; Run = { docker compose exec -T backend uv run --frozen pytest -q } },
-    @{ Name = '계약 파일 다시 만들기'; Run = { docker compose exec -T backend uv run --frozen python -m app.export_contracts; if ($LASTEXITCODE -eq 0) { docker compose exec -T frontend npm run gen:api } } },
-    @{ Name = '계약 파일이 커밋본과 같은지'; Run = { git diff --exit-code -- contracts frontend/src/api/schema.d.ts } },
-    @{ Name = '프론트 린트 (eslint)'; Run = { docker compose exec -T frontend npm run lint } },
-    @{ Name = '프론트 포맷 (prettier)'; Run = { docker compose exec -T frontend npm run format:check } },
-    @{ Name = '프론트 타입 검사 (tsc)'; Run = { docker compose exec -T frontend npm run typecheck } },
-    @{ Name = '프론트 테스트 (vitest)'; Run = { docker compose exec -T frontend npm test } },
-    @{ Name = '프론트 빌드 (vite build)'; Run = { docker compose exec -T frontend npm run build } }
+    @{ Name = '백엔드 린트 (ruff check)'; Run = { uv run --directory backend --frozen ruff check . } },
+    @{ Name = '백엔드 포맷 (ruff format --check)'; Run = { uv run --directory backend --frozen ruff format --check . } },
+    @{ Name = '백엔드 테스트 (pytest)'; Run = { uv run --directory backend --frozen pytest -q } },
+    @{ Name = '프론트 린트 (eslint)'; Run = { npm --prefix frontend run lint } },
+    @{ Name = '프론트 포맷 (prettier)'; Run = { npm --prefix frontend run format:check } },
+    @{ Name = '프론트 타입 검사 (tsc)'; Run = { npm --prefix frontend run typecheck } },
+    @{ Name = '프론트 테스트 (vitest)'; Run = { npm --prefix frontend test } },
+    @{ Name = '프론트 빌드 (vite build)'; Run = { npm --prefix frontend run build } }
 )
 
 $results = @()

@@ -15,12 +15,6 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="BUILDWISE_", extra="ignore")
 
-    # 로컬에서 uv 로 직접 실행할 때는 Compose 가 열어 둔 3307 포트로 붙습니다.
-    database_url: str = (
-        "mysql+pymysql://buildwise:buildwise@127.0.0.1:3307/buildwise?charset=utf8mb4"
-    )
-    db_pool_size: int = 10
-
     # mock: 외부 AI 없이 규칙 코드로 업무팀을 흉내 냅니다. 실제 AI 연결은 아직 없습니다.
     mode: Literal["mock"] = "mock"
     mock_delay_ms: int = 400
@@ -29,7 +23,6 @@ class Settings(BaseSettings):
     validation_workers: int = 4
     max_retries: int = 2
 
-    fixtures_dir: Path = REPO_ROOT / "data" / "fixtures"
     sweep_on_startup: bool = True
 
 

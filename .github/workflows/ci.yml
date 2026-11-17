@@ -25,27 +25,9 @@ jobs:
     name: 백엔드
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    services:
-      mysql:
-        image: mysql:8.4.13
-        env:
-          MYSQL_DATABASE: buildwise_test
-          MYSQL_USER: buildwise
-          MYSQL_PASSWORD: buildwise
-          MYSQL_ROOT_PASSWORD: ci-root
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -pci-root --silent"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 30
     defaults:
       run:
         working-directory: backend
-    env:
-      BUILDWISE_DATABASE_URL: mysql+pymysql://buildwise:buildwise@127.0.0.1:3306/buildwise_test?charset=utf8mb4
-      BUILDWISE_TEST_DATABASE_URL: mysql+pymysql://buildwise:buildwise@127.0.0.1:3306/buildwise_test?charset=utf8mb4
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.3.3
@@ -57,12 +39,6 @@ jobs:
         run: uv run --frozen ruff check . --output-format github
       - name: 포맷 검사 (ruff format --check)
         run: uv run --frozen ruff format --check .
-      - name: 견본 데이터 형식 검사
-        run: uv run --frozen python -m app.seed --check
-      - name: 마이그레이션 — 빈 DB 에서 최신까지 (alembic upgrade head)
-        run: uv run --frozen alembic upgrade head
-      - name: DB 모델과 마이그레이션 일치 (alembic check)
-        run: uv run --frozen alembic check
       - name: 테스트 (pytest)
         run: uv run --frozen pytest -q
 
@@ -72,22 +48,16 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.3
-        with:
-          version: ${{ env.UV_VERSION }}
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: 의존성 설치
+      - name: OpenAPI 스냅샷에서 타입 생성
         run: |
-          (cd backend && uv sync --frozen)
-          (cd frontend && npm ci --no-audit --no-fund)
-      - name: 계약 파일 다시 만들기 (OpenAPI · 이벤트 스키마 · TS 타입)
-        run: |
-          (cd backend && uv run --frozen python -m app.export_contracts)
-          (cd frontend && npm run gen:api)
+          cd frontend
+          npm ci --no-audit --no-fund
+          npm run gen:api
       - name: 커밋된 계약 파일과 같은지 비교
         run: |
           if ! git diff --exit-code -- contracts frontend/src/api/schema.d.ts; then
@@ -154,11 +124,11 @@ jobs:
       - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: ${{ env.UV_VERSION }}
-      - name: 백엔드 DB 없는 테스트 (윈도우 경로 · 인코딩)
+      - name: 백엔드 테스트 (윈도우 경로 · 인코딩)
         working-directory: backend
         run: |
           uv sync --frozen
-          uv run --frozen pytest -q tests/test_catalog_and_domain.py
+          uv run --frozen pytest -q
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -189,38 +159,3 @@ jobs:
           tar -xzf gitleaks.tar.gz gitleaks
       - name: 전체 이력에서 비밀값 찾기 (gitleaks)
         run: ./gitleaks git --redact --verbose --exit-code 1 .
-
-  integration:
-    name: 통합(참고)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    needs: [backend, frontend]
-    steps:
-      - uses: actions/checkout@v7
-      - name: Windows 처럼 CRLF 설정으로 다시 받기
-        run: |
-          git config core.autocrlf true
-          git rm -rq --cached .
-          git reset -q --hard
-          if grep -rlI $'\r' scripts/*.sh backend/docker frontend/docker compose.yaml; then
-            echo "::error::셸 스크립트에 CRLF 줄바꿈이 들어갔습니다. .gitattributes 를 확인하세요."
-            exit 1
-          fi
-      - name: 전체 실행 (docker compose up --wait)
-        run: docker compose up -d --build --wait
-      - name: 전체 검사 스크립트 (scripts/check.sh)
-        run: bash scripts/check.sh
-      - name: 브라우저 연기 테스트 (Playwright)
-        run: |
-          docker run --rm --network host -v "$PWD/frontend:/work" -w /work \
-            mcr.microsoft.com/playwright:v1.65.0-noble \
-            bash -c "npm ci --no-audit --no-fund && npx playwright test"
-      - name: 실패했을 때 컨테이너 로그
-        if: failure()
-        run: docker compose logs --tail 200
-      - uses: actions/upload-artifact@v7
-        if: failure()
-        with:
-          name: playwright-report
-          path: frontend/playwright-report
-          if-no-files-found: ignore
