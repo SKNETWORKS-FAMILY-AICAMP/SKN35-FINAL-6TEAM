@@ -1,6 +1,7 @@
 # PC 부품 데이터 관리
 
-MySQL `dev_database`의 부품·판매 상품·호환성 수집 자료를 관리합니다.
+MySQL `dev_database`의 부품·가격·호환성 수집 자료를 관리합니다.
+[부품 DB 흐름과 기능별 테이블](FLOW.md)에서 적재, 상담, 견적, 검증의 관계를 볼 수 있습니다.
 모든 명령은 저장소 루트에서 실행합니다. 로컬 MySQL은 Docker 없이 사용합니다.
 `--directory backend`는 실행 위치와 Python 환경을 함께 백엔드로 지정합니다.
 
@@ -37,11 +38,9 @@ uv run --directory backend --frozen python -X utf8 -m app.db.schema --init
 
 # 미리보기: 원본을 정리하고 보고서를 만들며 DB에는 쓰지 않음
 uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.import_parts
-uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.import_compatibility
 
 # 실제 저장: 부품을 먼저 저장
 uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.import_parts --apply
-uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.import_compatibility --apply
 
 # 읽기 전용 DB 점검
 uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.check_data
@@ -51,11 +50,48 @@ DBeaver에서도 [최초 생성 SQL](../../backend/app/db/sql/parts_catalog.sql)
 대상 스키마는 `dev_database`입니다. 생성 후 탐색기에서 새로고침하면 됩니다.
 `CREATE TABLE IF NOT EXISTS`는 이미 존재하는 테이블을 새 구조로 변경하지 않습니다.
 기존 테이블에 첫 변경이 생기면 `backend/app/db/sql/migrations/`에 변경 SQL을 추가하고 ERD를 갱신합니다.
-기존 DB에 판매 상품 기능을 도입할 때는 [001_add_part_offers.sql](../../backend/app/db/sql/migrations/001_add_part_offers.sql)을 적용합니다.
-이 마이그레이션은 `part_offers` 테이블만 생성합니다. 적재는 미리보기를 확인한 뒤 `import_parts --apply`로 실행합니다.
-이미 `001`을 적용한 DB에서 중고 판매 상품을 받으려면 [002_allow_used_part_offers.sql](../../backend/app/db/sql/migrations/002_allow_used_part_offers.sql)을 적용합니다.
-`002`는 상품 상태 제약만 변경합니다. 최신 `parts_catalog.sql`로 만든 DB에는 해당 제약이 포함되어 있습니다.
 MySQL의 테이블 생성 DDL은 전체 롤백이 되지 않습니다. 데이터 가져오기는 트랜잭션으로 처리합니다.
+
+## 부품 소비전력과 이미지 URL
+
+기존 DB에 두 컬럼이 없으면 DBeaver에서 [004 마이그레이션](../../backend/app/db/sql/migrations/004_add_part_power_and_image.sql)을 실행합니다.
+새 DB는 `parts_catalog.sql`에 두 컬럼이 포함되어 있습니다.
+
+- `parts.power_draw_w`의 단위는 W입니다. CPU는 원본 TDP를 저장하고 공식 최대 터보 전력은 `specs.cpu_power_limit_w`에 보관합니다. GPU는 카드 모델의 공식 보드 전력(TGP·TBP 등)을 우선합니다. 메인보드·RAM·저장장치·쿨러·케이스도 확인된 전력을 우선합니다. 제조사 근거는 [전력 사양 검토 데이터](../../data/hardware/reviewed_power_specs.json)에 기록합니다.
+- 공식값이 없는 부하 부품은 PSU 산정용 추정값을 저장합니다. `specs._power_estimate`에 `status=unconfirmed`, 산정 기준과 출처를 남깁니다. GPU는 [모델별 추정 근거](../../data/hardware/reviewed_gpu_estimates.json)가 있으면 그 값을 사용합니다. 그 외는 [칩셋별 공식 참조 전력](../../data/hardware/gpu_power_references.json)과 확인된 동일 칩셋 보드 전력 중 큰 값에 10%를 추가해 5 W 단위로 올림합니다. 자료가 없는 새 GPU에는 모델 또는 칩셋 근거를 추가해야 적재할 수 있습니다. PSU의 정격 출력은 `specs.wattage_w`에 들어 있으며 PSU 행의 `power_draw_w`는 `NULL`입니다.
+- `parts.image_url`에는 [Doshiba PCPartPicker JSONL](https://huggingface.co/datasets/Doshiba/pcpartpicker-parts-dataset/blob/4d83d726b37b8c7342ce07c72f73eacc71ddf37a/pcpartpicker_parts.jsonl)에서 분류·제품명이 일치하는 사진을 저장합니다. 동명 제품은 색상, 용량, 크기 등 카테고리별 사양을 대조합니다. 사양이 같은 CPU는 같은 모델의 박스 또는 트레이 제품 사진을 사용할 수 있습니다. 데이터셋에서 판별할 수 없는 사진은 [검토한 제조사 이미지](../../data/hardware/reviewed_part_images.json)에서 찾습니다. 일치하는 사진을 확인할 수 없으면 PCPartPicker의 `no-image.png`를 저장합니다. 현행 실제 사진은 유지하며, 이후 실제 사진이 확인되면 대체 이미지를 교체합니다.
+
+Doshiba 원본의 `specs.TDP`는 CPU 행에만 있습니다. GPU 제조사의 권장 PSU 용량과 PSU 정격 출력은 별도 사양입니다.
+
+기존 CPU TDP, 제조사 검토 전력, PSU 산정용 추정값을 갱신할 때 아래 명령을 사용합니다. 첫 명령은 미리보기입니다.
+
+```powershell
+uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.import_parts --power-only
+uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.import_parts --power-only --apply
+```
+
+`PSU_CAPACITY`는 독립 Python 검증 CLI의 계산입니다. DB가 제공하는 입력과 향후 RAG의 계산 위치는 [PSU 산정과 RAG의 경계](FLOW.md#psu-산정과-rag의-경계)에 정리했습니다.
+
+기존 부품의 두 컬럼을 채울 때는 아래 명령을 사용합니다. 미리보기에서 매칭 건수와 갱신할 행 수를 확인합니다.
+
+```powershell
+uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.import_parts --metadata-only
+uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.ingestion.import_parts --metadata-only --apply
+```
+
+`--metadata-only`는 부품 ID, 가격, 견적, 호환성 자료를 유지합니다. 일반 부품 적재에도 `--with-images`를 추가하면 이미지 URL을 함께 가져옵니다. 이미지 조회를 생략한 새 행은 대체 이미지로 시작합니다.
+고정 리비전의 다운로드는 SHA-256을 검사합니다. 이미 받은 JSONL을 읽으려면 `--image-dataset <경로>`를 사용합니다.
+
+## 현재 카탈로그 원본
+
+- 부품과 기준 가격은 [고정 리비전의 docyx 스냅샷](https://github.com/docyx/pc-part-dataset/tree/06ffc8eec068db5e8145e012ad2ec11e56a7c969/data/json)에서 가져옵니다. `specs._provenance.price_status=test`로 테스트 가격을 표시합니다.
+- 공식 CPU 지원 및 RAM QVL은 [호환성 근거](../../data/hardware/docyx_compatibility.json)에 기록합니다. `import_parts --apply`가 금액이 있는 부품을 먼저 적재한 뒤 두 부품을 찾을 수 있는 호환성 근거를 연결합니다.
+- 부품 고유 키는 분류·브랜드·제품명입니다. 원본 매칭 키는 `specs._provenance.source_key`에 보존하며, 가져오기 작업은 named lock으로 직렬화합니다. 오류가 나면 이번 적재에 포함된 데이터 변경을 롤백합니다.
+
+<details>
+<summary>이전 BuildCores·다나와 수집과 초기 표본 기록</summary>
+
+이 기록은 이전 카탈로그의 작업 이력입니다. 아래의 `collect_parts` 명령과 `part_offers`는 당시 구조를 설명합니다. 현재 적재 절차는 [빠른 사용](#빠른-사용)을 따릅니다.
 
 ## 수집 환경과 갱신
 
@@ -183,6 +219,8 @@ CLI의 `minPrice`는 원본 응답에 보존합니다. 현재 수집기는 매�
 상세 페이지에서 명시적 품절을 확인하면 기존 판매 상품의 판매 상태만 갱신합니다. 검색 실패와 재고 미확인은 그대로 보류합니다.
 `parts.current_price` 갱신은 `quote_items.unit_price`를 변경하지 않습니다.
 가격 확인은 재고, 결제 가능 여부, 국내 최저 구매비용 전체를 보장하지 않습니다.
+
+</details>
 
 ## 사양과 호환성 조건
 

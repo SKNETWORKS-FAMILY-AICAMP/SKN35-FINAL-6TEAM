@@ -1,0 +1,870 @@
+{
+  "catalog_revision": "06ffc8eec068db5e8145e012ad2ec11e56a7c969",
+  "records": [
+    {
+      "category": "gpu",
+      "source_key": "docyx:bce12bf4fa1677ffa7c6690be2a1e633f9265386fdec38defa5210de17c1ab3b",
+      "raw_name": "AMD FirePro V7900 SDI",
+      "manufacturer": "AMD",
+      "manufacturer_model": "100-505846",
+      "match_specs": {
+        "chipset": "FirePro V7900 SDI",
+        "color": "Black / Red",
+        "core_clock_mhz": 725,
+        "length_mm": 279,
+        "vram_gb": 2
+      },
+      "power_draw_w": 150,
+      "source_url": "https://vgamuseum.info/images/doc/amd/fireprov7900sdi_specs.pdf",
+      "catalog_brand": "AMD",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/DQ7CmG/amd-video-card-100505846",
+        "https://www.newegg.com/amd-100-505846-firepro-v7900-sdi-2gb-graphics-card/p/N82E16814195113"
+      ],
+      "basis": "manufacturer_board_power_bound",
+      "evidence": "AMD V7900 SDI datasheet PID 50549A specifies <150 W and one 6-pin PCIe connector. Store the documented board-power ceiling of 150 W."
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:536d2e4574a42825b39e710b527d2593e3f9e2ef83ce24d8836607a55be7a850",
+      "raw_name": "Asus ARES/2DIS/4GD5",
+      "manufacturer": "ASUS",
+      "manufacturer_model": "ARES/2DIS/4GD5",
+      "match_specs": {
+        "chipset": "Radeon HD 5870 X2",
+        "color": "Black / Red",
+        "core_clock_mhz": 850,
+        "length_mm": 279,
+        "vram_gb": 4
+      },
+      "power_draw_w": 450,
+      "source_url": "https://www.4gamer.net/games/047/G004755/20100709069/",
+      "catalog_brand": "ASUS",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://edc.intel.com/content/www/us/en/design/ipla/software-development-platforms/client/platforms/alder-lake-desktop/atx-version-3-0-multi-rail-desktop-platform-power-supply-design-guide/2.0/2.01/pci-express-pcie-add-in-card-connectors-recommended/",
+        "https://fr.pcpartpicker.com/product/HCh9TW/asus-video-card-ares2dis4gd5",
+        "https://images.nvidia.com/aem-dam/en-zz/Solutions/design-visualization/quadro-product-literature/DA-07261-001_v15.pdf",
+        "https://www.asus.com/ch-de/supportonly/ares/helpdesk_download/",
+        "https://www.asus.com/event/VGA/20THANNIVERSARY/uk/"
+      ],
+      "basis": "pcie_connector_budget",
+      "evidence": "PCIe x16 slot and auxiliary connector combined supply upper bound",
+      "connector_counts": {
+        "slot_x16": 1,
+        "pcie_6_pin": 1,
+        "pcie_8_pin": 2
+      }
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:37ee69397b2b0043a0d28694cdc7859e6244cd11a043d0e965285adaf39f8561",
+      "raw_name": "Asus EAH5550/DI/1GD3(LP)",
+      "manufacturer": "ASUS",
+      "manufacturer_model": "EAH5550/DI/1GD3(LP)",
+      "match_specs": {
+        "chipset": "Radeon HD 5550",
+        "color": "Black / Red",
+        "core_clock_mhz": 550,
+        "length_mm": 167,
+        "vram_gb": 1
+      },
+      "power_draw_w": 75,
+      "source_url": "https://www.aiuto-jp.co.jp/resources/products/860_48c4fd6b1ca82dbab4fa9a6e46bdcda40ae396bf.jpg",
+      "catalog_brand": "ASUS",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://edc.intel.com/content/www/us/en/design/ipla/software-development-platforms/client/platforms/alder-lake-desktop/atx-version-3-0-multi-rail-desktop-platform-power-supply-design-guide/2.0/2.01/pci-express-pcie-add-in-card-connectors-recommended/",
+        "https://fr.pcpartpicker.com/product/d6zv6h/asus-video-card-eah5550di1gd3lp",
+        "https://images.nvidia.com/aem-dam/en-zz/Solutions/design-visualization/quadro-product-literature/DA-07261-001_v15.pdf",
+        "https://www.aiuto-jp.co.jp/product/asus/vga/end_item/eah5550di1gd3lp.php",
+        "https://www.asus.com/sg/supportonly/eah5550%20series/helpdeskhelpdesk_download/"
+      ],
+      "basis": "pcie_connector_budget",
+      "evidence": "PCIe x16 slot and auxiliary connector combined supply upper bound",
+      "connector_counts": {
+        "slot_x16": 1,
+        "pcie_6_pin": 0,
+        "pcie_8_pin": 0
+      }
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:ae2d83b5e33b09e896aed66c71f3bd07a00374d530776878f4e024fcd01001d5",
+      "raw_name": "Asus EAH5850 DIRECTCU TOP/2DIS/1GD5",
+      "manufacturer": "ASUS",
+      "manufacturer_model": "EAH5850 DIRECTCU TOP/2DIS/1GD5",
+      "match_specs": {
+        "chipset": "Radeon HD 5850",
+        "color": "Black / Red",
+        "core_clock_mhz": 765,
+        "length_mm": 241,
+        "vram_gb": 1
+      },
+      "power_draw_w": 300,
+      "source_url": "https://www.pcstats.com/articles/2516/index.html",
+      "catalog_brand": "ASUS",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://edc.intel.com/content/www/us/en/design/ipla/software-development-platforms/client/platforms/alder-lake-desktop/atx-version-3-0-multi-rail-desktop-platform-power-supply-design-guide/2.0/2.01/pci-express-pcie-add-in-card-connectors-recommended/",
+        "https://fr.pcpartpicker.com/product/pK9KHx/asus-video-card-eah5850directcutop2dis1gd5",
+        "https://images.nvidia.com/aem-dam/en-zz/Solutions/design-visualization/quadro-product-literature/DA-07261-001_v15.pdf",
+        "https://www.legitreviews.com/asus-radeon-hd-eah5850-directcu-top-video-card-review_1273",
+        "https://www.newegg.com/asus-eah5850-directcu-top-2dis-1gd5-radeon-hd-5850-1gb-graphics-card-with-fan/p/N82E16814121370"
+      ],
+      "basis": "pcie_connector_budget",
+      "evidence": "PCIe x16 slot and auxiliary connector combined supply upper bound",
+      "connector_counts": {
+        "slot_x16": 1,
+        "pcie_6_pin": 1,
+        "pcie_8_pin": 1
+      }
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:adfb492ce73efa8eb92012ee23d2f570478633ba570e443a4cecf008f5d03eb4",
+      "raw_name": "Asus EAH6870/2DI2S/1GD5",
+      "manufacturer": "ASUS",
+      "manufacturer_model": "EAH6870/2DI2S/1GD5",
+      "match_specs": {
+        "chipset": "Radeon HD 6870",
+        "color": "Black / Red",
+        "core_clock_mhz": 913,
+        "length_mm": 241,
+        "vram_gb": 1
+      },
+      "power_draw_w": 225,
+      "source_url": "https://paperzz.com/doc/8416416/amd-radeon%E2%84%A2-hd-6850-6870",
+      "catalog_brand": "ASUS",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://edc.intel.com/content/www/us/en/design/ipla/software-development-platforms/client/platforms/alder-lake-desktop/atx-version-3-0-multi-rail-desktop-platform-power-supply-design-guide/2.0/2.01/pci-express-pcie-add-in-card-connectors-recommended/",
+        "https://fr.pcpartpicker.com/product/6yzv6h/asus-video-card-eah68702di2s1gd5",
+        "https://images.nvidia.com/aem-dam/en-zz/Solutions/design-visualization/quadro-product-literature/DA-07261-001_v15.pdf",
+        "https://www.aiuto-jp.co.jp/product/asus/vga/end_item/eah68702di2s1gd5.php"
+      ],
+      "basis": "pcie_connector_budget",
+      "evidence": "PCIe x16 slot and auxiliary connector combined supply upper bound",
+      "connector_counts": {
+        "slot_x16": 1,
+        "pcie_6_pin": 2,
+        "pcie_8_pin": 0
+      }
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:801c163e03ae8e75745c693f055e031007e126ef9f49a75713c41695c470d4d0",
+      "raw_name": "ATI FirePro 2270",
+      "manufacturer": "AMD",
+      "manufacturer_model": "FirePro 2270 1GB",
+      "match_specs": {
+        "chipset": "FirePro 2270",
+        "color": "Black / Red",
+        "core_clock_mhz": 600,
+        "length_mm": 170,
+        "vram_gb": 1
+      },
+      "power_draw_w": 17,
+      "source_url": "https://www.fireprographics.com/Documents/AMD_FirePro_2270_Datasheet.pdf",
+      "catalog_brand": "Unknown",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/B2dqqs/ati-video-card-100505755",
+        "https://fr.pcpartpicker.com/product/QfJwrH/ati-video-card-100505849"
+      ],
+      "basis": "same_chipset_and_memory_board_power",
+      "evidence": "AMD datasheet separately specifies 17 W maximum for 1 GB and 15 W for 512 MB. Two PCPartPicker SKUs match the catalog's 1 GB variant; use the manufacturer 1 GB rating."
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:2fbf454aabcd6008f2c66ac16adef9a434219813e53697969df6bb13e5528090",
+      "raw_name": "ATI FirePro RG220A",
+      "manufacturer": "AMD",
+      "manufacturer_model": "100-505715",
+      "match_specs": {
+        "chipset": "FirePro RG220A",
+        "color": "Black / Red",
+        "core_clock_mhz": 800,
+        "length_mm": 168,
+        "vram_gb": 0.5
+      },
+      "power_draw_w": 35,
+      "source_url": "https://www.azken.com/download/AMD_FIREPRO_RG220_RemoteWorkStationGraphics.pdf",
+      "catalog_brand": "Unknown",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/MpyFf7/ati-video-card-100505715",
+        "https://www.acube-corp.com/pdf/AMD_FirePro-total_2013.pdf"
+      ],
+      "basis": "manufacturer_board_power_bound",
+      "evidence": "AMD's RG220 remote graphics datasheet specifies <35 W and includes RG220A as its actively cooled 512 MB option. Use 35 W as the documented product family ceiling."
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:f15d9460e246d2fa6a5d41e3a88764412b22d56a3e2130cb059e2ad88fa683e6",
+      "raw_name": "ATI FirePro V7900 SDI",
+      "manufacturer": "AMD",
+      "manufacturer_model": "100-505733",
+      "match_specs": {
+        "chipset": "FirePro V7900 SDI",
+        "color": "Black / Red",
+        "core_clock_mhz": 725,
+        "length_mm": 279,
+        "vram_gb": 2
+      },
+      "power_draw_w": 150,
+      "source_url": "https://vgamuseum.info/images/doc/amd/fireprov7900sdi_specs.pdf",
+      "catalog_brand": "Unknown",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/tyh9TW/ati-video-card-100505733",
+        "https://www.bhphotovideo.com/c/product/1014954-REG/amd_100_505733_firepro_v7900_graphics_card.html"
+      ],
+      "basis": "manufacturer_board_power_bound",
+      "evidence": "AMD V7900 SDI datasheet PID 50549A specifies <150 W and one 6-pin PCIe connector. Store the documented board-power ceiling of 150 W."
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:83d6803719c1deaf2f2cb1dd983e133678914606ed1993dac6d20e3d5db9c62e",
+      "raw_name": "BFG BFGE94512GTE",
+      "manufacturer": "BFG",
+      "manufacturer_model": "BFGE94512GTE",
+      "match_specs": {
+        "chipset": "GeForce 9400 GT",
+        "vram_gb": 0.5,
+        "color": "Blue / White"
+      },
+      "power_draw_w": 50,
+      "source_url": "https://www.zotac.com/old_zotac/fileadmin/Redakteure/Products/Pdf/ZT-94TES2P-FSL_9400GT-DDR3_v3.pdf",
+      "catalog_brand": "Unknown",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://www.bhphotovideo.com/c/product/581857-REG/BFG_Tech_BFGE94512GTE_nVIDIA_GeForce_9400_GT.html/overview"
+      ],
+      "basis": "same_chipset_board_max_power",
+      "evidence": "ZOTAC's official same-chipset 550 MHz 512 MB PCIe board maximum is 50 W. BFG board has DDR2 rather than the source board's GDDR3.",
+      "reference_w": 50,
+      "reference_model": "ZOTAC ZT-94TES2P-FSL"
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:4d00b4736b3c70b21c15e5d0a5e4ae8634590b7a0ac33198e8ad6e554a2df554",
+      "raw_name": "EVGA 01G-P1-N948-LR",
+      "manufacturer": "EVGA",
+      "manufacturer_model": "01G-P1-N948-LR",
+      "match_specs": {
+        "chipset": "GeForce 9400 GT",
+        "vram_gb": 1
+      },
+      "power_draw_w": 25,
+      "source_url": "https://lekensteyn.nl/files/docs/PCI_SPEV_V3_0.pdf",
+      "catalog_brand": "EVGA",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://www.evga.com/marketing/EVGA_Product_Guide_Q3_2009.pdf"
+      ],
+      "basis": "conventional_pci_slot_power_limit",
+      "evidence": "EVGA lists this exact model in its conventional PCI group. PCI-SIG PCI Local Bus Specification Rev. 3.0 section 4.4.2.2 gives a 25 W add-in board limit through the PCI connector.",
+      "reference_w": 25,
+      "auxiliary_connectors": []
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:a9f4b1f5cad02270f78460f3e15125bafcadd19bfe12098afa3b7108bd68a7cb",
+      "raw_name": "EVGA 256-P2-N429-LR",
+      "manufacturer": "EVGA",
+      "manufacturer_model": "256-P2-N429-LR",
+      "match_specs": {
+        "chipset": "GeForce 7200 GS",
+        "vram_gb": 0.25,
+        "core_clock_mhz": 450,
+        "color": "Black / Green"
+      },
+      "power_draw_w": 75,
+      "source_url": "https://www.nvidia.com/content/quadro/pdf/quadro-power-guidelines.pdf",
+      "catalog_brand": "EVGA",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://evga.manymanuals-pt.com/graphics-cards/256-p2-n429-lr/datasheet-33528",
+        "https://www.evga.com/marketing/EVGA_Product_Guide_Q3_2010.pdf",
+        "https://www.newegg.com/evga-256-p2-n429-lr-geforce-7200gs-256mb-graphics-card-fanless/p/N82E16814130098"
+      ],
+      "basis": "pcie_x16_slot_power_limit",
+      "evidence": "Archived EVGA datasheet and official catalog identify exact 450 MHz 256 MB PCIe card. Exact product views show no auxiliary power input. The 75 W figure is the PCIe x16 slot power budget.",
+      "reference_w": 75,
+      "auxiliary_connectors": []
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:335032d1c6755d2ee9de56d2922fd46c3e7e3db5df7163b8bcf4d7ee43153075",
+      "raw_name": "Gigabyte GV-N295-18I-B",
+      "manufacturer": "Gigabyte",
+      "manufacturer_model": "GV-N295-18I-B",
+      "match_specs": {
+        "chipset": "GeForce GTX 295",
+        "vram_gb": 1.75,
+        "color": "Black / Blue"
+      },
+      "power_draw_w": 289,
+      "source_url": "https://www.zotac.com/us/product/graphics_card/gtx295-two-pcb-design",
+      "catalog_brand": "Gigabyte",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://www.gigabyte.com/Graphics-Card/GV-N295-18I-B/sp"
+      ],
+      "basis": "same_chipset_board_max_power",
+      "evidence": "Gigabyte's official product specification confirms GTX 295 and 1792 MB with 896-bit bus. ZOTAC documents 289 W for a compatible GTX 295 board topology with the same capacity and bus.",
+      "reference_w": 289,
+      "reference_model": "ZOTAC ZT-295E3MA-FSP"
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:5462a0c70d11f4e3f19ac00368a157d3ba19c38a01460e7a4f3f35b556426254",
+      "raw_name": "Gigabyte GV-R545-1GI",
+      "manufacturer": "Gigabyte",
+      "manufacturer_model": "GV-R545-1GI",
+      "match_specs": {
+        "chipset": "Radeon HD 5450",
+        "color": "Blue / Silver",
+        "core_clock_mhz": 650,
+        "length_mm": 182,
+        "vram_gb": 1
+      },
+      "power_draw_w": 19.1,
+      "source_url": "https://manualzz.com/doc/2435594/club3d-cgax-5456-amd-radeon-hd5450-2gb-graphics-card-spec...",
+      "catalog_brand": "Gigabyte",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/qYxfrH/gigabyte-video-card-gvr5451gi",
+        "https://www.gigabyte.com/Graphics-Card/GV-R545-1GI/sp"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "HD 5450 same-chipset Club 3D CGAX-5456 maximum load under 19.1 W",
+      "reference_w": 19.1
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:f35dbc661c13fccc5052a4585323ecd6495fe31ea9ebdcf225463003eea435ea",
+      "raw_name": "Gigabyte GV-R785OC-1GD",
+      "manufacturer": "Gigabyte",
+      "manufacturer_model": "GV-R785OC-1GD",
+      "match_specs": {
+        "chipset": "Radeon HD 7850",
+        "color": "Black / Blue",
+        "core_clock_mhz": 900,
+        "length_mm": 241,
+        "vram_gb": 1
+      },
+      "power_draw_w": 150,
+      "source_url": "https://allegro.pl/produkt/karta-graficzna-gigabyte-radeon-hd-7850-1gb-oc-windforce-1-gb-7e12b8a4-6636-4d83-9933-fd81d9952508?fromInactiveOffer=archived",
+      "catalog_brand": "Gigabyte",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://edc.intel.com/content/www/us/en/design/ipla/software-development-platforms/client/platforms/alder-lake-desktop/atx-version-3-0-multi-rail-desktop-platform-power-supply-design-guide/2.0/2.01/pci-express-pcie-add-in-card-connectors-recommended/",
+        "https://fr.pcpartpicker.com/product/QCTmP6/gigabyte-video-card-gvr785oc1gd",
+        "https://images.nvidia.com/aem-dam/en-zz/Solutions/design-visualization/quadro-product-literature/DA-07261-001_v15.pdf",
+        "https://www.gigabyte.com/Graphics-Card/GV-R785OC-1GD",
+        "https://www.legitreviews.com/amd-radeon-hd-7870-ghz-edition-7850-video-card-review_1863/12"
+      ],
+      "basis": "pcie_connector_budget",
+      "evidence": "PCIe x16 slot and auxiliary connector combined supply upper bound",
+      "connector_counts": {
+        "slot_x16": 1,
+        "pcie_6_pin": 1,
+        "pcie_8_pin": 0
+      }
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:dbda7d8892f27ace81bcded8b2946a64419a6ebc0fc1fad3227a978ba94ae995",
+      "raw_name": "MSI N465GTX-M2D1G",
+      "manufacturer": "MSI",
+      "manufacturer_model": "N465GTX-M2D1G",
+      "match_specs": {
+        "chipset": "GeForce GTX 465",
+        "vram_gb": 1,
+        "core_clock_mhz": 607,
+        "length_mm": 243,
+        "color": "Black / Red"
+      },
+      "power_draw_w": 225,
+      "source_url": "https://edc.intel.com/content/www/id/id/design/ipla/software-development-platforms/client/platforms/alder-lake-desktop/atx-version-3-0-multi-rail-desktop-platform-power-supply-design-guide/2.0/pci-express-pcie-add-in-card-connectors-recommended/",
+      "catalog_brand": "MSI",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://download1.gigabyte.com/Files/Manual/vga_manual_n465ud%28mt%29-1gi_c.pdf?v=2bdbe4944130d579229f7eb62ad1b7f6",
+        "https://storage-asset.msi.com/datasheet/vga/global/N465GTXM2D1G.pdf",
+        "https://www.newegg.ca/msi-n465gtx-m2d1g-geforce-gtx-465-1gb-graphics-card-single-fan/p/N82E16814127506",
+        "https://www.nvidia.com/content/quadro/pdf/quadro-power-guidelines.pdf"
+      ],
+      "basis": "pcie_slot_plus_auxiliary_connector_limit",
+      "evidence": "MSI datasheet identifies exact 607 MHz 1 GB GDDR5 PCIe x16 board. Two six-pin inputs are documented for the exact MSI retail SKU and officially for the Gigabyte same-chip board. Budget is 75 W slot + 2 x 75 W auxiliary. Archived retail specification separately lists 215 W max.",
+      "reference_w": 225,
+      "slot_power_w": 75,
+      "auxiliary_connectors": [
+        {
+          "pin_count": 6,
+          "watts": 75
+        },
+        {
+          "pin_count": 6,
+          "watts": 75
+        }
+      ]
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:872ac142d502fdfeb559dbc0fda404f8cd2ddca8046d87e1fd7da19eb4288dff",
+      "raw_name": "MSI R5450-MD1GH/D2",
+      "manufacturer": "MSI",
+      "manufacturer_model": "R5450-MD1GH/D2",
+      "match_specs": {
+        "chipset": "Radeon HD 5450",
+        "color": "Black / Silver",
+        "core_clock_mhz": 650,
+        "length_mm": 167,
+        "vram_gb": 1
+      },
+      "power_draw_w": 19.1,
+      "source_url": "https://manualzz.com/doc/2435594/club3d-cgax-5456-amd-radeon-hd5450-2gb-graphics-card-spec...",
+      "catalog_brand": "MSI",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/FcK7YJ/msi-video-card-r5450md1ghd2",
+        "https://tr.msi.com/Graphics-Card/R5450MD1GHD2/Specification"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "HD 5450 same-chipset Club 3D CGAX-5456 maximum load under 19.1 W",
+      "reference_w": 19.1
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:abeaf04c4d9b0cf29c8243ba8b0a1cef80f6efc061bf7b290f25ede9f40416fb",
+      "raw_name": "MSI R5670-PD512",
+      "manufacturer": "MSI",
+      "manufacturer_model": "R5670-PD512",
+      "match_specs": {
+        "chipset": "Radeon HD 5670",
+        "color": "Black / Silver",
+        "core_clock_mhz": 775,
+        "vram_gb": 0.5
+      },
+      "power_draw_w": 61,
+      "source_url": "https://www.highperformancegraphics.org/previous/www_2010/media/Hot3D/HPG2010_Hot3D_AMD.pdf",
+      "catalog_brand": "MSI",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/48g323/msi-video-card-r5670pd512",
+        "https://us.msi.com/Graphics-Card/R5670PD512/Specification",
+        "https://www.bit-tech.net/reviews/tech/graphics/ati-radeon-hd-5670-review/1/"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "ATI Radeon HD 5670 reference maximum board power in AMD Evergreen presentation",
+      "reference_w": 61
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:72465ead3ec7328194b8cbdb6be9617fc5b1d74bb9ffc40bff7eaa8b281294e9",
+      "raw_name": "MSI R5750-MD1G",
+      "manufacturer": "MSI",
+      "manufacturer_model": "R5750-MD1G",
+      "match_specs": {
+        "chipset": "Radeon HD 5750",
+        "color": "Black / Silver",
+        "core_clock_mhz": 700,
+        "vram_gb": 1
+      },
+      "power_draw_w": 150,
+      "source_url": "https://www.newegg.com/msi-r5750-md1g-radeon-hd-5750-1gb-graphics-card-with-fan/p/N82E16814127494",
+      "catalog_brand": "MSI",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://edc.intel.com/content/www/us/en/design/ipla/software-development-platforms/client/platforms/alder-lake-desktop/atx-version-3-0-multi-rail-desktop-platform-power-supply-design-guide/2.0/2.01/pci-express-pcie-add-in-card-connectors-recommended/",
+        "https://fr.pcpartpicker.com/product/Ltfp99/msi-video-card-r5750md1g",
+        "https://images.nvidia.com/aem-dam/en-zz/Solutions/design-visualization/quadro-product-literature/DA-07261-001_v15.pdf",
+        "https://storage-asset.msi.com/datasheet/vga/global/R5750MD1G.pdf",
+        "https://www.phoronix.com/review/amd_juniper/2"
+      ],
+      "basis": "pcie_connector_budget",
+      "evidence": "PCIe x16 slot and auxiliary connector combined supply upper bound",
+      "connector_counts": {
+        "slot_x16": 1,
+        "pcie_6_pin": 1,
+        "pcie_8_pin": 0
+      }
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:6fe2ad1eece4e2e7ba2477f023ec5e7abcf0bc513a607b580b7105377056c083",
+      "raw_name": "MSI R6850-PM2D1GD5/OC",
+      "manufacturer": "MSI",
+      "manufacturer_model": "R6850-PM2D1GD5/OC",
+      "match_specs": {
+        "chipset": "Radeon HD 6850",
+        "core_clock_mhz": 820,
+        "vram_gb": 1
+      },
+      "power_draw_w": 150,
+      "source_url": "https://paperzz.com/doc/8416416/amd-radeon%E2%84%A2-hd-6850-6870",
+      "catalog_brand": "MSI",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://edc.intel.com/content/www/us/en/design/ipla/software-development-platforms/client/platforms/alder-lake-desktop/atx-version-3-0-multi-rail-desktop-platform-power-supply-design-guide/2.0/2.01/pci-express-pcie-add-in-card-connectors-recommended/",
+        "https://fr.pcpartpicker.com/product/XgW9TW/msi-video-card-r6850pm2d1gd5oc",
+        "https://images.nvidia.com/aem-dam/en-zz/Solutions/design-visualization/quadro-product-literature/DA-07261-001_v15.pdf",
+        "https://www.au-ja.de/review-msi-r6850-pm2d1gd5-radeon-hd-6850-print.phtml",
+        "https://www.msi.com/Graphics-Card/R6850PM2D1GD5OC/Specification"
+      ],
+      "basis": "pcie_connector_budget",
+      "evidence": "PCIe x16 slot and auxiliary connector combined supply upper bound",
+      "connector_counts": {
+        "slot_x16": 1,
+        "pcie_6_pin": 1,
+        "pcie_8_pin": 0
+      }
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:53d6c71aa9f121de72e3883f3e1e82eadbc4eb92473e34e4a35e3f48e63b7980",
+      "raw_name": "MSI TWIN FROZR II",
+      "manufacturer": "MSI",
+      "manufacturer_model": "R5850 Twin Frozr II",
+      "match_specs": {
+        "chipset": "Radeon HD 5850",
+        "color": "Black / Silver",
+        "core_clock_mhz": 725,
+        "length_mm": 257,
+        "vram_gb": 1
+      },
+      "power_draw_w": 151,
+      "source_url": "https://faculty.cc.gatech.edu/~hyesoon/spr11/lec_ati.pdf",
+      "catalog_brand": "MSI",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/nfBv6h/msi-video-card-r5850twinfrozrii",
+        "https://www.bhphotovideo.com/c/product/731431-REG/MSI_R5850TWINFROZRII_R5850_Twin_Frozr_II.html",
+        "https://www.msi.com/Graphics-Card/R5850_Twin_Frozr_II/Specification"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "AMD Radeon HD 5850 stock 725 MHz reference maximum board power",
+      "reference_w": 151
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:5e72f15cac477adfbf03b0ff2f9a5ad3c7399ea46658388d596aff14d8254956",
+      "raw_name": "PNY VCGGT620XPB",
+      "manufacturer": "PNY",
+      "manufacturer_model": "VCGGT620XPB",
+      "match_specs": {
+        "chipset": "GeForce GT 620",
+        "vram_gb": 1,
+        "core_clock_mhz": 700,
+        "length_mm": 152,
+        "color": "Black / Red"
+      },
+      "power_draw_w": 49,
+      "source_url": "https://shop.bt.com/content/uni2/documentation/82mr/palit_gt620_1024mb_neat6200hd06-1082f.pdf",
+      "catalog_brand": "PNY",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://uk.pforce.nvidia.com/EN/GeForce_Desktop/GT_620/Sales_Tools/NVIDIA_Sell_Sheets/GeForce_GT_620.pdf",
+        "https://www.pny.com/file%20library/unassigned/geforce-family-pny-sell-sheet.pdf"
+      ],
+      "basis": "same_chipset_board_max_power",
+      "evidence": "PNY's official product sheet identifies exact 1 GB DDR3 low-profile SKU and NVIDIA's GT 620 sheet gives 700 MHz. Palit's own archived same-chipset 700 MHz 1 GB DDR3 board specification states 49 W consumption, providing a closer same-memory reference than the EVGA 2 GB variant.",
+      "reference_w": 49,
+      "reference_model": "PALIT NEAT6200HD06-1082F"
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:0a2d67f1264ae622a1db1bce0d47e84d65f701fd15f6c611c6ab56a0a7f25290",
+      "raw_name": "PowerColor AX5450 512MK3-SH",
+      "manufacturer": "PowerColor",
+      "manufacturer_model": "AX5450 512MK3-SH",
+      "match_specs": {
+        "chipset": "Radeon HD 5450",
+        "color": "Black / Red",
+        "core_clock_mhz": 650,
+        "vram_gb": 0.5
+      },
+      "power_draw_w": 19.1,
+      "source_url": "https://manualzz.com/doc/2435594/club3d-cgax-5456-amd-radeon-hd5450-2gb-graphics-card-spec...",
+      "catalog_brand": "PowerColor",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/KktCmG/powercolor-video-card-ax5450512mk3sh",
+        "https://www.4gamer.net/games/103/G010391/20100204006/"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "HD 5450 same-chipset Club 3D CGAX-5456 maximum load under 19.1 W",
+      "reference_w": 19.1
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:0b68219e9a00bd213165e157e0a9ab649ce1c41bd70be446094ccad7c47c191c",
+      "raw_name": "VisionTek 900270",
+      "manufacturer": "VisionTek",
+      "manufacturer_model": "900270",
+      "match_specs": {
+        "chipset": "Radeon HD 4350",
+        "core_clock_mhz": 575,
+        "vram_gb": 0.5
+      },
+      "power_draw_w": 20,
+      "source_url": "https://www.bit-tech.net/press-releases/ati-radeon-hd-4550-and-ati-radeon-hd-4350-graphics-cards-load-up-gaming-and-multimedia/1/",
+      "catalog_brand": "Unknown",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/ZG4gXL/visiontek-video-card-900270",
+        "https://www.newegg.com/visiontek-900270-radeon-hd-4350-512mb-graphics-card-with-fan/p/N82E16814129149"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "AMD's HD 4350 launch press release full-load board consumption",
+      "reference_w": 20
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:74bb0b8822c95f4012c3c6b64355847b82de9f6c9098432322904949ba24e190",
+      "raw_name": "VisionTek 900356",
+      "manufacturer": "VisionTek",
+      "manufacturer_model": "900356",
+      "match_specs": {
+        "chipset": "Radeon HD 5450",
+        "color": "Black / Red",
+        "vram_gb": 2
+      },
+      "power_draw_w": 19.1,
+      "source_url": "https://manualzz.com/doc/2435594/club3d-cgax-5456-amd-radeon-hd5450-2gb-graphics-card-spec...",
+      "catalog_brand": "Unknown",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/mTyFf7/visiontek-video-card-900356",
+        "https://www.newegg.com/visiontek-900356-radeon-hd-5450-2gb-graphics-card-fanless/p/N82E16814129186"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "HD 5450 same-chipset Club 3D CGAX-5456 maximum load under 19.1 W",
+      "reference_w": 19.1
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:7cfb16d7b32f2e8a4601467d07963639dbf707c5588f1bf1c16587ab72bab78e",
+      "raw_name": "VisionTek Radeon HD 7790 1GB",
+      "manufacturer": "VisionTek",
+      "manufacturer_model": "900621",
+      "match_specs": {
+        "chipset": "Radeon HD 7790",
+        "color": "Black / Blue",
+        "core_clock_mhz": 1000,
+        "length_mm": 224,
+        "vram_gb": 1
+      },
+      "power_draw_w": 85,
+      "source_url": "https://www.amd-id.com/amd-radeon-hd-7790-melanjutkan-momentum-kepopuleran-lini-kartu-grafis-diskrit-amd/",
+      "catalog_brand": "Unknown",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/ws9KHx/visiontek-video-card-900621",
+        "https://www.newegg.com/visiontek-900621-radeon-hd-7790-1gb-graphics-card-with-fan/p/N82E16814129275"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "AMD Radeon HD 7790 1 GHz 1GB typical board power",
+      "reference_w": 85
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:fb0b3aba0b353ceadc134c770720b3a776b6c7952d82f885aac05b8c779e1daa",
+      "raw_name": "XFX FX-795A-TDJC",
+      "manufacturer": "XFX",
+      "manufacturer_model": "FX-795A-TDJC",
+      "match_specs": {
+        "chipset": "Radeon HD 7950",
+        "color": "Black / Silver",
+        "core_clock_mhz": 800,
+        "length_mm": 274,
+        "vram_gb": 3
+      },
+      "power_draw_w": 300,
+      "source_url": "https://www.newegg.com/xfx-double-d-fx-795a-tdjc-radeon-hd-7950-3gb-graphics-card-with-fan/p/N82E16814150616",
+      "catalog_brand": "XFX",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://edc.intel.com/content/www/us/en/design/ipla/software-development-platforms/client/platforms/alder-lake-desktop/atx-version-3-0-multi-rail-desktop-platform-power-supply-design-guide/2.0/2.01/pci-express-pcie-add-in-card-connectors-recommended/",
+        "https://fr.pcpartpicker.com/product/9tZQzy/xfx-video-card-fx795atdjc",
+        "https://images.nvidia.com/aem-dam/en-zz/Solutions/design-visualization/quadro-product-literature/DA-07261-001_v15.pdf",
+        "https://www.anandtech.com/show/5476/amd-radeon-7950-review"
+      ],
+      "basis": "pcie_connector_budget",
+      "evidence": "PCIe x16 slot and auxiliary connector combined supply upper bound",
+      "connector_counts": {
+        "slot_x16": 1,
+        "pcie_6_pin": 1,
+        "pcie_8_pin": 1
+      }
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:871806595d52f8e2f098d09cc4e739d9c5a05b2f9ecc47e1e35f334e5144cfd7",
+      "raw_name": "XFX HD-467X-ZDF2",
+      "manufacturer": "XFX",
+      "manufacturer_model": "HD-467X-ZDF2",
+      "match_specs": {
+        "chipset": "Radeon HD 4670",
+        "color": "Black",
+        "core_clock_mhz": 750,
+        "vram_gb": 1
+      },
+      "power_draw_w": 59,
+      "source_url": "https://www.asbis.si/download/amd_ebook_gb.pdf",
+      "catalog_brand": "XFX",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://cdn.cnetcontent.com/eb/c6/ebc69f99-1460-40e5-b042-7272074f840f.pdf",
+        "https://fr.pcpartpicker.com/product/YLTmP6/xfx-video-card-hd467xzdf2",
+        "https://hothardware.com/reviews/ati-radeon-hd-4670-redefining-the-mainstream?page=2"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "ATI Radeon HD 4670 reference maximum board power",
+      "reference_w": 59
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:340ec44efd84734d61e1d4adb521222b89d122f349142729976033216a1b483a",
+      "raw_name": "XFX HD-467X-ZDFR",
+      "manufacturer": "XFX",
+      "manufacturer_model": "HD-467X-ZDFR",
+      "match_specs": {
+        "chipset": "Radeon HD 4670",
+        "color": "Black",
+        "core_clock_mhz": 750,
+        "length_mm": 167,
+        "vram_gb": 1
+      },
+      "power_draw_w": 59,
+      "source_url": "https://www.asbis.si/download/amd_ebook_gb.pdf",
+      "catalog_brand": "XFX",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://cdn.cnetcontent.com/eb/c6/ebc69f99-1460-40e5-b042-7272074f840f.pdf",
+        "https://fr.pcpartpicker.com/product/YF2kcf/xfx-video-card-hd467xzdfr",
+        "https://hothardware.com/reviews/ati-radeon-hd-4670-redefining-the-mainstream?page=2"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "ATI Radeon HD 4670 reference maximum board power",
+      "reference_w": 59
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:bf30de81edec36c907c0ad5acbbf6976a743798b30772e26e9260996888ce57c",
+      "raw_name": "XFX HD-545X-ZAF2",
+      "manufacturer": "XFX",
+      "manufacturer_model": "HD-545X-ZAF2",
+      "match_specs": {
+        "chipset": "Radeon HD 5450",
+        "color": "Black",
+        "core_clock_mhz": 650,
+        "vram_gb": 1
+      },
+      "power_draw_w": 19.1,
+      "source_url": "https://manualzz.com/doc/2435594/club3d-cgax-5456-amd-radeon-hd5450-2gb-graphics-card-spec...",
+      "catalog_brand": "XFX",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://fr.pcpartpicker.com/product/kBn2FT/xfx-video-card-hd545xzaf2",
+        "https://www.newegg.com/xfx-hd-545x-zaf2-radeon-hd-5450-1gb-graphics-card-with-fan/p/N82E16814150470"
+      ],
+      "basis": "chipset_reference",
+      "evidence": "HD 5450 same-chipset Club 3D CGAX-5456 maximum load under 19.1 W",
+      "reference_w": 19.1
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:63fa82dad80cf71e08de72acd2ca99ba6631e1f38d3aa2c772aa6be4720f9c5d",
+      "raw_name": "XFX PV-T95G-ZNF2",
+      "manufacturer": "XFX",
+      "manufacturer_model": "PV-T95G-ZNF2",
+      "match_specs": {
+        "chipset": "GeForce 9500 GT",
+        "vram_gb": 1,
+        "core_clock_mhz": 550,
+        "length_mm": 167,
+        "color": "Black / Green"
+      },
+      "power_draw_w": 50,
+      "source_url": "https://www.zotac.com/old_zotac/fileadmin/Redakteure/Products/Pdf/ZT-95TEK2M-FSL_9500GT-1GB-DDR2_HDMI_v1.1.pdf",
+      "catalog_brand": "XFX",
+      "catalog_model_number": null,
+      "basis": "same_chipset_board_max_power",
+      "evidence": "Manufacturer publishes 50 W maximum for a 550 MHz DDR2 GeForce 9500 GT. The source is a same-chipset board, with 1 GB DDR2 and 128-bit memory.",
+      "reference_w": 50,
+      "reference_model": "ZOTAC ZT-95TEK2M-FSL"
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:8c1c9be15ede90ae258c8f415e69cc2d2a82a088aa022806ba18c249ead4d24f",
+      "raw_name": "XFX PVT95GYAR2",
+      "manufacturer": "XFX",
+      "manufacturer_model": "PVT95GYAR2",
+      "match_specs": {
+        "chipset": "GeForce 9500 GT",
+        "vram_gb": 0.5,
+        "core_clock_mhz": 550,
+        "length_mm": 167,
+        "color": "Black / Green"
+      },
+      "power_draw_w": 50,
+      "source_url": "https://www.zotac.com/old_zotac/fileadmin/Redakteure/Products/Pdf/ZT-95TEK2M-FSL_9500GT-1GB-DDR2_HDMI_v1.1.pdf",
+      "catalog_brand": "XFX",
+      "catalog_model_number": null,
+      "basis": "same_chipset_board_max_power",
+      "evidence": "Manufacturer publishes 50 W maximum for a 550 MHz DDR2 GeForce 9500 GT. The source is a same-chipset board, with 1 GB DDR2 and 128-bit memory.",
+      "reference_w": 50,
+      "reference_model": "ZOTAC ZT-95TEK2M-FSL"
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:f36371f5630597f0a24113ad2759f908ce80a7def8c7849041b7e4551032c0c3",
+      "raw_name": "XFX PVT95GZAFG",
+      "manufacturer": "XFX",
+      "manufacturer_model": "PVT95GZAFG",
+      "match_specs": {
+        "chipset": "GeForce 9500 GT",
+        "vram_gb": 1,
+        "core_clock_mhz": 550,
+        "color": "Black / Green"
+      },
+      "power_draw_w": 50,
+      "source_url": "https://www.zotac.com/old_zotac/fileadmin/Redakteure/Products/Pdf/ZT-95TEK2M-FSL_9500GT-1GB-DDR2_HDMI_v1.1.pdf",
+      "catalog_brand": "XFX",
+      "catalog_model_number": null,
+      "basis": "same_chipset_board_max_power",
+      "evidence": "Manufacturer publishes 50 W maximum for a 550 MHz DDR2 GeForce 9500 GT. The source is a same-chipset board, with 1 GB DDR2 and 128-bit memory.",
+      "reference_w": 50,
+      "reference_model": "ZOTAC ZT-95TEK2M-FSL"
+    },
+    {
+      "category": "gpu",
+      "source_key": "docyx:f8fd0d24fd0c243093541e490ba31d3fc28ad55cea12e1742eded035ccd149f4",
+      "raw_name": "XFX PVT98GYAF3",
+      "manufacturer": "XFX",
+      "manufacturer_model": "PVT98GYAF3",
+      "match_specs": {
+        "chipset": "GeForce 9800 GT",
+        "vram_gb": 0.5,
+        "core_clock_mhz": 550,
+        "color": "Black"
+      },
+      "power_draw_w": 75,
+      "source_url": "https://www.zotac.com/old_zotac/fileadmin/Redakteure/Products/Pdf/ZT-98GES3G-FSL_9800GT-Eco_v1.pdf",
+      "catalog_brand": "XFX",
+      "catalog_model_number": null,
+      "supporting_urls": [
+        "https://www.newegg.com/xfx-pvt98gyaf3-geforce-9800-gt-512mb-graphics-card-single-fan/p/N82E16814150489"
+      ],
+      "basis": "same_chipset_board_max_power",
+      "evidence": "ZOTAC's official spec matches the 550 MHz clock and 512 MB GDDR3 reduced-power variant. The XFX PVT98GYAF3 exact model is confirmed at the same clock, memory capacity, bit width and memory rate.",
+      "reference_w": 75,
+      "reference_model": "ZOTAC ZT-98GES3G-FSL"
+    }
+  ]
+}

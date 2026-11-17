@@ -1,0 +1,652 @@
+{
+  "Arc A380": {
+    "power_draw_w": 75,
+    "metric": "Total Board Power (TBP)",
+    "source_url": "https://www.intel.com/content/www/us/en/products/sku/227959/intel-arc-a380-graphics/specifications.html"
+  },
+  "Arc A750": {
+    "power_draw_w": 225,
+    "metric": "Total Board Power (TBP)",
+    "source_url": "https://www.intel.com/content/www/us/en/support/articles/000092523/graphics.html"
+  },
+  "Arc A770": {
+    "power_draw_w": 225,
+    "metric": "Total Board Power (TBP)",
+    "source_url": "https://www.intel.com/content/www/us/en/support/articles/000092523/graphics.html"
+  },
+  "Arc B570": {
+    "power_draw_w": 150,
+    "metric": "Total Board Power (TBP)",
+    "source_url": "https://download.intel.com/newsroom/2024/client-computing/Intel-Arc-B580-B570-Media-Deck.pdf"
+  },
+  "Arc B580": {
+    "power_draw_w": 190,
+    "metric": "Total Board Power (TBP)",
+    "source_url": "https://download.intel.com/newsroom/2024/client-computing/Intel-Arc-B580-B570-Media-Deck.pdf"
+  },
+  "FirePro W5100": {
+    "power_draw_w": 75,
+    "metric": "Total Board Power",
+    "source_url": "https://www.amd.com/en/support/downloads/drivers.html/graphics/firepro/firepro-wx100-series/firepro-w5100.html"
+  },
+  "FirePro W600": {
+    "power_draw_w": 75,
+    "metric": "Total Board Power",
+    "source_url": "https://www.amd.com/en/support/downloads/drivers.html/graphics/firepro/firepro-wx000-series/firepro-w600.html"
+  },
+  "FirePro W7000": {
+    "power_draw_w": 150,
+    "metric": "Total Board Power",
+    "source_url": "https://www.amd.com/en/support/downloads/drivers.html/graphics/firepro/firepro-wx000-series/firepro-w7000.html"
+  },
+  "GeForce GT 1030": {
+    "power_draw_w": 30,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/gt-1030/specifications/"
+  },
+  "GeForce GT 1030 DDR4": {
+    "power_draw_w": 20,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/gt-1030/specifications/"
+  },
+  "GeForce GT 520": {
+    "power_draw_w": 29,
+    "metric": "Power Consumption",
+    "source_url": "https://www.zotac.com/us/product/graphics_card/gt-520"
+  },
+  "GeForce GT 610": {
+    "power_draw_w": 29,
+    "metric": "Power Consumption",
+    "source_url": "https://www.zotac.com/us/product/graphics_card/geforce-%C2%AE-gt-610-synergy-2gb"
+  },
+  "GeForce GT 640": {
+    "power_draw_w": 65,
+    "metric": "Max Power Consumption",
+    "source_url": "https://www.zotac.com/old_zotac/fileadmin/Redakteure/Products/Pdf/master_zt-60210-10l_gt-640_v1.pdf"
+  },
+  "GeForce GT 720": {
+    "power_draw_w": 23,
+    "metric": "Power consumption (W)",
+    "source_url": "https://storage-asset.msi.com/datasheet/vga/us/N720-1GD3HLP.pdf"
+  },
+  "GeForce GT 740": {
+    "power_draw_w": 64,
+    "metric": "Power consumption (W)",
+    "source_url": "https://storage-asset.msi.com/datasheet/vga/us/N740-2GD5.pdf"
+  },
+  "GeForce GTS 250": {
+    "power_draw_w": 150,
+    "metric": "Power Consumption",
+    "source_url": "https://www.zotac.com/us/product/graphics_card/gts-250-0?l=ko"
+  },
+  "GeForce GTX 1050": {
+    "power_draw_w": 75,
+    "metric": "Power Consumption",
+    "source_url": "https://www.zotac.com/us/product/graphics_card/zotac-geforce-gtx-1050-oc"
+  },
+  "GeForce GTX 1650 G5": {
+    "power_draw_w": 75,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce GTX 1650 G6": {
+    "power_draw_w": 75,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce GTX 1650 SUPER": {
+    "power_draw_w": 100,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce GTX 1660": {
+    "power_draw_w": 120,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce GTX 1660 SUPER": {
+    "power_draw_w": 125,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce GTX 1660 Ti": {
+    "power_draw_w": 120,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce GTX 275": {
+    "power_draw_w": 225,
+    "metric": "Max Power Consumption",
+    "source_url": "https://www.zotac.com/old_zotac/fileadmin/Redakteure/Products/Pdf/ZT-275E3KG-FCP_GTX-275-AMP_v1.pdf"
+  },
+  "GeForce GTX 460": {
+    "power_draw_w": 160,
+    "metric": "Power Consumption",
+    "source_url": "https://www.zotac.com/us/product/graphics_card/gtx-460amp-edition"
+  },
+  "GeForce GTX 560 Ti": {
+    "power_draw_w": 170,
+    "metric": "Power Consumption",
+    "source_url": "https://www.zotac.com/th/product/graphics_card/gtx-560-tiamp-edition"
+  },
+  "GeForce GTX 570": {
+    "power_draw_w": 236,
+    "metric": "Max Power Consumption",
+    "source_url": "https://www.zotac.com/old_zotac/fileadmin/Redakteure/Products/Pdf/master_zt-50202-10p_gtx-570-amp_v1.1.pdf"
+  },
+  "GeForce GTX 660": {
+    "power_draw_w": 140,
+    "metric": "Graphics Card Power",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-660/specifications/"
+  },
+  "GeForce GTX 660 Ti": {
+    "power_draw_w": 150,
+    "metric": "Graphics Card Power",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-660ti/specifications/"
+  },
+  "GeForce GTX 680": {
+    "power_draw_w": 195,
+    "metric": "Graphics Card Power",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-680/specifications/"
+  },
+  "GeForce GTX 760": {
+    "power_draw_w": 170,
+    "metric": "Graphics Card Power",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-760/specifications/"
+  },
+  "GeForce GTX 950": {
+    "power_draw_w": 90,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/900-series/"
+  },
+  "GeForce GTX 950 75W": {
+    "power_draw_w": 75,
+    "metric": "Power consumption (W)",
+    "source_url": "https://storage-asset.msi.com/datasheet/vga/jp/GTX-950-2GD5-OCV2.pdf"
+  },
+  "GeForce GTX 960": {
+    "power_draw_w": 120,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/900-series/"
+  },
+  "GeForce GTX 970": {
+    "power_draw_w": 145,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/900-series/"
+  },
+  "GeForce GTX 980": {
+    "power_draw_w": 165,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/900-series/"
+  },
+  "GeForce GTX 980 Ti": {
+    "power_draw_w": 250,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/900-series/"
+  },
+  "GeForce GTX Titan": {
+    "power_draw_w": 250,
+    "metric": "Power Consumption",
+    "source_url": "https://www.zotac.com/br/product/graphics_card/gtx-titan"
+  },
+  "GeForce GTX Titan Black": {
+    "power_draw_w": 250,
+    "metric": "Graphics Card Power",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-titan-black/specifications/"
+  },
+  "GeForce GTX Titan X": {
+    "power_draw_w": 250,
+    "metric": "Graphics Card Power",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-titan-x/specifications/"
+  },
+  "GeForce GTX Titan Z": {
+    "power_draw_w": 375,
+    "metric": "Max Power Consumption",
+    "source_url": "https://www.zotac.com/old_zotac/fileadmin/Redakteure/Products/Pdf/master_zt-70901-10p_gtx-titan-z_v1.1.pdf"
+  },
+  "GeForce RTX 2060": {
+    "power_draw_w": 185,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 2060 12GB": {
+    "power_draw_w": 185,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 2060 SUPER": {
+    "power_draw_w": 175,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 2070": {
+    "power_draw_w": 185,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 2070 SUPER": {
+    "power_draw_w": 215,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 2080": {
+    "power_draw_w": 225,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 2080 SUPER": {
+    "power_draw_w": 250,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 2080 Ti": {
+    "power_draw_w": 260,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3050 6GB": {
+    "power_draw_w": 70,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3050 8GB": {
+    "power_draw_w": 130,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3060 12GB": {
+    "power_draw_w": 170,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3060 8GB": {
+    "power_draw_w": 170,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3060 Ti": {
+    "power_draw_w": 200,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3060 Ti LHR": {
+    "power_draw_w": 200,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3070": {
+    "power_draw_w": 220,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3070 LHR": {
+    "power_draw_w": 220,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3070 Ti": {
+    "power_draw_w": 290,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3080 10GB": {
+    "power_draw_w": 320,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3080 10GB LHR": {
+    "power_draw_w": 320,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3080 12GB LHR": {
+    "power_draw_w": 350,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3080 Ti": {
+    "power_draw_w": 350,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3090": {
+    "power_draw_w": 350,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 3090 Ti": {
+    "power_draw_w": 450,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 4060": {
+    "power_draw_w": 115,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 4060 Ti": {
+    "power_draw_w": 165,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 4070": {
+    "power_draw_w": 200,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 4070 SUPER": {
+    "power_draw_w": 220,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 4070 Ti": {
+    "power_draw_w": 285,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 4070 Ti SUPER": {
+    "power_draw_w": 285,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 4080": {
+    "power_draw_w": 320,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 4080 SUPER": {
+    "power_draw_w": 320,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 4090": {
+    "power_draw_w": 450,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 5050": {
+    "power_draw_w": 130,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 5060": {
+    "power_draw_w": 145,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 5060 Ti": {
+    "power_draw_w": 180,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 5070": {
+    "power_draw_w": 250,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 5070 Ti": {
+    "power_draw_w": 300,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 5080": {
+    "power_draw_w": 360,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "GeForce RTX 5090": {
+    "power_draw_w": 575,
+    "metric": "Total Graphics Power (W)",
+    "source_url": "https://www.nvidia.com/en-us/geforce/graphics-cards/compare/"
+  },
+  "Quadro 5000": {
+    "power_draw_w": 152,
+    "metric": "Max Power Consumption",
+    "source_url": "https://www.nvidia.com/content/quadro_oem/datasheets/NV_DS_QUADRO_5000_Jul10_HR_final.pdf"
+  },
+  "Quadro K600": {
+    "power_draw_w": 41,
+    "metric": "Max Power Consumption",
+    "source_url": "https://www.nvidia.com/content/PDF/data-sheet/nv-ds-quadro-k600-us.pdf"
+  },
+  "Quadro NVS 420": {
+    "power_draw_w": 40,
+    "metric": "Max Power Consumption",
+    "source_url": "https://www.nvidia.com/content/quadro_oem/presentations/edited_nvidia_nvs_overview.pdf"
+  },
+  "Quadro NVS 450": {
+    "power_draw_w": 35,
+    "metric": "Max Power Consumption",
+    "source_url": "https://www.nvidia.com/content/quadro_oem/presentations/edited_nvidia_nvs_overview.pdf"
+  },
+  "RTX 4500 Ada Generation": {
+    "power_draw_w": 210,
+    "metric": "Max Power Consumption",
+    "source_url": "https://www.nvidia.com/en-us/products/workstations/rtx-4500/"
+  },
+  "Radeon HD 6450": {
+    "power_draw_w": 30,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon HD 6570": {
+    "power_draw_w": 40,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon HD 7750": {
+    "power_draw_w": 75,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon Pro VII": {
+    "power_draw_w": 250,
+    "metric": "Total Board Power (TBP)",
+    "source_url": "https://www.amd.com/en/support/downloads/drivers.html/graphics/radeon-pro/radeon-pro-vii-series/radeon-pro-vii.html"
+  },
+  "Radeon R7 240": {
+    "power_draw_w": 50,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon R7 265": {
+    "power_draw_w": 150,
+    "metric": "GPU Power Wattage-TDP",
+    "source_url": "https://subscriptions.amd.com/newsletters/channelnews/pdf_guides/51884i_update_to_the_qrg_october2014.pdf"
+  },
+  "Radeon R7 370": {
+    "power_draw_w": 110,
+    "metric": "Power consumption (W)",
+    "source_url": "https://storage-asset.msi.com/datasheet/vga/us/R7-370-2GD5T-OC.pdf"
+  },
+  "Radeon R9 270X": {
+    "power_draw_w": 180,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon R9 280X": {
+    "power_draw_w": 250,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon R9 285": {
+    "power_draw_w": 190,
+    "metric": "GPU Power Wattage-TDP",
+    "source_url": "https://subscriptions.amd.com/newsletters/channelnews/pdf_guides/51884i_update_to_the_qrg_october2014.pdf"
+  },
+  "Radeon R9 290": {
+    "power_draw_w": 250,
+    "metric": "GPU Power Wattage-TDP",
+    "source_url": "https://subscriptions.amd.com/newsletters/channelnews/pdf_guides/51884i_update_to_the_qrg_october2014.pdf"
+  },
+  "Radeon R9 290X": {
+    "power_draw_w": 250,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon R9 390": {
+    "power_draw_w": 275,
+    "metric": "Power consumption (W)",
+    "source_url": "https://storage-asset.msi.com/datasheet/vga/us/R9-390-GAMING-8G.pdf"
+  },
+  "Radeon RX 480": {
+    "power_draw_w": 150,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 550 - 512": {
+    "power_draw_w": 50,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 5500 XT": {
+    "power_draw_w": 130,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 560 - 896": {
+    "power_draw_w": 80,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 5600 XT": {
+    "power_draw_w": 150,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 570": {
+    "power_draw_w": 150,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 5700 XT": {
+    "power_draw_w": 225,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 580": {
+    "power_draw_w": 185,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6400": {
+    "power_draw_w": 53,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6500 XT": {
+    "power_draw_w": 113,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6600": {
+    "power_draw_w": 132,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6600 XT": {
+    "power_draw_w": 160,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6650 XT": {
+    "power_draw_w": 180,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6700 XT": {
+    "power_draw_w": 230,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6750 XT": {
+    "power_draw_w": 250,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6800": {
+    "power_draw_w": 250,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6800 XT": {
+    "power_draw_w": 300,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 6900 XT": {
+    "power_draw_w": 300,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 7600": {
+    "power_draw_w": 165,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 7600 XT": {
+    "power_draw_w": 190,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 7700 XT": {
+    "power_draw_w": 245,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 7800 XT": {
+    "power_draw_w": 263,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 7900 GRE": {
+    "power_draw_w": 260,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 7900 XT": {
+    "power_draw_w": 315,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 7900 XTX": {
+    "power_draw_w": 355,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 9060 XT": {
+    "power_draw_w": 160,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 9070": {
+    "power_draw_w": 220,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX 9070 XT": {
+    "power_draw_w": 304,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX VEGA 56": {
+    "power_draw_w": 210,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon RX VEGA 64": {
+    "power_draw_w": 295,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Radeon VII": {
+    "power_draw_w": 300,
+    "metric": "Typical Board Power (Desktop)",
+    "source_url": "https://www.amd.com/en/products/specifications/graphics.html"
+  },
+  "Titan Xp": {
+    "power_draw_w": 250,
+    "metric": "Graphics Card Power (W)",
+    "source_url": "https://www.nvidia.com/sv-se/titan/titan-xp/"
+  }
+}
