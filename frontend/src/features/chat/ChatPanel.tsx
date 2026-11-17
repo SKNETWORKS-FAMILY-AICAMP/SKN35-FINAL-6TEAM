@@ -1,10 +1,14 @@
 /**
- * 음성 전사 · 텍스트 입력 · 선택지를 같은 상담 흐름에서 표시합니다.
- * 상담 직원의 답은 서버(규칙 기반 Mock)가 만든 것만 보여 줍니다.
+ * 음성 받아쓰기 · 글 입력 · 선택지를 같은 상담 흐름에서 표시합니다.
+ * 상담 직원의 답은 서버(규칙 기반)가 만든 것만 보여 주고,
+ * 업무팀의 작업은 상담 직원의 말과 섞지 않고 팀 작업 기록 한 줄로 따로 그립니다.
  */
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { QuickReply, QuickReplyIn } from "../../api/client";
+import type { TeamNote } from "../office/officeNotes";
+import { STATUS_LABELS, TEAM_LABELS, type DisplayStatus } from "../office/officeState";
 import { currentQuickReplies, type ChatState } from "./chatState";
+import { consoleDisplay, mergeTranscript, type ConsoleDisplay } from "./mockTranscript";
 import { conditionTags, formatMessageTime } from "./transcript";
 import { useVoiceConsultation } from "./useVoiceConsultation";
 import "./transcript.css";
@@ -16,10 +20,60 @@ interface Props {
   mock?: boolean;
   mockDraft?: string;
   mockDraftAt?: string | null;
+  /** 팀 작업 기록(오피스 상태에서 파생). 대화 말풍선 사이에 시각 순으로 끼웁니다. */
+  notes?: TeamNote[];
+  /** 오피스 실행 상태. 음성이 대기일 때 콘솔 표시 단계를 고르는 데만 씁니다. */
+  officeRunStatus?: DisplayStatus;
 }
 
-const PLACEHOLDER = "예: 7B 모델 파인튜닝할 노트북 추천해 주세요, 예산 300만 원";
+const PLACEHOLDER = "예: 노트북 추천, 예산 300만 원";
+const MOCK_PLACEHOLDER = "시연 중에는 입력하지 않아요";
 const EMPTY = "무엇을 도와드릴까요? 사려는 장비 · 예산 · 용도를 말씀해 주세요.";
+const NO_NOTES: TeamNote[] = [];
+// 바닥에서 이만큼 안쪽에 있으면 새 기록이 올 때 따라 내려갑니다.
+const FOLLOW_GAP = 48;
+
+const DISPLAY_LABEL: Record<ConsoleDisplay, string> = {
+  idle: "음성 상담 대기",
+  listening: "듣는 중",
+  transcribing: "듣는 중 · 받아쓰는 중",
+  sending: "보내는 중 · 답변을 기다려요",
+  speaking: "AI 상담 직원이 읽는 중",
+  error: "음성 기능 확인 필요",
+  drafting: "고객 말을 받아쓰는 중",
+  working: "팀이 작업 중이에요",
+  waiting: "고객 확인을 기다려요",
+  done: "답변 준비됨",
+};
+
+function displayDetail(display: ConsoleDisplay, mock: boolean, micPaused: boolean): string {
+  if (micPaused) {
+    return display === "speaking"
+      ? "마이크 켜짐 · 답 읽기가 끝나면 다시 들어요"
+      : "마이크 켜짐 · 듣기 일시정지";
+  }
+  switch (display) {
+    case "listening":
+    case "transcribing":
+      return mock ? "마이크 확인 · 보내지 않음" : "말을 멈추고 1초 지나면 보내요";
+    case "sending":
+      return "글과 선택지로도 이어갈 수 있어요";
+    case "speaking":
+      return "그만 읽기를 누르면 멈춰요";
+    case "error":
+      return "아래 안내를 확인해 주세요";
+    case "drafting":
+      return "시연 대본의 고객 요청이에요";
+    case "working":
+      return "상담 직원이 팀 결과를 기다려요";
+    case "waiting":
+      return "대화 기록의 질문에 답해 주세요";
+    case "done":
+      return "대화 기록에서 결과를 확인하세요";
+    default:
+      return mock ? "고객 요청을 기다려요" : "마이크로 말하거나 아래 칸에 적어 주세요";
+  }
+}
 
 function MicrophoneIcon() {
   return (
@@ -30,51 +84,66 @@ function MicrophoneIcon() {
   );
 }
 
-function SpeakerIcon() {
+/** 56px 픽셀 표시판. 4 SVG 단위가 한 칸입니다. 움직임은 실제 듣기·읽기 때만 CSS 로 돕니다. */
+function VoiceCore({ display }: { display: ConsoleDisplay }) {
+  let mark: ReactNode;
+  if (display === "done") {
+    mark = (
+      <path
+        className="voice-core-mark"
+        d="M14 28h4v4h-4ZM18 32h4v4h-4ZM22 36h4v4h-4ZM26 32h4v4h-4ZM30 28h4v4h-4ZM34 24h4v4h-4ZM38 20h4v4h-4Z"
+      />
+    );
+  } else if (display === "error") {
+    mark = <path className="voice-core-mark" d="M26 14h4v16h-4ZM26 36h4v4h-4Z" />;
+  } else if (display === "waiting") {
+    mark = <path className="voice-core-mark" d="M16 26h4v4h-4ZM26 26h4v4h-4ZM36 26h4v4h-4Z" />;
+  } else {
+    mark = (
+      <g className="voice-core-signal">
+        <rect x="10" y="24" width="4" height="8" />
+        <rect x="18" y="18" width="4" height="20" />
+        <rect x="26" y="14" width="4" height="28" />
+        <rect x="34" y="20" width="4" height="16" />
+        <rect x="42" y="24" width="4" height="8" />
+      </g>
+    );
+  }
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="m11 4-5 4H3v8h3l5 4V4Z" />
-      <path d="M15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14" />
+    <svg className="voice-core" viewBox="0 0 56 56" shapeRendering="crispEdges" aria-hidden="true">
+      <rect className="voice-core-tile" x="2" y="2" width="52" height="52" />
+      {mark}
     </svg>
   );
 }
 
-function VoiceCore() {
-  const gradientId = useId();
+// 팀 기록은 지난 일의 기록이라 '지금 상태'가 아니라 그때 일어난 일로 적는다.
+const NOTE_LABELS: Partial<Record<TeamNote["type"], string>> = {
+  "task.started": "시작",
+  "task.progress": "진행",
+  "task.retrying": "다시 시도",
+  "task.completed": "완료",
+  "task.failed": "실패",
+  "task.needs_input": "고객 확인 요청",
+};
 
+function TeamNoteRow({ note }: { note: TeamNote }) {
   return (
-    <svg className="voice-core" viewBox="0 0 300 88" fill="none" aria-hidden="true">
-      <defs>
-        <linearGradient
-          id={gradientId}
-          gradientUnits="userSpaceOnUse"
-          x1="113"
-          y1="14"
-          x2="187"
-          y2="76"
-        >
-          <stop stopColor="#245d46" />
-          <stop offset="1" stopColor="#719767" />
-        </linearGradient>
-      </defs>
-      <path className="voice-core-guide" d="M12 44h84m108 0h84M28 39v10m16-7v4m212-4v4m16-7v10" />
-      <circle className="voice-core-orbit" cx="150" cy="44" r="41" />
-      <path
-        className="voice-core-arc"
-        d="M113.5 26A41 41 0 0 1 171 8.8m15.5 53.2A41 41 0 0 1 129 79.2"
-      />
-      <circle className="voice-core-shell" cx="150" cy="44" r="31" />
-      <circle className="voice-core-inner" cx="150" cy="44" r="24" />
-      <g className="voice-core-signal" stroke={`url(#${gradientId})`}>
-        <path d="M134 41v6" />
-        <path d="M142 34v20" />
-        <path d="M150 28v32" />
-        <path d="M158 36v16" />
-        <path d="M166 40v8" />
-      </g>
-      <circle className="voice-core-node" cx="109" cy="44" r="2" />
-      <circle className="voice-core-node" cx="191" cy="44" r="2" />
-    </svg>
+    <li
+      className="transcript-note"
+      data-team={note.team}
+      data-status={note.status}
+      data-testid="chat-team-note"
+    >
+      <div className="transcript-note-meta">
+        <strong>{TEAM_LABELS[note.team]}</strong>
+        <span className="transcript-note-status">
+          {NOTE_LABELS[note.type] ?? STATUS_LABELS[note.status]}
+        </span>
+        <time dateTime={note.occurredAt}>{formatMessageTime(note.occurredAt)}</time>
+      </div>
+      <p className="transcript-note-message">{note.message}</p>
+    </li>
   );
 }
 
@@ -85,11 +154,15 @@ export function ChatPanel({
   mock = false,
   mockDraft = "",
   mockDraftAt = null,
+  notes = NO_NOTES,
+  officeRunStatus,
 }: Props) {
   const [text, setText] = useState("");
   const [draftAt, setDraftAt] = useState<string | null>(null);
   const [pendingAt, setPendingAt] = useState<string | null>(null);
+  const [pinRequest, setPinRequest] = useState(false);
   const logRef = useRef<HTMLOListElement>(null);
+  const following = useRef(true);
   const voice = useVoiceConsultation({ chat: state, onSend, disabled: !mock && disabled, mock });
   const { phase, micEnabled, speechEnabled, finalText, interimText } = voice.state;
   const chips = currentQuickReplies(state);
@@ -97,14 +170,13 @@ export function ChatPanel({
   const hearing = phase === "listening" || phase === "transcribing";
   const hasVoiceText =
     Boolean(finalText || interimText) && (mock || (phase !== "sending" && phase !== "speaking"));
-  const phaseLabel = {
-    idle: "음성 상담 대기",
-    listening: "듣는 중",
-    transcribing: "듣는 중 · 받아쓰는 중",
-    sending: "보내는 중 · 답변을 기다려요",
-    speaking: "AI 상담 직원이 읽는 중",
-    error: "음성 기능 확인 필요",
-  }[phase];
+  const display = consoleDisplay(phase, officeRunStatus, mock ? mockDraft : "");
+  const detail = displayDetail(display, mock, micEnabled && !hearing && phase !== "error");
+  const entries = mergeTranscript(state.messages, notes);
+  // 팀 기록은 최근 12개까지라 개수가 그대로여도 새 기록이 올 수 있습니다. 마지막 seq 로 봅니다.
+  const lastNoteSeq = notes.at(-1)?.seq ?? 0;
+  const latestRequest = state.messages.findLast((message) => message.role === "user") ?? null;
+  const latestTags = latestRequest ? conditionTags(latestRequest) : [];
 
   useEffect(() => {
     if (hasVoiceText) setDraftAt((previous) => previous ?? new Date().toISOString());
@@ -115,10 +187,34 @@ export function ChatPanel({
     setPendingAt(state.pending === null ? null : new Date().toISOString());
   }, [state.pending]);
 
+  // 가장 최근 고객 요청이 기록 영역 위로 밀려났을 때만 위쪽에 요약을 고정합니다.
+  const updateLogPosition = useCallback(() => {
+    const log = logRef.current;
+    if (!log) return;
+    following.current = log.scrollHeight - log.scrollTop - log.clientHeight <= FOLLOW_GAP;
+    const requests = log.querySelectorAll<HTMLElement>('[data-testid="chat-user"]');
+    const request = requests[requests.length - 1];
+    const hidden =
+      request !== undefined &&
+      log.scrollHeight > log.clientHeight &&
+      request.offsetTop + request.offsetHeight <= log.scrollTop;
+    setPinRequest((previous) => (previous === hidden ? previous : hidden));
+  }, []);
+
   useEffect(() => {
     const log = logRef.current;
-    if (log) log.scrollTop = log.scrollHeight;
-  }, [state.messages.length, state.pending, finalText, interimText, mockDraft]);
+    if (!log) return;
+    if (following.current) log.scrollTop = log.scrollHeight;
+    updateLogPosition();
+  }, [
+    state.messages.length,
+    lastNoteSeq,
+    state.pending,
+    finalText,
+    interimText,
+    mockDraft,
+    updateLogPosition,
+  ]);
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -138,65 +234,39 @@ export function ChatPanel({
     <section
       id="conversation"
       className="panel chat consultation-transcript"
-      aria-label="채팅 상담"
+      aria-label="음성 상담"
+      data-mode={mock ? "mock" : "live"}
     >
       <header className="transcript-header">
         <div className="transcript-title">
-          <span className="transcript-brand-icon" aria-hidden="true">
-            <svg viewBox="0 0 28 28" fill="none">
-              <path d="M8 10.5v7M12 7v14M16 11v6M20 9v10" />
-            </svg>
-          </span>
-          <div>
-            <p className="transcript-eyebrow">VOICE CONSOLE</p>
-            <h2>실시간 상담</h2>
-          </div>
+          <h2>음성 상담</h2>
+          {mock && <span className="transcript-mode">시연</span>}
         </div>
-        <span className="transcript-mode">{mock ? "시험 대본" : "음성 · 텍스트"}</span>
+        <button
+          type="button"
+          className="voice-reply-button"
+          data-testid="voice-reply"
+          aria-pressed={speechEnabled}
+          onClick={voice.toggleSpeech}
+          disabled={!voice.synthesisSupported}
+        >
+          <span>음성 답</span>
+          <span className="voice-reply-switch" aria-hidden="true" />
+        </button>
       </header>
       <div className="transcript-voice-section">
-        <div className="voice-console" data-phase={phase}>
-          <div className="voice-indicator" role="status" data-testid="voice-status">
-            <span className="voice-status-light" aria-hidden="true">
-              {phase === "error" ? "!" : ""}
-            </span>
-            <span className="voice-status-copy">
-              {phaseLabel}
-              {mock && hearing && <small> · 마이크 시험</small>}
-            </span>
-          </div>
-          <VoiceCore />
-          {micEnabled && !hearing && (
-            <p className="voice-mic-notice">
-              마이크 켜짐 · 듣기 일시정지
-              {phase === "speaking" ? " (답 읽기가 끝나면 다시 들어요)" : ""}
+        <div className="voice-console" data-phase={phase} data-display={display}>
+          <VoiceCore display={display} />
+          <div className="voice-console-copy">
+            <p className="voice-indicator" role="status" data-testid="voice-status">
+              {DISPLAY_LABEL[display]}
             </p>
-          )}
+            <p className="voice-console-detail" title={detail}>
+              {detail}
+            </p>
+          </div>
           <div className="voice-controls">
-            <button
-              type="button"
-              className="voice-mic-button"
-              data-testid="voice-mic"
-              aria-pressed={micEnabled}
-              onClick={voice.toggleMic}
-              disabled={!micEnabled && (!voice.recognitionSupported || (!mock && disabled))}
-            >
-              <MicrophoneIcon />
-              <span>{micEnabled ? "마이크 끄기" : "마이크 켜기"}</span>
-            </button>
-            <button
-              type="button"
-              className="voice-reply-button"
-              data-testid="voice-reply"
-              aria-pressed={speechEnabled}
-              onClick={voice.toggleSpeech}
-              disabled={!voice.synthesisSupported}
-            >
-              <SpeakerIcon />
-              <span>{speechEnabled ? "음성 답 끄기" : "음성 답 켜기"}</span>
-              <span className="voice-reply-switch" aria-hidden="true" />
-            </button>
-            {phase === "speaking" && (
+            {phase === "speaking" ? (
               <button
                 type="button"
                 className="voice-stop"
@@ -206,20 +276,39 @@ export function ChatPanel({
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
                 </svg>
-                그만 읽기
+                <span>그만 읽기</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="voice-mic-button"
+                data-testid="voice-mic"
+                data-variant={mock ? "secondary" : "primary"}
+                aria-pressed={micEnabled}
+                onClick={voice.toggleMic}
+                disabled={!micEnabled && (!voice.recognitionSupported || (!mock && disabled))}
+              >
+                <MicrophoneIcon />
+                <span className="voice-button-text">
+                  {micEnabled ? "마이크 끄기" : "마이크 켜기"}
+                </span>
               </button>
             )}
           </div>
         </div>
-        <p className="voice-privacy">
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path d="m10 2 6 2.5V9c0 4-3.3 6.7-6 8-2.7-1.3-6-4-6-8V4.5L10 2Z" />
-            <path d="m7 9.5 2 2 4-4" />
-          </svg>
-          <span>
-            음성은 브라우저 음성 인식으로 글자로 바뀝니다. 녹음 파일은 만들거나 저장하지 않습니다.
-          </span>
-        </p>
+        <div className="voice-notes">
+          {mock && (
+            <p className="transcript-demo-note">
+              시연 대본입니다. 마이크로 말한 내용은 전송하지 않습니다.
+            </p>
+          )}
+          <details className="voice-privacy">
+            <summary>음성 처리 안내</summary>
+            <p>
+              음성은 브라우저 음성 인식으로 글자로 바뀝니다. 녹음 파일은 만들거나 저장하지 않습니다.
+            </p>
+          </details>
+        </div>
         {!voice.recognitionSupported && (
           <p className="voice-help">
             이 브라우저는 음성 받아쓰기를 지원하지 않습니다. 글 입력으로 상담할 수 있어요.
@@ -235,127 +324,133 @@ export function ChatPanel({
             {voice.state.error}
           </p>
         )}
-        {mock && (
-          <p className="transcript-demo-note">
-            <span className="transcript-demo-icon" aria-hidden="true">
-              i
-            </span>
-            <span>
-              시험 대본 · 오피스 진행에 맞춰 표시됩니다. 마이크 시험 내용은 전송하지 않습니다.
-            </span>
-          </p>
-        )}
       </div>
       <div className="transcript-conversation">
-        <div className="transcript-log-heading">
-          <span>
-            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M4 3.5h12a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H8L4 17v-2.5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Z" />
-              <path d="M6.5 7h7M6.5 10.5H11" />
-            </svg>
-            대화 전사
-          </span>
-          <span>{mock ? "DEMO" : "LIVE"}</span>
-        </div>
-        <ol
-          className="chat-log transcript-log"
-          ref={logRef}
-          data-testid="chat-log"
-          aria-label="상담 전사"
-          aria-live="polite"
-          aria-relevant="additions"
-        >
-          {state.messages.length === 0 &&
-            state.pending === null &&
-            !mockDraft &&
-            !finalText &&
-            !interimText && (
-              <li className="transcript-empty">
-                {mock ? "고객의 시험 요청을 받아쓰고 있어요." : EMPTY}
+        <h3 className="transcript-log-heading">대화 기록</h3>
+        <div className="transcript-log-wrap">
+          {pinRequest && latestRequest && (
+            <div className="transcript-request" aria-hidden="true">
+              <p>
+                <b>고객 요청</b> {latestRequest.content}
+              </p>
+              {latestTags.length > 0 && (
+                <p className="transcript-request-tags">
+                  {latestTags.map((tag) => (
+                    <span key={tag.label}>
+                      {tag.label} {tag.value}
+                    </span>
+                  ))}
+                </p>
+              )}
+            </div>
+          )}
+          <ol
+            className="chat-log transcript-log"
+            ref={logRef}
+            onScroll={updateLogPosition}
+            data-testid="chat-log"
+            aria-label="대화 기록"
+            aria-live="polite"
+            aria-relevant="additions"
+          >
+            {state.messages.length === 0 &&
+              notes.length === 0 &&
+              state.pending === null &&
+              !mockDraft &&
+              !finalText &&
+              !interimText && (
+                <li className="transcript-empty">
+                  {mock ? "고객 요청을 받아쓰고 있어요." : EMPTY}
+                </li>
+              )}
+            {entries.map((entry) =>
+              entry.kind === "notes" ? (
+                <li key={`notes-${entry.notes[0].seq}`} className="transcript-note-group">
+                  <p className="transcript-note-heading">팀 작업 기록</p>
+                  <ol className="transcript-notes">
+                    {entry.notes.map((note) => (
+                      <TeamNoteRow key={note.seq} note={note} />
+                    ))}
+                  </ol>
+                </li>
+              ) : (
+                <li
+                  key={`message-${entry.message.id}`}
+                  className={`chat-msg chat-${entry.message.role}`}
+                  data-testid={`chat-${entry.message.role}`}
+                >
+                  <div className="transcript-meta">
+                    <strong>{entry.message.role === "user" ? "고객" : "AI 상담 직원"}</strong>
+                    <time dateTime={entry.message.created_at}>
+                      {formatMessageTime(entry.message.created_at)}
+                    </time>
+                  </div>
+                  <p className="transcript-content">{entry.message.content}</p>
+                  {conditionTags(entry.message).length > 0 && (
+                    <ul className="transcript-tags" aria-label="파악한 조건">
+                      {conditionTags(entry.message).map((tag) => (
+                        <li key={tag.label}>
+                          <span>{tag.label}</span> {tag.value}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ),
+            )}
+            {state.pending !== null && (
+              <li className="chat-msg chat-user chat-pending">
+                <div className="transcript-meta">
+                  <strong>고객</strong>
+                  <span>보내는 중</span>
+                  {pendingAt && <time dateTime={pendingAt}>{formatMessageTime(pendingAt)}</time>}
+                </div>
+                <p className="transcript-content">{state.pending}</p>
               </li>
             )}
-          {state.messages.map((message) => (
-            <li
-              key={message.id}
-              className={`chat-msg chat-${message.role}`}
-              data-testid={`chat-${message.role}`}
-            >
-              <div className="transcript-meta">
-                <strong>
-                  <span className="transcript-avatar" aria-hidden="true">
-                    {message.role === "user" ? (
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <circle cx="10" cy="7" r="2.5" />
-                        <path d="M5 15a5 4 0 0 1 10 0" />
-                      </svg>
-                    ) : (
-                      <svg viewBox="0 0 20 20" fill="none">
-                        <path d="m10 3 1.8 4.9L17 10l-5.2 2.1L10 17l-1.8-4.9L3 10l5.2-2.1L10 3Z" />
-                      </svg>
-                    )}
+            {mockDraft && (
+              <li
+                className="chat-msg chat-user transcript-draft"
+                data-testid="mock-transcript-draft"
+              >
+                <div className="transcript-meta">
+                  <strong>고객</strong>
+                  <span>받아쓰는 중</span>
+                  {mockDraftAt && (
+                    <time dateTime={mockDraftAt}>{formatMessageTime(mockDraftAt)}</time>
+                  )}
+                </div>
+                <p className="transcript-content">
+                  {mockDraft}
+                  <span className="transcript-caret" aria-hidden="true" />
+                </p>
+              </li>
+            )}
+            {hasVoiceText && (
+              <li className="chat-msg chat-user transcript-draft" data-testid="voice-transcript">
+                <div className="transcript-meta">
+                  <strong>고객</strong>
+                  <span>
+                    {mock
+                      ? "마이크 확인 · 보내지 않음"
+                      : hearing
+                        ? "받아쓰는 중"
+                        : "인식 내용 · 보내지 않음"}
                   </span>
-                  {message.role === "user" ? "고객" : "AI 상담 직원"}
-                </strong>
-                <time dateTime={message.created_at}>{formatMessageTime(message.created_at)}</time>
-                {mock && <span>시험</span>}
-              </div>
-              <p className="transcript-content">{message.content}</p>
-              {conditionTags(message).length > 0 && (
-                <ul className="transcript-tags" aria-label="파악한 조건">
-                  {conditionTags(message).map((tag) => (
-                    <li key={tag.label}>
-                      <span>{tag.label}</span> {tag.value}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-          {state.pending !== null && (
-            <li className="chat-msg chat-user chat-pending">
-              <div className="transcript-meta">
-                <strong>고객</strong>
-                {pendingAt && <time dateTime={pendingAt}>{formatMessageTime(pendingAt)}</time>}
-                <span>보내는 중</span>
-              </div>
-              <p className="transcript-content">{state.pending}</p>
-            </li>
-          )}
-          {mockDraft && (
-            <li className="chat-msg chat-user transcript-draft" data-testid="mock-transcript-draft">
-              <div className="transcript-meta">
-                <strong>고객</strong>
-                {mockDraftAt && (
-                  <time dateTime={mockDraftAt}>{formatMessageTime(mockDraftAt)}</time>
-                )}
-                <span>시험 · 받아쓰는 중</span>
-              </div>
-              <p className="transcript-content">
-                {mockDraft}
-                <span className="transcript-caret" aria-hidden="true" />
-              </p>
-            </li>
-          )}
-          {hasVoiceText && (
-            <li className="chat-msg chat-user transcript-draft" data-testid="voice-transcript">
-              <div className="transcript-meta">
-                <strong>고객</strong>
-                {draftAt && <time dateTime={draftAt}>{formatMessageTime(draftAt)}</time>}
-                <span>
-                  {mock ? "마이크 시험 · 미전송" : hearing ? "받아쓰는 중" : "인식 내용 · 미전송"}
-                </span>
-              </div>
-              <p className="transcript-content">
-                {finalText}
-                <span className="transcript-interim">
-                  {finalText && interimText ? " " : ""}
-                  {interimText}
-                </span>
-                <span className="transcript-caret" aria-hidden="true" />
-              </p>
-            </li>
-          )}
-        </ol>
+                  {draftAt && <time dateTime={draftAt}>{formatMessageTime(draftAt)}</time>}
+                </div>
+                <p className="transcript-content">
+                  {finalText}
+                  <span className="transcript-interim">
+                    {finalText && interimText ? " " : ""}
+                    {interimText}
+                  </span>
+                  <span className="transcript-caret" aria-hidden="true" />
+                </p>
+              </li>
+            )}
+          </ol>
+        </div>
         {chips.length > 0 && (
           <div className="chips" role="group" aria-label="선택지">
             {chips.map((chip) => (
@@ -376,7 +471,7 @@ export function ChatPanel({
           <input
             value={text}
             onChange={(event) => setText(event.target.value)}
-            placeholder={mock ? "시험 모드에서는 마이크 받아쓰기만 확인해요" : PLACEHOLDER}
+            placeholder={mock ? MOCK_PLACEHOLDER : PLACEHOLDER}
             maxLength={500}
             aria-label="채팅 입력"
             disabled={disabled}
@@ -389,11 +484,6 @@ export function ChatPanel({
             <span className="transcript-sr-only">보내기</span>
           </button>
         </form>
-        <p className="transcript-footer">
-          {mock
-            ? "실제 상담은 Mock 모드를 끄고 시작해 주세요."
-            : "마지막 확정 후 약 1초간 조용하면 보냅니다. 글과 선택지로도 이어갈 수 있어요."}
-        </p>
         {state.error && (
           <p className="error" role="alert">
             {state.error}
