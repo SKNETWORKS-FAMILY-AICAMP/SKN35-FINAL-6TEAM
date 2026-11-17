@@ -1,0 +1,147 @@
+[
+  {
+    "path": "normalized\\benchmarks\\benchmark_runs_load_ready.csv",
+    "bytes": 257271546,
+    "reason": "GitHub 일반 파일 100 MiB 제한 초과"
+  },
+  {
+    "path": "normalized\\benchmarks\\benchmark_runs_preview.csv",
+    "bytes": 329280292,
+    "reason": "GitHub 일반 파일 100 MiB 제한 초과"
+  },
+  {
+    "path": "raw\\collection_log.json",
+    "bytes": 526,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\blender_open_data_cc0_20261116\\blender_open_data_v4plus.csv",
+    "bytes": 109040012,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\blender_open_data_cc0_20261116\\blender_open_data_v4plus.summary.json",
+    "bytes": 1513,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\blender_open_data_cc0_20261116\\opendata-latest.zip",
+    "bytes": 102618641,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\blender_open_data_cc0_20261116\\opendata-latest.zip.metadata.json",
+    "bytes": 1380,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\llmspeed_llm_inference_benchmarks_20261116_460d03927e5e8b68\\runs.csv",
+    "bytes": 45788,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\llmspeed_llm_inference_benchmarks_20261116_460d03927e5e8b68\\runs.csv.metadata.json",
+    "bytes": 1492,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\opengpubenchmarks_48310db\\games.yaml",
+    "bytes": 2389,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\opengpubenchmarks_48310db\\LICENSE.txt",
+    "bytes": 19863,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\opengpubenchmarks_48310db\\result_20261109_openbenchmarker_neon_flythrough.yaml",
+    "bytes": 16566,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\opengpubenchmarks_48310db\\result_20261109_openbenchmarker_neon_flythrough.yaml.metadata.json",
+    "bytes": 2520,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\opengpubenchmarks_48310db\\testbenches.yaml",
+    "bytes": 3352,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\pc-part-dataset_c52a04ca\\csv\\case.csv",
+    "bytes": 404399,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\pc-part-dataset_c52a04ca\\csv\\cpu-cooler.csv",
+    "bytes": 145911,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\pc-part-dataset_c52a04ca\\csv\\cpu.csv",
+    "bytes": 75541,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\pc-part-dataset_c52a04ca\\csv\\internal-hard-drive.csv",
+    "bytes": 352455,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\pc-part-dataset_c52a04ca\\csv\\memory.csv",
+    "bytes": 873872,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\pc-part-dataset_c52a04ca\\csv\\motherboard.csv",
+    "bytes": 273399,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\pc-part-dataset_c52a04ca\\csv\\power-supply.csv",
+    "bytes": 160073,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "raw\\pc-part-dataset_c52a04ca\\csv\\video-card.csv",
+    "bytes": 420291,
+    "reason": "원본 데이터는 기존 요청에 따라 링크만 기록"
+  },
+  {
+    "path": "GoogleSheets_성욱자료_신규작성/성욱자료_공식근거_벤치마크_양식.xlsx",
+    "bytes": 16759,
+    "reason": "Google Sheets 최신본과 내용이 달라진 오래된 로컬 내보내기 파일"
+  },
+  {
+    "path": "GoogleSheets_성욱자료_신규작성/성욱자료_크롤링원문_양식.xlsx",
+    "bytes": 6563,
+    "reason": "Google Sheets 최신본과 내용이 달라진 오래된 로컬 내보내기 파일"
+  },
+  {
+    "path": "GoogleSheets_성욱자료_신규작성/미리보기_개요.png",
+    "bytes": 71908,
+    "reason": "최신 Google Sheets 내용이 반영되지 않은 이전 미리보기"
+  },
+  {
+    "path": "GoogleSheets_성욱자료_신규작성/미리보기_벤치마크.png",
+    "bytes": 111527,
+    "reason": "최신 Google Sheets 내용이 반영되지 않은 이전 미리보기"
+  },
+  {
+    "path": "GoogleSheets_성욱자료_신규작성/미리보기_크롤링.png",
+    "bytes": 260390,
+    "reason": "최신 Google Sheets 내용이 반영되지 않은 이전 미리보기"
+  },
+  {
+    "path": "GoogleSheets_성욱자료_신규작성/성욱자료_공식근거_벤치마크_양식.xlsx.inspect.ndjson",
+    "bytes": 213003,
+    "reason": "오래된 로컬 Excel 내보내기에서 생성된 내부 검사 파일"
+  },
+  {
+    "path": "GoogleSheets_성욱자료_신규작성/성욱자료_크롤링원문_양식.xlsx.inspect.ndjson",
+    "bytes": 92468,
+    "reason": "오래된 로컬 Excel 내보내기에서 생성된 내부 검사 파일"
+  }
+]

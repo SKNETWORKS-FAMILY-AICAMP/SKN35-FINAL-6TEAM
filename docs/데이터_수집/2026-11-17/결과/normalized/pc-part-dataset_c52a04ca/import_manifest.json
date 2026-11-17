@@ -1,0 +1,321 @@
+{
+  "dataset": "docyx/pc-part-dataset",
+  "revision": "c52a04ca9465c83997ed335f7767b09a2005dd26",
+  "dataset_last_updated": "2025-07-23",
+  "license_note": "저장소 LICENSE 표기와 스크레이핑된 PCPartPicker 원천 데이터 이용/재배포 조건은 별도 확인 필요",
+  "source_files": {
+    "cpu": {
+      "file": "cpu.csv",
+      "path": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\raw\\pc-part-dataset_c52a04ca\\csv\\cpu.csv",
+      "url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/cpu.csv",
+      "bytes": 75541,
+      "git_blob_sha1": "351643ea4df542e38313fafc5886dd7502cdf8c5",
+      "sha256": "6ab9ff7d48849d132daad16e3a8bcec0d3d960ed14fdd5de56c651dbe9e95e39"
+    },
+    "cpu-cooler": {
+      "file": "cpu-cooler.csv",
+      "path": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\raw\\pc-part-dataset_c52a04ca\\csv\\cpu-cooler.csv",
+      "url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/cpu-cooler.csv",
+      "bytes": 145911,
+      "git_blob_sha1": "25d2aca708a1a561a17e1135d93fd5dbc7e35166",
+      "sha256": "dc2a5548f04a5e99dfa9328cff78631b5c9fd6626f590ee562f2dbf923459d8d"
+    },
+    "motherboard": {
+      "file": "motherboard.csv",
+      "path": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\raw\\pc-part-dataset_c52a04ca\\csv\\motherboard.csv",
+      "url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/motherboard.csv",
+      "bytes": 273399,
+      "git_blob_sha1": "d8c8cc02ba30896d1d1fa5aa287074efd129473b",
+      "sha256": "9c5d52d27ca9caa2a422ad5b33b36cf6727adc3dadcc00ef77e84bf9f59c6e2b"
+    },
+    "memory": {
+      "file": "memory.csv",
+      "path": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\raw\\pc-part-dataset_c52a04ca\\csv\\memory.csv",
+      "url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/memory.csv",
+      "bytes": 873872,
+      "git_blob_sha1": "127ab9d4867dd7a0e3adda5f10e31775823967c0",
+      "sha256": "072faee7b4cabf9146d1a8d6d65b818451d0f108b3faf0e48813c489020dba38"
+    },
+    "internal-hard-drive": {
+      "file": "internal-hard-drive.csv",
+      "path": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\raw\\pc-part-dataset_c52a04ca\\csv\\internal-hard-drive.csv",
+      "url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/internal-hard-drive.csv",
+      "bytes": 352455,
+      "git_blob_sha1": "18db917eb9ee7d3bd55a4687e8468bc9d6b19927",
+      "sha256": "b2bed2198e384fdc30cb98989616533947475cfba64050df7506d70a2b81918c"
+    },
+    "video-card": {
+      "file": "video-card.csv",
+      "path": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\raw\\pc-part-dataset_c52a04ca\\csv\\video-card.csv",
+      "url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/video-card.csv",
+      "bytes": 420291,
+      "git_blob_sha1": "a4447baab0a7782a2416296e0cce75b7d43fe441",
+      "sha256": "0467aefa6fbdcf9c191b57e3ae1d564081d6db916ce4f3efda200d63321e6ff5"
+    },
+    "case": {
+      "file": "case.csv",
+      "path": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\raw\\pc-part-dataset_c52a04ca\\csv\\case.csv",
+      "url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/case.csv",
+      "bytes": 404399,
+      "git_blob_sha1": "a38b3dba748bf30abcc40220e3f8c061f8fab004",
+      "sha256": "bcd418ce98e772109d46b76ce95027a5d5d0dd6b283956bbe07841b137eb2e83"
+    },
+    "power-supply": {
+      "file": "power-supply.csv",
+      "path": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\raw\\pc-part-dataset_c52a04ca\\csv\\power-supply.csv",
+      "url": "https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/power-supply.csv",
+      "bytes": 160073,
+      "git_blob_sha1": "d2f7c0298e6ff86e7ff9fc983dc949d78e63a136",
+      "sha256": "619578ca09f5f468077dc07426ad05a8a47dd844c1618c45da3dc4de85f2c9ef"
+    }
+  },
+  "categories": {
+    "cpu": {
+      "rows": 1413,
+      "unique_exact_records": 1180,
+      "fields": [
+        "name",
+        "price",
+        "core_count",
+        "core_clock",
+        "boost_clock",
+        "microarchitecture",
+        "tdp",
+        "graphics"
+      ],
+      "blank_counts": {
+        "name": 0,
+        "price": 866,
+        "core_count": 0,
+        "core_clock": 0,
+        "boost_clock": 686,
+        "microarchitecture": 0,
+        "tdp": 0,
+        "graphics": 792
+      },
+      "distinct_names": 961,
+      "rows_with_repeated_name": 828,
+      "repeated_name_groups": 376,
+      "name_groups_with_distinct_records": 204,
+      "exact_duplicate_rows_after_first": 233,
+      "same_name_same_specs_groups_collapsed": 219,
+      "same_name_different_specs_groups_kept_separate": 0
+    },
+    "cpu-cooler": {
+      "rows": 2851,
+      "unique_exact_records": 2833,
+      "fields": [
+        "name",
+        "price",
+        "rpm",
+        "noise_level",
+        "color",
+        "size"
+      ],
+      "blank_counts": {
+        "name": 0,
+        "price": 1905,
+        "rpm": 149,
+        "noise_level": 286,
+        "color": 928,
+        "size": 1558
+      },
+      "distinct_names": 2315,
+      "rows_with_repeated_name": 921,
+      "repeated_name_groups": 385,
+      "name_groups_with_distinct_records": 376,
+      "exact_duplicate_rows_after_first": 18
+    },
+    "motherboard": {
+      "rows": 4973,
+      "unique_exact_records": 4973,
+      "fields": [
+        "name",
+        "price",
+        "socket",
+        "form_factor",
+        "max_memory",
+        "memory_slots",
+        "color"
+      ],
+      "blank_counts": {
+        "name": 0,
+        "price": 4022,
+        "socket": 0,
+        "form_factor": 0,
+        "max_memory": 0,
+        "memory_slots": 0,
+        "color": 303
+      },
+      "distinct_names": 4956,
+      "rows_with_repeated_name": 34,
+      "repeated_name_groups": 17,
+      "name_groups_with_distinct_records": 17,
+      "exact_duplicate_rows_after_first": 0
+    },
+    "memory": {
+      "rows": 13553,
+      "unique_exact_records": 12596,
+      "fields": [
+        "name",
+        "price",
+        "speed",
+        "modules",
+        "price_per_gb",
+        "color",
+        "first_word_latency",
+        "cas_latency"
+      ],
+      "blank_counts": {
+        "name": 0,
+        "price": 10646,
+        "speed": 0,
+        "modules": 0,
+        "price_per_gb": 10702,
+        "color": 694,
+        "first_word_latency": 0,
+        "cas_latency": 0
+      },
+      "distinct_names": 3492,
+      "rows_with_repeated_name": 11235,
+      "repeated_name_groups": 1174,
+      "name_groups_with_distinct_records": 1162,
+      "exact_duplicate_rows_after_first": 957
+    },
+    "internal-hard-drive": {
+      "rows": 6461,
+      "unique_exact_records": 5962,
+      "fields": [
+        "name",
+        "price",
+        "capacity",
+        "price_per_gb",
+        "type",
+        "cache",
+        "form_factor",
+        "interface"
+      ],
+      "blank_counts": {
+        "name": 0,
+        "price": 4358,
+        "capacity": 0,
+        "price_per_gb": 4413,
+        "type": 30,
+        "cache": 4494,
+        "form_factor": 0,
+        "interface": 0
+      },
+      "distinct_names": 1875,
+      "rows_with_repeated_name": 5801,
+      "repeated_name_groups": 1215,
+      "name_groups_with_distinct_records": 1209,
+      "exact_duplicate_rows_after_first": 499
+    },
+    "video-card": {
+      "rows": 6636,
+      "unique_exact_records": 6563,
+      "fields": [
+        "name",
+        "price",
+        "chipset",
+        "memory",
+        "core_clock",
+        "boost_clock",
+        "color",
+        "length"
+      ],
+      "blank_counts": {
+        "name": 0,
+        "price": 5361,
+        "chipset": 0,
+        "memory": 0,
+        "core_clock": 124,
+        "boost_clock": 2498,
+        "color": 300,
+        "length": 660
+      },
+      "distinct_names": 3555,
+      "rows_with_repeated_name": 3624,
+      "repeated_name_groups": 543,
+      "name_groups_with_distinct_records": 537,
+      "exact_duplicate_rows_after_first": 73
+    },
+    "case": {
+      "rows": 6626,
+      "unique_exact_records": 6447,
+      "fields": [
+        "name",
+        "price",
+        "type",
+        "color",
+        "psu",
+        "side_panel",
+        "external_volume",
+        "internal_35_bays"
+      ],
+      "blank_counts": {
+        "name": 0,
+        "price": 5573,
+        "type": 0,
+        "color": 58,
+        "psu": 6105,
+        "side_panel": 1997,
+        "external_volume": 1361,
+        "internal_35_bays": 0
+      },
+      "distinct_names": 4211,
+      "rows_with_repeated_name": 3864,
+      "repeated_name_groups": 1449,
+      "name_groups_with_distinct_records": 1398,
+      "exact_duplicate_rows_after_first": 179
+    },
+    "power-supply": {
+      "rows": 3438,
+      "unique_exact_records": 3371,
+      "fields": [
+        "name",
+        "price",
+        "type",
+        "efficiency",
+        "wattage",
+        "modular",
+        "color"
+      ],
+      "blank_counts": {
+        "name": 0,
+        "price": 2871,
+        "type": 0,
+        "efficiency": 410,
+        "wattage": 0,
+        "modular": 0,
+        "color": 1579
+      },
+      "distinct_names": 2129,
+      "rows_with_repeated_name": 1799,
+      "repeated_name_groups": 490,
+      "name_groups_with_distinct_records": 474,
+      "exact_duplicate_rows_after_first": 67
+    }
+  },
+  "source_row_count": 45951,
+  "normalized_parts_count": 43706,
+  "exact_duplicate_rows_after_first": 2026,
+  "source_repeated_name_groups": 5649,
+  "source_name_groups_with_distinct_records": 5377,
+  "normalization": {
+    "part_id": "category와 전체 원본 행 지문에서 생성한 양수 BIGINT 해시. 완전히 동일한 원본 행은 한 부품으로 합치고 crosswalk에 각 행 번호를 연결.",
+    "brand": "NULL (원본에 별도 필드 없음)",
+    "model_number": "NULL (원본에 별도 필드 없음)",
+    "source_url": "상품 페이지가 아니라 고정 커밋의 category CSV URL",
+    "verified_at": "NULL (제조사 공식 출처와 아직 대조하지 않음)",
+    "current_price": "NULL (원본 USD 가격은 오래된 스냅샷이므로 현재가로 넣지 않음)",
+    "currency": "NULL (current_price가 NULL이므로; 원본 스냅샷 통화는 specs JSON에 보존)",
+    "source_price_snapshot": "가격이 제공된 행에 한해 specs JSON에 원본 스냅샷 정보로 보존",
+    "cpu_same_model_policy": "동일 CPU 이름·동일 정적 사양은 한 parts 행으로 통합. 원본 가격 스냅샷과 모든 행은 specs/crosswalk에 보존. 정적 사양이 다르면 별도 행으로 남김.",
+    "duplicate_policy": "완전히 같은 행은 한 parts 행으로 합치고 원본 행 번호는 crosswalk로 보존. 이름만 같고 속성/가격이 다른 행은 별도 유지하고 수동 검토 표시"
+  },
+  "outputs": {
+    "parts_import_preview": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\pc-part-dataset_c52a04ca\\parts_import_preview.csv",
+    "source_part_crosswalk": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\pc-part-dataset_c52a04ca\\source_part_crosswalk.csv"
+  }
+}

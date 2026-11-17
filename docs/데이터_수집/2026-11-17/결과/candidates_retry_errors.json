@@ -1,0 +1,89 @@
+{
+  "checked_at": "2026-11-16T08:00:45+00:00",
+  "errors": [
+    {
+      "category": "음악 제작",
+      "platform": "kaggle",
+      "query": "DAW audio benchmark CPU",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "음악 제작",
+      "platform": "kaggle",
+      "query": "digital audio workstation benchmark plugin latency",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "영상 편집",
+      "platform": "kaggle",
+      "query": "video editing benchmark GPU CPU Premiere",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "영상 편집",
+      "platform": "kaggle",
+      "query": "DaVinci Resolve benchmark dataset",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "게임",
+      "platform": "kaggle",
+      "query": "GPU game benchmark FPS dataset",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "게임",
+      "platform": "kaggle",
+      "query": "game performance average FPS 1% low GPU",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "사진 편집",
+      "platform": "kaggle",
+      "query": "photo editing benchmark Photoshop Lightroom",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "사진 편집",
+      "platform": "kaggle",
+      "query": "image editing PC benchmark dataset",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "3D·CAD·게임 개발",
+      "platform": "kaggle",
+      "query": "Blender GPU benchmark dataset",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "3D·CAD·게임 개발",
+      "platform": "kaggle",
+      "query": "SPECviewperf benchmark GPU results",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "github",
+      "query": "LLM inference benchmark hardware tokens per second",
+      "error": "GitHub API HTTP 403; Retry-After=없음"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "kaggle",
+      "query": "LLM inference benchmark hardware tokens per second",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "github",
+      "query": "MLPerf inference results GPU",
+      "error": "GitHub API HTTP 403; Retry-After=없음"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "kaggle",
+      "query": "MLPerf inference results GPU",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    }
+  ]
+}

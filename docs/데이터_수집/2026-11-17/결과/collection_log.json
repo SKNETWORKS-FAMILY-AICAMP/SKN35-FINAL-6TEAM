@@ -1,0 +1,25 @@
+{
+  "started_at": "2026-11-16T07:46:28Z",
+  "completed_at": "2026-11-16",
+  "automated_discovery": {
+    "command": "python dataset_crawler.py discover --platforms huggingface github kaggle --output output/candidates.csv --limit 5 --delay 0.5",
+    "candidates": 0,
+    "errors": 36,
+    "reason": "환경의 DNS 요청 실패; Kaggle CLI/사용자 인증도 없음",
+    "error_log": "candidates_errors.json"
+  },
+  "manual_collection": {
+    "source_id": "opengpubenchmarks_steam_machine_neon_flythrough_20261109",
+    "files": [
+      "games.yaml",
+      "testbenches.yaml",
+      "LICENSE.txt",
+      "result_20261109_openbenchmarker_neon_flythrough.yaml"
+    ],
+    "record_count": 20,
+    "channel": "GitHub connector",
+    "revision": "48310dbad3af46c21918cd0aeeabf6e2d51514c6",
+    "license": "CC BY 4.0"
+  },
+  "status": "부분 수집 완료; 다른 5개 분야와 RAG 문서 미수집"
+}

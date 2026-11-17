@@ -1,0 +1,44 @@
+{
+  "source_parts_file": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\pc-part-dataset_c52a04ca\\parts_import_preview.csv",
+  "parts_file_with_references": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\benchmarks\\parts_with_benchmark_references_preview.csv",
+  "reference_gpu_parts_added": 249,
+  "parts_with_references_rows": 43955,
+  "default_limit_per_source": 1000,
+  "all_rows": true,
+  "matching_policy": "CPU links use exact standardized model numbers. Generic GPU benchmark names link to benchmark_reference_model rows marked reference_only and quote_eligible=false; only clearly named partner/Founders Edition GPU products may link to exact retail SKUs.",
+  "sources": {
+    "opengpubenchmarks_steam_machine_neon_flythrough_20261109": {
+      "rows": 20,
+      "matched_components": 0,
+      "source_rows": 20
+    },
+    "blender_open_data_v4plus_20261116": {
+      "rows": 638347,
+      "matched_components": 498484,
+      "source_rows": 638347
+    },
+    "llmspeed_llm_inference_benchmarks_20261116": {
+      "rows": 220,
+      "matched_components": 220,
+      "source_rows": 220
+    }
+  },
+  "output_rows": {
+    "benchmark_runs_all": 638587,
+    "benchmark_runs_load_ready": 498704,
+    "benchmark_runs_waiting_for_part_match": 139883,
+    "benchmark_run_parts": 498704,
+    "benchmark_run_parts_duplicate_rows_removed": 0,
+    "invalid_benchmark_run_parts_rows_discarded": 0,
+    "unmatched_hardware": 140066,
+    "distinct_unmatched_hardware": 2280
+  },
+  "outputs": {
+    "parts_with_benchmark_references": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\benchmarks\\parts_with_benchmark_references_preview.csv",
+    "benchmark_runs_all": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\benchmarks\\benchmark_runs_preview.csv",
+    "benchmark_runs_load_ready": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\benchmarks\\benchmark_runs_load_ready.csv",
+    "benchmark_run_parts": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\benchmarks\\benchmark_run_parts_preview.csv",
+    "unmatched_hardware": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\benchmarks\\unmatched_hardware.csv",
+    "unmatched_hardware_summary": "C:\\Users\\playdata2\\Desktop\\skn35 report\\최종프로젝트_주제재구성\\codex_작업\\데이터_수집봇\\output\\normalized\\benchmarks\\unmatched_hardware_summary.csv"
+  }
+}

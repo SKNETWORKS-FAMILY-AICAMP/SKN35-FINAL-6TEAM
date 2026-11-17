@@ -1,37 +1,51 @@
-# 공개 데이터 탐색·수집 봇
+# 데이터 수집 작업 산출물
 
-6개 분야의 성능 평가 후보와 별도 RAG 근거 자료를 다루는 표준 라이브러리 기반 Python 봇입니다. 결과 원본 데이터는 팀 저장소에 넣지 않습니다. 원본은 각 출처 링크에서 조회·다운로드하세요.
+봇 코드와 날짜별 실행 결과를 한곳에 보관합니다. 원본 데이터는 기존 합의대로 저장소에 복제하지 않고 출처 링크를 둡니다. 생성된 정규화 미리보기와 검토 산출물은 크기 제한 안에서 날짜 폴더에 포함했습니다.
 
-## 파일
+## 날짜별 작업
 
-- `봇/dataset_crawler.py`: Kaggle·Hugging Face·GitHub 후보 탐색과 검토 승인된 파일 수집
-- `봇/topics.json`: 분야별 검색어
-- `봇/approved_sources.example.json`: 검토 후 채울 수집 manifest 예시
-- `봇/process_blender_snapshot.py`: 로컬 Blender ZIP 내부 JSONL 스트리밍 처리기
+- [2026-11-16 봇·결과](2026-11-16/): 1차 수집 봇, 실행 결과·한계, 현황 시각화
+- [2026-11-17 봇·결과](2026-11-17/): 재탐색 봇, 어제 대비 검토, 정규화 미리보기·manifest·매칭표
+- [2주차 작업일지](../작업일지/주차별/2주차/2주차.md): 날짜별 작업 내역 링크
 
-## 실행 순서
+## 11월 17일 작업에서 제외한 파일
 
-1. Python 3.10 이상에서 `discover`로 후보 메타데이터를 확인합니다.
-2. 원문에서 파일 경로·고정 revision·라이선스·측정 조건을 사람이 확인합니다.
-3. 확인한 항목만 개인 manifest에 기록하고, `collect`를 먼저 계획 모드로 실행합니다.
-4. 계획과 이용 조건을 재확인한 뒤 승인된 정확한 파일에만 `--execute`를 지정합니다.
+`2026-11-17/결과/제외_파일_목록.json`에 저장소에 복제하지 않은 항목과 사유를 기록했습니다.
 
-```powershell
-python .\봇\dataset_crawler.py discover --output .\candidates.csv --limit 10
-python .\봇\dataset_crawler.py collect --manifest .\approved_sources.json --output-dir .\raw
+- 원본 다운로드 데이터는 이전 요청에 따라 출처 링크로만 안내합니다. 이 저장소에 원본을 복제하지 않습니다.
+- 일부 전체 CSV는 GitHub 일반 파일의 100 MiB 단일 파일 제한을 넘습니다. 이를 위해 Git LFS를 새로 설정하지 않았습니다.
+- `approved_sources.json`은 개인 승인 manifest라 저장소에 넣지 않았습니다. 예시 파일만 포함했습니다.
+
+## 결과물 구성
+
+```text
+데이터_수집/
+├─ README.md
+├─ 2026-11-16/
+│  ├─ 봇/
+│  └─ 결과/
+└─ 2026-11-17/
+   ├─ 봇/
+   └─ 결과/
 ```
 
-API 키와 Kaggle 자격 증명을 코드·문서·저장소에 기록하지 마세요. 수집 권한이 확인되지 않은 파일은 실행 manifest에 넣지 않습니다.
+11월 17일 결과에는 `benchmark_run_parts_preview.csv`, `parts_import_preview.csv`, `source_part_crosswalk.csv`, `unmatched_hardware.csv` 등 적재·매칭 검토용 생성 파일이 포함되어 있습니다. ERD 테이블이 확정되기 전이므로 실제 DB 적재가 완료된 것으로 해석하면 안 됩니다.
 
-## 조회·다운로드 링크
+## 공유 시트
+
+- [RAG·공식 문서 및 성능 데이터 정리](https://docs.google.com/spreadsheets/d/1fulqsRrHVriKkrGvz5519E7K9cvfnGbmpMyb-HfbVho/edit)
+- [크롤링 원문·수집 기록](https://docs.google.com/spreadsheets/d/12_xSIi6L61M7BDBZe8gjZFN_Doi7vC39MFktG3TuDlE/edit)
+
+## 원본 조회·다운로드 링크
 
 - 게임: [Open GPU Benchmarks](https://opengpubenchmarks.com/) · [라이선스](https://opengpubenchmarks.com/license/)
-- 3D 렌더링: [Blender Open Data](https://opendata.blender.org/download/)
+- 3D 렌더링: [Blender Open Data 다운로드](https://opendata.blender.org/download/)
 - 로컬 AI: [llm-speed 데이터 카드](https://huggingface.co/datasets/llmspeed/llm-speed-benchmarks)
-- 부품 카탈로그 후보: [docyx/pc-part-dataset](https://github.com/docyx/pc-part-dataset)
+- 부품 카탈로그: [docyx/pc-part-dataset](https://github.com/docyx/pc-part-dataset)
 - 음악 제작: [DAWbench](https://dawbench.com/)
 - 영상 편집: [PugetBench Premiere Pro](https://www.pugetsystems.com/pugetbench/creators/premiere-pro/)
 - 사진 편집: [PugetBench Lightroom Classic](https://www.pugetsystems.com/pugetbench/creators/lightroom-classic/)
-- 공식 AI 벤치마크 후보: [MLPerf Inference results v5.0](https://github.com/mlcommons/inference_results_v5.0)
+- CAD·워크스테이션 그래픽: [SPECviewperf 결과](https://ftp.spec.org/gwpg/gpc.static/specviewperfresults.html)
+- 공식 AI 벤치마크 후보: [MLPerf Inference 결과](https://github.com/mlcommons/inference_results_v5.0)
 
-결과와 제약은 [2026-11-16 결과·한계](결과/2026-11-16_결과_한계.md)를 보세요. 데이터 원본 파일은 이 저장소에 없습니다.
+공식 출처의 전체 원문을 저장소에 복제하지 않았습니다. 이용 조건과 데이터의 실제 범위는 날짜별 결과 보고서를 확인하세요.

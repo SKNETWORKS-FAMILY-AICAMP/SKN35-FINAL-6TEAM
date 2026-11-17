@@ -1,0 +1,221 @@
+{
+  "checked_at": "2026-11-16T07:46:28+00:00",
+  "errors": [
+    {
+      "category": "음악 제작",
+      "platform": "huggingface",
+      "query": "DAW audio benchmark CPU",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "음악 제작",
+      "platform": "github",
+      "query": "DAW audio benchmark CPU",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "음악 제작",
+      "platform": "kaggle",
+      "query": "DAW audio benchmark CPU",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "음악 제작",
+      "platform": "huggingface",
+      "query": "digital audio workstation benchmark plugin latency",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "음악 제작",
+      "platform": "github",
+      "query": "digital audio workstation benchmark plugin latency",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "음악 제작",
+      "platform": "kaggle",
+      "query": "digital audio workstation benchmark plugin latency",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "영상 편집",
+      "platform": "huggingface",
+      "query": "video editing benchmark GPU CPU Premiere",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "영상 편집",
+      "platform": "github",
+      "query": "video editing benchmark GPU CPU Premiere",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "영상 편집",
+      "platform": "kaggle",
+      "query": "video editing benchmark GPU CPU Premiere",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "영상 편집",
+      "platform": "huggingface",
+      "query": "DaVinci Resolve benchmark dataset",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "영상 편집",
+      "platform": "github",
+      "query": "DaVinci Resolve benchmark dataset",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "영상 편집",
+      "platform": "kaggle",
+      "query": "DaVinci Resolve benchmark dataset",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "게임",
+      "platform": "huggingface",
+      "query": "GPU game benchmark FPS dataset",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "게임",
+      "platform": "github",
+      "query": "GPU game benchmark FPS dataset",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "게임",
+      "platform": "kaggle",
+      "query": "GPU game benchmark FPS dataset",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "게임",
+      "platform": "huggingface",
+      "query": "game performance average FPS 1% low GPU",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "게임",
+      "platform": "github",
+      "query": "game performance average FPS 1% low GPU",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "게임",
+      "platform": "kaggle",
+      "query": "game performance average FPS 1% low GPU",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "사진 편집",
+      "platform": "huggingface",
+      "query": "photo editing benchmark Photoshop Lightroom",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "사진 편집",
+      "platform": "github",
+      "query": "photo editing benchmark Photoshop Lightroom",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "사진 편집",
+      "platform": "kaggle",
+      "query": "photo editing benchmark Photoshop Lightroom",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "사진 편집",
+      "platform": "huggingface",
+      "query": "image editing PC benchmark dataset",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "사진 편집",
+      "platform": "github",
+      "query": "image editing PC benchmark dataset",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "사진 편집",
+      "platform": "kaggle",
+      "query": "image editing PC benchmark dataset",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "3D·CAD·게임 개발",
+      "platform": "huggingface",
+      "query": "Blender GPU benchmark dataset",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "3D·CAD·게임 개발",
+      "platform": "github",
+      "query": "Blender GPU benchmark dataset",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "3D·CAD·게임 개발",
+      "platform": "kaggle",
+      "query": "Blender GPU benchmark dataset",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "3D·CAD·게임 개발",
+      "platform": "huggingface",
+      "query": "SPECviewperf benchmark GPU results",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "3D·CAD·게임 개발",
+      "platform": "github",
+      "query": "SPECviewperf benchmark GPU results",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "3D·CAD·게임 개발",
+      "platform": "kaggle",
+      "query": "SPECviewperf benchmark GPU results",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "huggingface",
+      "query": "LLM inference benchmark hardware tokens per second",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "github",
+      "query": "LLM inference benchmark hardware tokens per second",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "kaggle",
+      "query": "LLM inference benchmark hardware tokens per second",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "huggingface",
+      "query": "MLPerf inference results GPU",
+      "error": "연결 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "github",
+      "query": "MLPerf inference results GPU",
+      "error": "GitHub API 요청 실패: <urlopen error [Errno 11001] getaddrinfo failed>"
+    },
+    {
+      "category": "로컬 AI·모델 개발",
+      "platform": "kaggle",
+      "query": "MLPerf inference results GPU",
+      "error": "Kaggle 탐색은 공식 kaggle CLI 설치와 사용자 인증이 필요함"
+    }
+  ]
+}
