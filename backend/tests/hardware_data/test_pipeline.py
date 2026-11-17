@@ -1,152 +1,98 @@
 import unittest
-from copy import deepcopy
+from datetime import date
 from decimal import Decimal
 
 from app.domains.hardware.ingestion.common import DATA, price_value, read_json, sql_time
+from app.domains.hardware.ingestion.docyx import prepare_parts
 from app.domains.hardware.ingestion.import_compatibility import validate_records
-from app.domains.hardware.ingestion.import_parts import (
-    load_reviewed_specs,
-    normalize_parts,
-    reviewed_price,
-)
-from app.domains.hardware.ingestion.price_page import parse_component_price_page
+
+CHECKED_AT = "2026-11-16T06:00:00Z"
+REF_URL = "https://www.federalreserve.gov/releases/h10/hist/dat00_ko.htm"
 
 
-class PipelineTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.matches = read_json(DATA / "part_matches.json")["parts"]
-        cls.evidence = read_json(DATA / "raw/manufacturer/compatibility_review.json")["records"]
+class DocyxTests(unittest.TestCase):
+    def normalize(self, snapshot, reviews=()):
+        return prepare_parts(
+            snapshot, reviews, Decimal("1361.89"), date(2026, 11, 6), REF_URL, CHECKED_AT
+        )
 
-    def price_fixture(self):
-        match = {
-            "danawa_product_code": "123",
-            "expected_listing_name": "G.SKILL non-RGB 32GB",
-            "price_basis": "COMPONENT_ONLY",
-            "price_basis_source_url": "https://example.com/review",
-        }
-        records = [
-            {
-                "queried_at_utc": "2026-11-11T05:00:00Z",
-                "response": {
-                    "ok": True,
-                    "items": [
-                        {
-                            "productCode": "123",
-                            "productName": "G.SKILL non-RGB 32GB",
-                            "minPrice": 123456,
-                        }
-                    ],
-                },
-            }
+    def test_only_priced_rows_are_prepared_with_exact_krw_and_provenance(self):
+        cpu = [
+            {"name": "AMD Ryzen 5 7600", "price": 196.97, "core_count": 6},
+            {"name": "AMD Ryzen 5 7500F", "price": None, "core_count": 6},
+            {"name": "AMD test zero", "price": 0},
         ]
-        return match, records
+        rows, counts, _ = self.normalize({"cpu": cpu})
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["current_price"], Decimal("268251"))
+        self.assertEqual(rows[0]["price_checked_at"], CHECKED_AT)
+        self.assertIn("/data/json/cpu.json", rows[0]["price_source_url"])
+        self.assertEqual(counts["cpu"]["skipped_price"], 2)
+        provenance = rows[0]["specs"]["_provenance"]
+        self.assertEqual(provenance["price_usd"], "196.97")
+        self.assertEqual(provenance["fx_date"], "2026-11-06")
+        self.assertEqual(provenance["price_status"], "test")
+        self.assertNotIn("socket", rows[0]["specs"])
 
-    def test_exact_code_and_name_price(self):
-        m, r = self.price_fixture()
-        self.assertEqual(reviewed_price(m, r)[0]["value"], "123456")
+    def test_same_gpu_name_cannot_merge_conflicting_variants(self):
+        gpu = [
+            {"name": "Sapphire PULSE", "chipset": "A", "memory": 16, "length": 240, "price": 380},
+            {"name": "Sapphire PULSE", "chipset": "A", "memory": 16, "length": 240, "price": 379},
+            {"name": "Sapphire PULSE", "chipset": "B", "memory": 16, "length": 320, "price": 749},
+        ]
+        rows, counts, _ = self.normalize({"video-card": gpu})
+        self.assertEqual(len({r["name"] for r in rows}), 2)
+        self.assertEqual(counts["gpu"]["duplicates"], 1)
+        self.assertEqual({r["specs"]["length_mm"] for r in rows}, {240, 320})
+        self.assertEqual(rows[0]["specs"]["_provenance"]["price_usd"], "379")
 
-    def test_same_name_wrong_code_is_rejected(self):
-        m, r = self.price_fixture()
-        r[0]["response"]["items"][0]["productCode"] = "456"
-        self.assertIsNone(reviewed_price(m, r)[0])
+    def test_manufacturer_review_uses_exact_model_and_variant(self):
+        review = read_json(DATA / "docyx_compatibility.json")
+        case = next(p for p in review["parts"] if p["category"] == "case")
+        rows, _, missing = self.normalize(
+            {
+                "case": [
+                    {"name": case["raw_name"], "color": "Black", "price": 129.99},
+                    {"name": case["raw_name"], "color": "White", "price": 109.99},
+                ]
+            },
+            [case],
+        )
+        self.assertEqual(missing, [])
+        self.assertEqual(rows[0]["specs"]["max_gpu_length_mm"], 410)
+        self.assertEqual(rows[0]["specs"]["_provenance"]["source_key"], case["source_key"])
+        self.assertNotIn("max_gpu_length_mm", rows[1]["specs"])
+        self.assertTrue(validate_records(review["records"], review["parts"]))
 
-    def test_rgb_variant_never_replaces_non_rgb(self):
-        m, r = self.price_fixture()
-        r[0]["response"]["items"][0]["productName"] = "G.SKILL RGB 32GB"
-        self.assertEqual(reviewed_price(m, r)[1], "LISTING_NAME_CHANGED")
-
-    def test_unknown_shipping_basis_withholds_price(self):
-        m, r = self.price_fixture()
-        m["price_basis"] = "UNVERIFIED"
-        self.assertEqual(reviewed_price(m, r)[1], "PRICE_BASIS_UNVERIFIED")
-
-    def test_invalid_prices_are_not_zero_or_positive_defaults(self):
+    def test_invalid_prices_and_explicit_utc(self):
         for value in (None, False, 0, -1, "NaN", "Infinity", "bad", "10000000000000", "0.001"):
             with self.subTest(value=value):
                 self.assertIsNone(price_value(value))
         self.assertEqual(price_value("123.45"), Decimal("123.45"))
-
-    def test_latest_listing_name_change_blocks_old_match(self):
-        m, r = self.price_fixture()
-        newer = deepcopy(r[0])
-        newer["queried_at_utc"] = "2026-11-11T06:00:00Z"
-        newer["response"]["items"][0]["productName"] = "Different hardware"
-        self.assertEqual(reviewed_price(m, [*r, newer])[1], "LISTING_NAME_CHANGED")
-
-    def test_timezone_is_explicit_and_normalized(self):
-        self.assertEqual(sql_time("2026-11-11T15:00:00+09:00"), sql_time("2026-11-11T06:00:00Z"))
+        self.assertEqual(sql_time("2026-11-16T15:00:00+09:00"), sql_time(CHECKED_AT))
         with self.assertRaises(ValueError):
-            sql_time("2026-11-11T06:00:00")
-
-    def test_initial_selection_and_unknown_product_exclusion(self):
-        catalog = read_json(DATA / "raw/pc_builder/2026-11-11/pc-builder-parts.json")
-        specs = load_reviewed_specs()
-        rows, withheld = normalize_parts(catalog, self.matches, specs, [], "2026-11-11T06:00:00Z")
-        self.assertEqual(len(rows), 28)
-        self.assertEqual(len(withheld), 3)
-        by_key = {r["source_key"]: r for r in rows}
-        self.assertNotIn("supp-ram-samsung16", by_key)
-        self.assertNotIn("gpu-rtx-5060-ti-16gb", by_key)
-        self.assertEqual(
-            by_key["qvl-samsung-m323r2ga3db0-cwmod"]["model_number"], "M323R2GA3DB0-CWMOD"
-        )
-        self.assertEqual(by_key["mb-b650-tomahawk"]["specs"]["ram_max_gb"], 256)
-        self.assertIn(
-            "https://www.msi.com/Motherboard/MAG-B650-TOMAHAWK-WIFI/Specification",
-            [
-                source["url"]
-                for source in by_key["mb-b650-tomahawk"]["specs"]["_provenance"]["spec_sources"]
-            ],
-        )
-        self.assertEqual(by_key["psu-850w-gold"]["specs"]["form_factor"], "ATX")
-        self.assertEqual(by_key["psu-850w-gold"]["specs"]["atx_version"], "3.1")
-        self.assertEqual(by_key["psu-msi-mpg-a850gs-pcie5"]["specs"]["gpu16"], 1)
-        self.assertNotIn("pcie_5_connectors", by_key["psu-msi-mpg-a850gs-pcie5"]["specs"])
-        self.assertTrue(all(r["current_price"] is None for r in rows))
-
-    def test_reviewed_evidence_is_consistent(self):
-        self.assertEqual(len(validate_records(self.evidence, self.matches)), 21)
-        self.assertEqual(sum(r["check_type"] == "CPU_SUPPORT" for r in self.evidence), 12)
+            sql_time("2026-11-16T06:00:00")
 
     def test_qvl_test_bios_is_not_a_minimum(self):
-        records = deepcopy(self.evidence)
-        ram = next(r for r in records if r["check_type"] == "MEMORY_QVL")
-        ram["bios_scope"] = "MIN_VERSION"
-        ram["min_bios_version"] = "3.50"
-        with self.assertRaises(ValueError):
-            validate_records(records, self.matches)
-
-    def test_similar_mpn_is_rejected(self):
-        records = deepcopy(self.evidence)
-        next(r for r in records if r["check_type"] == "MEMORY_QVL")["conditions"][
-            "ram_model_number"
-        ] += "W"
-        with self.assertRaises(ValueError):
-            validate_records(records, self.matches)
-
-    def test_duplicate_evidence_is_rejected(self):
-        with self.assertRaises(ValueError):
-            validate_records([*self.evidence, self.evidence[0]], self.matches)
-
-    def test_shipping_is_not_added_to_component_price(self):
-        m, r = self.price_fixture()
-        page = '<meta property="og:title" content="[다나와] G.SKILL non-RGB 32GB"><li data-productcode="123"></li><input id="add_delivery" checked><div class="sell-price" data-base-price="120000" data-delivery-price="3000"></div>'
-        evidence = parse_component_price_page(page, m)
-        self.assertTrue(evidence["verified"])
-        self.assertEqual(evidence["component_price"], "120000")
-        r[0]["price_evidence"] = {
-            **evidence,
-            "source_url": "https://prod.danawa.com/info/?pcode=123",
-            "checked_at_utc": "2026-11-11T06:00:00Z",
+        parts = [
+            {"source_key": "board", "category": "motherboard"},
+            {"source_key": "kit", "category": "ram", "model_number": "test-kit"},
+        ]
+        record = {
+            "record_key": "test-qvl",
+            "part_a_key": "board",
+            "part_b_key": "kit",
+            "check_type": "MEMORY_QVL",
+            "support_status": "CONDITIONAL",
+            "bios_scope": "MIN_VERSION",
+            "min_bios_version": "3.50",
+            "source_publisher": "test",
+            "source_url": "https://example.com/test",
+            "conditions": {
+                "ram_model_number": "test-kit",
+                "cpu_family": "test",
+                "tested_bios": "3.50",
+            },
         }
-        self.assertEqual(reviewed_price(m, r)[0]["value"], "120000")
-
-    def test_missing_base_price_never_estimates_by_subtraction(self):
-        m, _ = self.price_fixture()
-        page = '<meta property="og:title" content="[다나와] G.SKILL non-RGB 32GB"><li data-productcode="123"></li><input id="add_delivery"><div class="sell-price">123000</div>'
-        self.assertFalse(parse_component_price_page(page, m)["verified"])
-
-
-if __name__ == "__main__":
-    unittest.main()
+        with self.assertRaisesRegex(ValueError, "QVL"):
+            validate_records([record], parts)

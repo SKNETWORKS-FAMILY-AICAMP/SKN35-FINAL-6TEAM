@@ -1,5 +1,6 @@
-"""Read-only database checks and an export of the imported catalog."""
+"""Check the docyx catalog, compatibility evidence, and quote totals in MySQL."""
 
+import json
 import re
 from collections import Counter
 from contextlib import closing
@@ -8,13 +9,11 @@ from app.db.connection import get_connection
 from app.db.schema import SCHEMA_PATH
 from app.domains.hardware.ingestion.common import (
     DATA,
-    TABLES,
     read_json,
-    report,
+    read_specs,
     run_cli,
-    write_json,
 )
-from app.domains.hardware.ingestion.import_parts import read_specs
+from app.domains.hardware.ingestion.docyx import REVISION
 
 
 def inspect_database(connection):
@@ -22,6 +21,19 @@ def inspect_database(connection):
     sql = SCHEMA_PATH.read_text(encoding="utf-8")
     definitions = re.findall(r"CREATE TABLE IF NOT EXISTS (\w+) \((.*?)\n\) ENGINE", sql, re.S)
     with connection.cursor(dictionary=True) as cursor:
+        cursor.execute(
+            "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()"
+        )
+        existing = {r["TABLE_NAME"] for r in cursor.fetchall()}
+        expected_tables = {name for name, _ in definitions}
+        if existing != expected_tables:
+            errors.append(
+                {
+                    "issue": "SCHEMA_TABLES_MISMATCH",
+                    "missing": sorted(expected_tables - existing),
+                    "extra": sorted(existing - expected_tables),
+                }
+            )
         for table, definition in definitions:
             expected = re.findall(
                 r"^    (\w+) (?:BIGINT|VARCHAR|CHAR|INT|TEXT|JSON|DECIMAL|DATETIME)\b",
@@ -32,74 +44,68 @@ def inspect_database(connection):
                 "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s ORDER BY ORDINAL_POSITION",
                 (table,),
             )
-            actual = [r["COLUMN_NAME"] for r in cursor.fetchall()]
-            if actual != expected:
+            if [r["COLUMN_NAME"] for r in cursor.fetchall()] != expected:
                 errors.append({"table": table, "issue": "SCHEMA_COLUMNS_MISMATCH"})
         if errors:
-            return {"passed": False, "errors": errors, "warnings": warnings}, []
-        for table in TABLES:
+            return {"passed": False, "errors": errors}
+
+        for table, _ in definitions:
             cursor.execute(f"SELECT COUNT(*) AS n FROM {table}")
             counts[table] = cursor.fetchone()["n"]
         cursor.execute(
-            "SELECT TABLE_NAME,COUNT(*) AS n FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND CONSTRAINT_NAME='PRIMARY' GROUP BY TABLE_NAME"
+            "SELECT part_id,category,model_number,specs,current_price,currency,price_source_url,price_checked_at FROM parts"
         )
-        for row in cursor.fetchall():
-            if row["TABLE_NAME"] in TABLES and row["n"] != 1:
-                errors.append({"table": row["TABLE_NAME"], "issue": "PRIMARY_KEY_NOT_INDEPENDENT"})
-        cursor.execute("SELECT * FROM parts ORDER BY part_id")
         parts = cursor.fetchall()
-        by_id = {p["part_id"]: p for p in parts}
-        keys = []
-        for p in parts:
-            p["specs"] = read_specs(p["specs"])
-            key = p["specs"].get("_provenance", {}).get("source_key")
-            if key:
-                keys.append(key)
-        duplicate_keys = [k for k, n in Counter(keys).items() if n > 1]
-        if duplicate_keys:
-            errors.append({"issue": "DUPLICATE_SOURCE_KEYS", "keys": duplicate_keys})
-        expected_keys = {
-            m["source_key"]
-            for m in read_json(DATA / "part_matches.json")["parts"]
-            if m["import_enabled"]
-        }
-        if expected_keys - set(keys):
-            errors.append(
-                {"issue": "MISSING_SELECTED_PARTS", "keys": sorted(expected_keys - set(keys))}
-            )
-        cursor.execute("SELECT * FROM part_compatibility ORDER BY compatibility_id")
+        keys = Counter()
+        for part in parts:
+            provenance = read_specs(part["specs"]).get("_provenance", {})
+            keys[provenance.get("source_key")] += 1
+            if (
+                provenance.get("source") != "docyx"
+                or provenance.get("revision") != REVISION
+                or provenance.get("price_status") != "test"
+                or not part["current_price"]
+                or part["currency"] != "KRW"
+                or not part["price_source_url"]
+                or not part["price_checked_at"]
+                or not all(
+                    provenance.get(k)
+                    for k in ("price_usd", "krw_per_usd", "fx_date", "fx_source_url")
+                )
+            ):
+                errors.append({"issue": "INVALID_DEMO_PRICE", "part_id": part["part_id"]})
+        if None in keys or any(n > 1 for n in keys.values()):
+            errors.append({"issue": "MISSING_OR_DUPLICATE_SOURCE_KEYS"})
+        by_id = {row["part_id"]: row for row in parts}
+
+        cursor.execute(
+            "SELECT part_a_id,part_b_id,check_type,conditions,min_bios_version FROM part_compatibility"
+        )
         evidence = cursor.fetchall()
-        record_keys = []
+        record_keys = Counter()
         for row in evidence:
             conditions = read_specs(row["conditions"])
-            a, b = by_id.get(row["part_a_id"]), by_id.get(row["part_b_id"])
-            if not a or not b:
-                errors.append({"issue": "ORPHAN_COMPATIBILITY", "id": row["compatibility_id"]})
-                continue
-            if key := conditions.get("_record_key"):
-                record_keys.append(key)
-            if row["check_type"] == "MEMORY_QVL":
-                if b["model_number"] != conditions.get("ram_model_number"):
-                    errors.append({"issue": "QVL_MPN_MISMATCH", "id": row["compatibility_id"]})
-                if row["min_bios_version"] is not None:
-                    errors.append(
-                        {"issue": "QVL_TEST_BIOS_USED_AS_MINIMUM", "id": row["compatibility_id"]}
-                    )
+            record_keys[conditions.get("_record_key")] += 1
+            if row["check_type"] == "MEMORY_QVL" and (
+                by_id[row["part_b_id"]]["model_number"] != conditions.get("ram_model_number")
+                or row["min_bios_version"] is not None
+            ):
+                errors.append({"issue": "INVALID_QVL", "key": conditions.get("_record_key")})
+        if None in record_keys or any(n > 1 for n in record_keys.values()):
+            errors.append({"issue": "MISSING_OR_DUPLICATE_COMPATIBILITY_KEYS"})
         expected_evidence = {
-            r["record_key"]
-            for r in read_json(DATA / "raw/manufacturer/compatibility_review.json")["records"]
+            row["record_key"]
+            for row in read_json(DATA / "docyx_compatibility.json")["records"]
+            if {row["part_a_key"], row["part_b_key"]} <= keys.keys()
         }
-        if expected_evidence - set(record_keys):
-            errors.append(
-                {
-                    "issue": "MISSING_REVIEWED_EVIDENCE",
-                    "keys": sorted(expected_evidence - set(record_keys)),
-                }
-            )
-        if any(n > 1 for n in Counter(record_keys).values()):
-            errors.append({"issue": "DUPLICATE_EVIDENCE_KEYS"})
+        if missing := expected_evidence - record_keys.keys():
+            errors.append({"issue": "MISSING_REVIEWED_EVIDENCE", "keys": sorted(missing)})
+
         cursor.execute(
-            "SELECT q.quote_id,q.status,q.total_amount,COUNT(i.quote_item_id) AS item_count,SUM(i.unit_price IS NULL) AS unknown_prices,SUM(i.unit_price*i.quantity) AS component_total FROM quotes q LEFT JOIN quote_items i ON q.quote_id=i.quote_id GROUP BY q.quote_id,q.status,q.total_amount"
+            "SELECT q.quote_id,q.status,q.total_amount,COUNT(i.quote_item_id) AS item_count,"
+            "SUM(i.unit_price IS NULL) AS unknown_prices,SUM(i.unit_price*i.quantity) AS component_total "
+            "FROM quotes q LEFT JOIN quote_items i ON q.quote_id=i.quote_id "
+            "GROUP BY q.quote_id,q.status,q.total_amount"
         )
         for row in cursor.fetchall():
             unknown = row["item_count"] == 0 or bool(row["unknown_prices"])
@@ -109,30 +115,26 @@ def inspect_database(connection):
             if row["status"] == "CONFIRMED" and (unknown or total is None):
                 errors.append({"issue": "CONFIRMED_QUOTE_INCOMPLETE", "id": row["quote_id"]})
         cursor.execute(
-            "SELECT COUNT(*) AS n FROM quote_validations v JOIN quotes q ON q.quote_id=v.quote_id WHERE q.version<>v.quote_version"
+            "SELECT COUNT(*) AS n FROM quote_validations v JOIN quotes q ON q.quote_id=v.quote_id "
+            "WHERE q.version<>v.quote_version"
         )
-        if n := cursor.fetchone()["n"]:
-            warnings.append({"issue": "HISTORICAL_VALIDATIONS_NOT_CURRENT", "count": n})
-        missing_prices = [p["part_id"] for p in parts if p["current_price"] is None]
-        if missing_prices:
-            warnings.append({"issue": "PRICE_NOT_VERIFIED", "part_ids": missing_prices})
-        return {
-            "passed": not errors,
-            "table_counts": counts,
-            "errors": errors,
-            "warnings": warnings,
-            "evidence_by_type": dict(Counter(r["check_type"] for r in evidence)),
-            "priced_parts": len(parts) - len(missing_prices),
-            "unpriced_parts": len(missing_prices),
-        }, parts
+        if count := cursor.fetchone()["n"]:
+            warnings.append({"issue": "HISTORICAL_VALIDATIONS_NOT_CURRENT", "count": count})
+
+    return {
+        "passed": not errors,
+        "table_counts": counts,
+        "errors": errors,
+        "warnings": warnings,
+        "parts_by_category": dict(Counter(p["category"] for p in parts)),
+        "evidence_by_type": dict(Counter(row["check_type"] for row in evidence)),
+    }
 
 
 def main():
     with closing(get_connection()) as connection:
-        result, parts = inspect_database(connection)
-    write_json(DATA / "reports/catalog_snapshot.json", {"parts": parts})
-    path = report("check-data", result)
-    write_json(DATA / "reports/latest_check.json", {**result, "report_path": path.name})
+        result = inspect_database(connection)
+    print(json.dumps(result, ensure_ascii=False))
     return 0 if result["passed"] else 1
 
 

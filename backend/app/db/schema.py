@@ -50,7 +50,7 @@ def main() -> int:
 
     print(f"연결 성공: {database} (MySQL {version})")
     if args.init:
-        print("8개 테이블 생성 완료 (기존 데이터 유지)")
+        print("부품 DB 테이블 생성 완료 (기존 데이터 유지)")
     return 0
 
 

@@ -1,6 +1,0 @@
-{
-  "mb-b650-tomahawk": {
-    "ram_max_gb": 256,
-    "sources": ["b650"]
-  }
-}

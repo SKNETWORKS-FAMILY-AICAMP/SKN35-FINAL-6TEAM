@@ -1,6 +1,6 @@
 # 데이터
 
-- `hardware/`: 실제 부품 수집 원본, 검토 기록, 정규화 결과, 실행 보고서.
+- `hardware/`: docyx 원본과 연결할 제조사 검토 사양 및 호환성 근거.
 
 Python 코드는 `backend/app/domains/hardware/ingestion/`, DB 연결은
 `backend/app/db/connection.py`, SQL은 `backend/app/db/sql/parts_catalog.sql`에 있습니다.

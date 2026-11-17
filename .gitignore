@@ -88,7 +88,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 .uv-cache/
 .uv_cache/
-scripts/data/.npm-cache/
 .pdm-python
 .pdm-build/
 .pdm-plugins/
