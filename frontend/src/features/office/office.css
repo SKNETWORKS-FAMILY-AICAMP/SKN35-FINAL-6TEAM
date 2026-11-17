@@ -1,349 +1,214 @@
+/*
+ * AI 팀 사무실.
+ * 크기 약속: 패널 테두리 1px + 좌우 padding 8px, 지도 폭 var(--map-w), 지도 높이 0.625배.
+ * 셸이 --map-w 를 화면마다 정하고, 지도 열 폭은 var(--map-w) + 18px 입니다.
+ */
 .panel.office-board {
   --office-ink: #20382f;
-  --office-muted: #617067;
+  --office-muted: #56625b;
   --office-line: #dfe5dd;
-  --office-status: #607068;
   --office-accent: #245d46;
-  padding: 0;
   min-width: 0;
-  overflow: hidden;
+  padding: 0 8px 8px;
   color: var(--office-ink);
   background: #ffffff;
   border: 1px solid var(--office-line);
-  border-radius: 18px;
-  box-shadow: 0 8px 30px #244e3606;
-}
-.office-board .status-running {
-  --office-status: #245d46;
-}
-.office-board .status-completed {
-  --office-status: #3e7359;
-}
-.office-board .status-needs_input,
-.office-board .status-needs_revision {
-  --office-status: #866131;
-}
-.office-board .status-failed {
-  --office-status: #af4c48;
-}
-.office-board .status-idle,
-.office-board .status-pending,
-.office-board .status-cancelled,
-.office-board .status-superseded {
-  --office-status: #607068;
+  border-radius: 8px;
+  box-shadow: none;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
+/* 팀 색은 방 바닥 색조와 팀 이름 글자에만 씁니다. 상시 움직임은 방마다 박자를 어긋나게 둡니다. */
+.office-room-consultation,
+.office-team-consultation,
+.office-preview-consultation,
+.office-art-room-consultation {
+  --office-team: #98713e;
+  --office-team-ink: #7d5a2c;
+  --office-team-bg: #f7f2e9;
+  --office-phase: 0ms;
+}
+.office-room-design,
+.office-team-design,
+.office-preview-design,
+.office-art-room-design {
+  --office-team: #75629e;
+  --office-team-ink: #5f4d87;
+  --office-team-bg: #f3eff8;
+  --office-phase: -700ms;
+}
+.office-room-validation,
+.office-team-validation,
+.office-preview-validation,
+.office-art-room-validation {
+  --office-team: #487d94;
+  --office-team-ink: #356a80;
+  --office-team-bg: #edf4f7;
+  --office-phase: -1500ms;
+}
+.office-room-quotation,
+.office-team-quotation,
+.office-preview-quotation,
+.office-art-room-quotation {
+  --office-team: #4a8267;
+  --office-team-ink: #366e53;
+  --office-team-bg: #edf4ee;
+  --office-phase: -2100ms;
+}
+
+/* ── 머리 48px ───────────────────────────────────────────── */
 .office-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
-  padding: 23px 24px;
-  border-bottom: 1px solid var(--office-line);
-}
-.office-heading {
-  min-width: 0;
-}
-.office-intro {
-  margin: 7px 0 0;
-  color: var(--office-muted);
-  font-size: 12px;
-  line-height: 1.5;
+  gap: 4px 12px;
+  min-height: 48px;
+  padding: 8px;
 }
 .office-header h2 {
   margin: 0;
-  font-size: 20px;
-  line-height: 1.4;
-  letter-spacing: -0.6px;
-}
-.office-header-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-.office-board .office-run {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 32px;
-  padding: 6px 10px;
-  color: var(--office-status);
-  background: #f6f7f4;
-  border: 1px solid #dfe5dd;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.office-run.status-running {
-  background: #edf4eb;
-  border-color: #d7e5d6;
-}
-.office-run.status-failed {
-  background: #fff4f1;
-  border-color: #edccc6;
-}
-.office-run.status-needs_input,
-.office-run.status-needs_revision {
-  background: #fcf6e9;
-  border-color: #eadcc0;
-}
-.office-motion-button,
-.office-detail-heading button,
-.office-error button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 32px;
-  padding: 6px 10px;
-  border: 1px solid var(--office-line);
-  border-radius: 7px;
-  font: inherit;
-  font-size: 11px;
-  color: #465e50;
-  background: #ffffff;
-  cursor: pointer;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease;
-}
-.office-motion-button:hover,
-.office-detail-heading button:hover {
-  background: #edf3e9;
-  border-color: #9faf9f;
-}
-.office-motion-button[aria-pressed="true"] {
-  color: var(--office-accent);
-  background: #edf4eb;
-}
-.office-motion-button > span {
-  font-size: 14px;
-  line-height: 1;
-}
-.office-board button:focus-visible,
-.office-map-viewport:focus-visible {
-  outline: 2px solid var(--office-accent);
-  outline-offset: -3px;
-}
-.office-workspace {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-/* A single ribbon keeps every team's status next to its workspace. */
-.office-sidebar {
-  min-width: 0;
-  padding: 20px 24px 19px;
-}
-.office-summary-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 12px;
-}
-.office-summary-copy {
-  margin: 0;
-  color: #4b6254;
-  font-size: 12px;
-  line-height: 1.5;
-}
-.office-team-total {
-  flex-shrink: 0;
-  color: var(--office-muted);
-  font-size: 11px;
-}
-.office-team-total strong {
-  color: var(--office-ink);
-  font:
-    600 14px ui-monospace,
-    monospace;
-}
-.office-team-list {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.office-team-consultation,
-.office-room-consultation {
-  --office-team: #98713e;
-  --office-team-bg: #f7f2e9;
-}
-.office-team-design,
-.office-room-design {
-  --office-team: #75629e;
-  --office-team-bg: #f3eff8;
-}
-.office-team-validation,
-.office-room-validation {
-  --office-team: #487d94;
-  --office-team-bg: #edf4f7;
-}
-.office-team-quotation,
-.office-room-quotation {
-  --office-team: #4a8267;
-  --office-team-bg: #edf4ee;
-}
-.office-team-card {
-  min-width: 0;
-}
-.office-team-card button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  min-height: 68px;
-  padding: 12px 10px;
-  color: var(--office-ink);
-  background: var(--office-team-bg);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease;
-}
-.office-team-card button:hover,
-.office-team-card button[aria-expanded="true"] {
-  background: #ffffff;
-  border-color: var(--office-team);
-}
-.office-team-avatar,
-.office-preview-icon {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border: 0;
-  border-radius: 8px;
-}
-.office-team-avatar svg,
-.office-preview-icon svg,
-.office-request-icon svg {
-  width: 18px;
-  height: 18px;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-.office-avatar-consultation {
-  background: #f7f2e9;
-  color: #98713e;
-}
-.office-avatar-design {
-  background: #f3eff8;
-  color: #75629e;
-}
-.office-avatar-validation {
-  background: #edf4f7;
-  color: #487d94;
-}
-.office-avatar-quotation {
-  background: #edf4ee;
-  color: #4a8267;
-}
-.office-team-card-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-.office-team-card-copy strong {
-  color: #20382f;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--fs-18, 18px);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
-.office-team-card-copy > span {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  color: var(--office-status);
-  font-size: 11px;
-  line-height: 1.35;
-}
-.office-team-light,
-.office-run i,
-.office-team-status i,
-.office-legend i {
-  display: inline-block;
+.office-icon {
   flex-shrink: 0;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--office-status);
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+.office-board .office-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  color: var(--office-ink);
+  background: #ffffff;
+  border: 1px solid var(--office-line);
+  border-radius: 4px;
+  font-size: var(--fs-13, 13px);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.office-run .office-icon {
+  color: var(--st-idle);
+}
+.office-run.status-running .office-icon {
+  color: var(--st-run);
+}
+.office-run.status-completed .office-icon {
+  color: var(--st-done);
+}
+.office-run.status-needs_input .office-icon {
+  color: var(--st-attn);
+}
+.office-run.status-needs_revision .office-icon {
+  color: var(--st-rev);
+}
+.office-run.status-failed .office-icon {
+  color: var(--st-fail);
+}
+.office-summary-copy {
+  flex: 1 1 160px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--fs-15, 15px);
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.office-done-count {
+  color: var(--office-muted);
+  font-size: var(--fs-13, 13px);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.office-motion-button,
+.office-detail-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 12px;
+  color: var(--office-ink);
+  background: #ffffff;
+  border: 1px solid var(--office-line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: var(--fs-13, 13px);
+  font-weight: 700;
+  cursor: pointer;
+}
+.office-motion-button:hover,
+.office-detail-close:hover,
+.office-quote-link:hover {
+  background: #f1f3ef;
+  border-color: #b9c4b6;
+}
+.office-motion-button[aria-pressed="true"] {
+  color: #ffffff;
+  background: var(--office-accent);
+  border-color: var(--office-accent);
+}
+.office-board button:focus-visible,
+.office-board a:focus-visible,
+.office-detail:focus-visible {
+  outline: 2px solid var(--office-accent);
+  outline-offset: 2px;
+}
+.office-board .office-room:focus-visible {
+  outline-offset: -4px;
 }
 
-.office-floor-column {
-  min-width: 0;
-  padding: 0 24px;
-}
-.office-map-toolbar,
-.office-map-footer {
+/* ── 오류 줄(지도 위) ─────────────────────────────────────── */
+.office-board .office-error {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  color: var(--office-muted);
-  font-size: 11px;
+  gap: 8px 12px;
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  color: #8f2a22;
+  background: #fdf0ee;
+  border: 1px solid #efc9c3;
+  border-radius: 8px;
+  font-size: var(--fs-15, 15px);
+  line-height: 1.6;
 }
-.office-map-toolbar {
-  min-height: 32px;
-  margin-bottom: 9px;
+.office-error p {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
-.office-map-toolbar > span:first-child {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: #465e50;
-  font-size: 12px;
-  font-weight: 600;
+.office-error button,
+.office-room-retry {
+  min-height: 40px;
+  padding: 0 14px;
+  color: var(--st-fail-ink);
+  background: var(--st-fail);
+  border: 1px solid var(--st-fail);
+  border-radius: 8px;
+  font: inherit;
+  font-size: var(--fs-15, 15px);
+  font-weight: 700;
+  cursor: pointer;
 }
-.office-map-toolbar b {
-  display: inline-grid;
-  place-items: center;
-  min-width: 24px;
-  padding: 3px 5px;
-  border: 1px solid #dfe5dd;
-  border-radius: 4px;
-  color: var(--office-muted);
-  background: #f6f7f4;
-  font:
-    10px ui-monospace,
-    monospace;
-}
-.office-map-instruction {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.office-map-viewport {
-  overflow: hidden;
-  padding: 9px;
-  border: 1px solid #dce3d9;
-  border-radius: 12px;
-  background: #f0f3ee;
-}
+
+/* ── 지도: SVG 외벽이 유일한 틀입니다 ───────────────────────── */
 .office-scene {
   position: relative;
-  min-width: 0;
-  width: 100%;
-  max-width: 960px;
+  width: var(--map-w, 960px);
+  height: calc(var(--map-w, 960px) * 0.625);
   margin: 0 auto;
-  aspect-ratio: 8 / 5;
+  overflow: hidden;
 }
 .office-art {
   display: block;
@@ -351,21 +216,19 @@
   height: 100%;
 }
 
-/* The interaction rectangles share OfficeScene's 960 × 600 drawing grid. */
+/* 방 버튼은 OfficeScene 의 960 × 600 격자를 % 로 덮어서 지도 크기와 상관없이 맞습니다. */
 .office-board .office-room {
   position: absolute;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  display: block;
   width: 45.416667%;
   height: 40%;
-  padding: clamp(7px, 1.2vw, 14px) clamp(8px, 1.3vw, 16px) 9px;
+  padding: 0;
+  color: var(--office-ink);
+  background: transparent;
   border: 1px solid transparent;
   border-radius: 0;
-  background: transparent;
-  color: var(--office-ink);
-  text-align: left;
   font: inherit;
+  text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -393,73 +256,468 @@
   top: 55.333333%;
   transform-origin: bottom right;
 }
-.office-board .office-room:hover {
+.office-board .office-room:hover,
+.office-board .office-room[aria-expanded="true"] {
   border-color: var(--office-team);
 }
-.office-room.status-running {
-  box-shadow: inset 0 0 0 1px #245d4640;
+/* 상태 테두리 3px. 진행 중만 계단식으로 깜빡이고(사라지지 않게 55%까지), 나머지는 멈춰 있습니다. */
+.office-board .office-room::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 3px solid transparent;
+  pointer-events: none;
 }
-.office-room[aria-expanded="true"] {
-  border-color: var(--office-team);
+.office-board .office-room.status-running::after {
+  border-color: var(--st-run);
+  animation: office-border-blink 1200ms steps(2, jump-none) var(--office-phase, 0ms) infinite;
+}
+.office-board .office-room.status-needs_input::after {
+  border-color: var(--st-attn);
+}
+.office-board .office-room.status-failed::after {
+  border-color: var(--st-fail);
+}
+.office-board .office-room.is-halted::after {
+  border-color: var(--st-idle);
+  border-style: dashed;
+  animation: none;
 }
 .office-room-heading {
+  position: absolute;
+  top: 13.125%;
+  left: 4.8%;
+  right: 4.8%;
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #20382f;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-  line-height: 1.3;
-}
-.office-room-number {
-  display: inline-grid;
-  place-items: center;
-  width: 23px;
-  height: 23px;
-  border: 1px solid #dce4d5;
-  background: #fffffff0;
-  color: var(--office-ink);
-  font:
-    10px ui-monospace,
-    monospace;
-  border-radius: 4px;
-}
-.office-room-arrow {
-  margin-left: auto;
-  color: var(--office-team);
-  font-size: 16px;
-}
-.office-room-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
   min-width: 0;
+  transform: translateY(-50%);
 }
-.office-team-status {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  width: fit-content;
-  max-width: 100%;
-  color: var(--office-status);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-.office-room .office-team-status {
-  padding: 3px 6px;
-  border: 1px solid #dce4d580;
-  border-radius: 4px;
-  background: #ffffffee;
+.office-board .office-room .desk-name {
+  color: var(--office-ink);
+  font-size: var(--fs-18, 18px);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 .office-room-message {
+  position: absolute;
+  top: 89.375%;
+  left: 4.8%;
+  right: 4.8%;
   overflow: hidden;
-  color: #4d6257;
-  font-size: 11px;
-  line-height: 1.3;
-  white-space: nowrap;
+  color: #3f4d45;
+  font-size: var(--fs-13, 13px);
+  line-height: 1.35;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+.office-room-overflow {
+  position: absolute;
+  top: 40%;
+  left: 68%;
+  display: inline-grid;
+  place-items: center;
+  height: 24px;
+  padding: 0 6px;
+  color: #ffffff;
+  background: var(--office-ink);
+  border-radius: 4px;
+  font-size: var(--fs-13, 13px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 2배 확대 미리보기: 방 모서리를 기준으로 커져서 지도 밖으로 나가지 않습니다. */
+.office-board .office-room[data-preview="active"] {
+  z-index: 2;
+  border-color: var(--office-team);
+  transform: scale(2);
+}
+.office-board .office-room[data-preview="dim"] {
+  opacity: 0;
+}
+
+/* 실패한 방의 다시 시도. 방 버튼 안에 버튼을 둘 수 없어 복도 쪽 형제 요소로 둡니다. */
+.office-room-retry {
+  position: absolute;
+  z-index: 3;
+  min-height: 44px;
+  transition: opacity 280ms ease-out;
+}
+.office-room-retry.retry-consultation {
+  top: calc(44% + 4px);
+  right: calc(52.083333% + 4px);
+}
+.office-room-retry.retry-design {
+  top: calc(44% + 4px);
+  right: calc(2.5% + 4px);
+}
+.office-room-retry.retry-validation {
+  bottom: calc(44.666667% + 4px);
+  left: calc(2.5% + 4px);
+}
+.office-room-retry.retry-quotation {
+  bottom: calc(44.666667% + 4px);
+  left: calc(52.083333% + 4px);
+}
+.office-room-retry[data-preview="dim"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── 상태 칩: 아이콘 + 한글 라벨, 색은 --st-* 토큰 ──────────── */
+.office-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 8px 0 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: var(--fs-13, 13px);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.chip-working {
+  color: var(--st-run-ink);
+  background: var(--st-run);
+}
+.chip-done {
+  color: var(--st-done);
+  background: var(--st-done-bg);
+}
+.chip-attention {
+  color: var(--st-attn-ink);
+  background: var(--st-attn);
+}
+.chip-revision {
+  color: var(--st-rev);
+  background: var(--st-rev-bg);
+}
+.chip-failed {
+  color: var(--st-fail-ink);
+  background: var(--st-fail);
+}
+.chip-idle {
+  color: var(--st-idle);
+  background: var(--st-idle-bg);
+}
+.chip-stopped {
+  color: var(--st-idle);
+  background: var(--st-idle-bg);
+  border-color: var(--st-idle);
+  border-style: dashed;
+}
+
+/* ── 지도 아래 64px 띠 ───────────────────────────────────── */
+.office-preview-slot {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 64px;
+  padding: 0 8px;
+}
+.office-band-label {
+  flex-shrink: 0;
+  color: var(--office-muted);
+  font-size: var(--fs-13, 13px);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.office-request {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+}
+.office-request-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.office-request-text {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--fs-15, 15px);
+  text-overflow: ellipsis;
+}
+.office-recent time {
+  flex-shrink: 0;
+  color: var(--office-muted);
+  font-size: var(--fs-12, 12px);
+  font-variant-numeric: tabular-nums;
+}
+.office-recent-team {
+  flex-shrink: 0;
+  color: var(--office-team-ink, var(--office-muted));
+  font-size: var(--fs-13, 13px);
+  font-weight: 700;
+}
+.office-recent-message {
+  min-width: 0;
+  overflow: hidden;
+  color: #3f4d45;
+  font-size: var(--fs-13, 13px);
+  text-overflow: ellipsis;
+}
+.office-preview,
+.office-quote {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+.office-preview-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  color: var(--office-team);
+  background: var(--office-team-bg);
+  border-radius: 8px;
+}
+.office-preview-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.office-preview-name {
+  flex-shrink: 0;
+  font-size: var(--fs-18, 18px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.office-preview-time {
+  flex-shrink: 0;
+  color: var(--office-muted);
+  font-size: var(--fs-13, 13px);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.office-preview-work {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.office-preview-work-text {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--fs-15, 15px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.office-quote-value {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--fs-24, 24px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.office-quote-note {
+  flex-shrink: 0;
+  color: var(--office-muted);
+  font-size: var(--fs-12, 12px);
+  white-space: nowrap;
+}
+.office-quote-link {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 40px;
+  margin-left: auto;
+  padding: 0 14px;
+  color: var(--office-accent);
+  background: #ffffff;
+  border: 1px solid var(--office-line);
+  border-radius: 8px;
+  font-size: var(--fs-15, 15px);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* ── 상세 기록. 1200px 이상은 콘솔 열을 덮는 서랍, 그 아래는 띠 밑 블록 ── */
+.office-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px 16px 16px;
+  background: #ffffff;
+  border: 1px solid var(--office-line);
+  border-radius: 8px;
+}
+.office-detail-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.office-detail-heading h3 {
+  margin: 0;
+  font-size: var(--fs-18, 18px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.office-detail-heading p {
+  margin: 4px 0 0;
+  color: var(--office-muted);
+  font-size: var(--fs-13, 13px);
+}
+.office-detail-close {
+  height: auto;
+  min-height: 44px;
+  font-size: var(--fs-15, 15px);
+}
+.office-detail .desk-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  font-size: var(--fs-15, 15px);
+  line-height: 1.6;
+  scrollbar-width: thin;
+}
+.office-detail .desk-log li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e8ece5;
+}
+.office-detail .desk-log time {
+  color: var(--office-muted);
+  font-size: var(--fs-12, 12px);
+  font-variant-numeric: tabular-nums;
+}
+.office-detail-message {
+  overflow-wrap: anywhere;
+}
+.office-detail .desk-log .office-detail-empty {
+  display: block;
+  color: var(--office-muted);
+}
+
+/* ── 장면 안의 상태: 일이 들어온 방에 불이 켜지고, 끝나도 켜진 채 남습니다 ── */
+.office-art-room {
+  --office-screen: #24343c;
+  --office-screen-bar: #2c3f48;
+  --office-screen-lines: 0;
+  --office-screen-check: 0;
+  --office-screen-alert: 0;
+  --office-lamp: 0;
+  --office-bulb: #e9e2c8;
+  --office-lamp-shade: #f7eccc;
+  --office-dim: 0;
+}
+.office-art-room.status-idle,
+.office-art-room.status-pending {
+  --office-dim: 1;
+}
+.office-art-room.status-running,
+.office-art-room.status-needs_input,
+.office-art-room.status-needs_revision,
+.office-art-room.status-completed,
+.office-art-room.status-failed {
+  --office-lamp: 1;
+  --office-bulb: #ffd66b;
+  --office-lamp-shade: #ffe9a8;
+}
+.office-art-room.status-running,
+.office-art-room.status-needs_input,
+.office-art-room.status-needs_revision {
+  --office-screen: #2f6fb8;
+  --office-screen-bar: #24578f;
+  --office-screen-lines: 1;
+}
+.office-art-room.status-completed {
+  --office-screen: #1f6a45;
+  --office-screen-bar: #17583a;
+  --office-screen-check: 1;
+}
+.office-art-room.status-failed {
+  --office-screen: #8a2f2a;
+  --office-screen-bar: #6e2420;
+  --office-screen-alert: 1;
+}
+.office-screen-face {
+  fill: var(--office-screen);
+}
+.office-screen-bar {
+  fill: var(--office-screen-bar);
+}
+.office-screen-content {
+  opacity: var(--office-screen-lines);
+}
+.office-screen-frame-b {
+  opacity: 0;
+}
+.office-screen-check {
+  opacity: var(--office-screen-check);
+}
+.office-screen-alert {
+  opacity: var(--office-screen-alert);
+}
+.office-work-light,
+.office-lamp-cone {
+  opacity: var(--office-lamp);
+}
+.office-lamp-bulb {
+  fill: var(--office-bulb);
+}
+.office-lamp-shade {
+  fill: var(--office-lamp-shade);
+}
+.office-room-shade {
+  opacity: var(--office-dim);
+}
+.office-led {
+  fill: #2b3d48;
+}
+.office-led.led-on {
+  fill: #5fa8ff;
+}
+.office-led.led-done {
+  fill: #57d58a;
+}
+.office-led.led-alert {
+  fill: #ff6b5e;
+}
+
+/* 취소·중단, 그리고 실행이 멈췄는데 진행 중으로 남은 방은 색을 빼고 낮춥니다(흐림 없음). */
+.office-art-room.is-halted .office-art-room-body,
+.office-art-room.status-cancelled .office-art-room-body,
+.office-art-room.status-superseded .office-art-room-body,
+.office-cue-room.is-halted .office-art-room-zoom,
+.office-cue-room.status-cancelled .office-art-room-zoom,
+.office-cue-room.status-superseded .office-art-room-zoom {
+  filter: grayscale(1);
+  opacity: 0.6;
 }
 
 /* Corner anchoring keeps the pointer within the enlarged room, within the map. */
@@ -482,642 +740,391 @@
 .office-art-room-quotation .office-art-room-zoom {
   transform-origin: 436px 240px;
 }
-.office-art-room[data-preview="active"] .office-art-room-zoom {
+.office-art-room[data-preview="active"] .office-art-room-zoom,
+.office-cue-room[data-preview="active"] .office-art-room-zoom {
   transform: scale(2);
-}
-.office-room[data-preview="active"] {
-  transform: scale(2);
-  z-index: 1;
-  border-color: var(--office-team);
-  box-shadow: 0 4px 16px #264d3926;
 }
 .office-art-room[data-preview="dim"] .office-art-room-zoom {
-  filter: blur(1px);
-  opacity: 0.22;
+  filter: saturate(0.6);
+  opacity: 0.35;
 }
-.office-room[data-preview="dim"] {
+/* The cue layer is painted above every room, so cues of dimmed rooms step aside. */
+.office-cue-room,
+.office-cue-envelope {
+  transition: opacity 280ms ease-out;
+}
+.office-cue-room[data-preview="dim"],
+.office-cues[data-preview] .office-cue-envelope {
   opacity: 0;
 }
-.office-scene[data-preview] .office-hall-label {
-  opacity: 0;
-}
-.office-hall-label {
-  position: absolute;
-  top: 46.1%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #62735b;
-  text-align: center;
-  font:
-    600 clamp(9px, 1.1vw, 14px)/1.2 ui-monospace,
-    monospace;
-  letter-spacing: 2px;
-  pointer-events: none;
-}
-.office-hall-label > span {
-  color: #245d46;
-}
-.office-hall-label small {
-  display: block;
-  margin-top: 3px;
-  color: #68776e;
-  font:
-    6px ui-monospace,
-    monospace;
-  letter-spacing: 2px;
-}
-.office-touch-hint {
-  display: none;
-  color: var(--office-muted);
-  font-size: 11px;
-  line-height: 1.5;
-}
 
-.office-preview-slot {
-  margin-top: 14px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: #fbfcf9;
-}
-.office-request {
-  display: flex;
-  align-items: flex-start;
-  gap: 13px;
-  min-height: 104px;
-  padding: 17px;
-}
-.office-request-icon {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  color: #657961;
-  background: #edf2e8;
-  border: 0;
-  border-radius: 8px;
-}
-.office-request-copy {
-  min-width: 0;
-  flex: 1;
-}
-.office-request-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.office-note-label {
-  color: #64755f;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-}
-.office-request-version {
-  color: #68776e;
-  font:
-    11px ui-monospace,
-    monospace;
-}
-.office-request-copy > p {
-  margin: 6px 0;
-  color: #20382f;
-  font-size: 13px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-.office-request-help {
-  color: var(--office-muted);
-  font-size: 11px;
-  line-height: 1.6;
-}
-.office-recent-activity {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  column-gap: 8px;
-  row-gap: 4px;
-  color: var(--office-muted);
-  font-size: 11px;
-  line-height: 1.5;
-}
-.office-recent-activity > span:first-child {
-  color: #536950;
-  flex-shrink: 0;
-}
-.office-recent-activity > span:last-child {
-  overflow-wrap: anywhere;
-}
-.office-recent-activity time {
-  color: #68776e;
-  font:
-    11px ui-monospace,
-    monospace;
-}
-.office-preview {
-  padding: 16px 17px;
-  font-size: 12px;
-}
-.office-preview-heading {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin-bottom: 11px;
-}
-.office-preview-heading > strong {
-  font-size: 13px;
-  letter-spacing: -0.2px;
-}
-.office-preview-icon {
-  width: 28px;
-  height: 28px;
-}
-.office-preview-icon svg {
-  width: 16px;
-  height: 16px;
-}
-.office-preview-time {
-  margin-left: auto;
-  color: var(--office-muted);
-  font-size: 11px;
-}
-.office-preview-time b {
-  color: var(--office-ink);
-  margin-left: 4px;
-  font-weight: 500;
-}
-.office-preview-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  line-height: 1.6;
-}
-.office-preview-body > div {
-  min-width: 0;
-}
-.office-preview-body p {
-  margin: 6px 0;
-  overflow-wrap: anywhere;
-}
-.office-preview-task > p:first-of-type {
-  color: #294332;
-  font-weight: 500;
-}
-.office-preview-progress {
-  font-size: 11px;
-  color: #4c654f;
-}
-.office-preview-progress span {
-  color: var(--office-muted);
-  margin-right: 4px;
-}
-.office-preview-body small {
-  display: block;
-  color: var(--office-muted);
-  font-size: 11px;
-  margin-top: 7px;
-}
-.office-preview-records {
-  padding-left: 16px;
-  border-left: 1px solid #dfe5dd;
-}
-.office-preview-body ol {
-  list-style: none;
-  margin: 6px 0 0;
-  padding: 0;
-}
-.office-preview-body li {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 5px;
-  font-size: 11px;
-  overflow-wrap: anywhere;
-}
-.office-preview-body time {
-  flex-shrink: 0;
-  color: #64755f;
-  font:
-    11px ui-monospace,
-    monospace;
-}
-.office-error {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
-  padding: 12px 15px;
-  color: #9b443e;
-  background: #fff5f2;
-  border: 1px solid #edccc6;
-  border-radius: 8px;
-}
-.office-error p {
-  margin: 0;
-  overflow-wrap: anywhere;
-  font-size: 12px;
-  line-height: 1.6;
-}
-.office-error button {
-  background: #ffffff;
-  border-color: #dbb4ac;
-  color: #9b443e;
-}
-.office-error button:hover {
-  background: #f8e6e0;
-}
-.office-map-footer {
-  min-height: 43px;
-  padding: 12px 0;
-}
-.office-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 13px;
-}
-.office-legend > span {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  font-size: 11px;
-}
-.office-legend .legend-idle {
-  background: #68776e;
-}
-.office-legend .legend-running {
-  background: #245d46;
-}
-.office-legend .legend-completed {
-  background: #4a8267;
-}
-.office-legend .legend-attention {
-  background: #98713e;
-}
-.office-legend .legend-failed {
-  background: #af4c48;
-}
-.office-event-count {
-  color: #68776e;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-
-.office-detail {
-  padding: 20px 22px;
-  border-top: 1px solid var(--office-line);
-  background: #fbfcf9;
-}
-.office-detail-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.office-detail-heading h3 {
-  margin: 0;
-  font-size: 14px;
-}
-.office-detail-heading p {
-  margin: 6px 0 0;
-  color: var(--office-muted);
-  font-size: 11px;
-}
-.office-detail .desk-log {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 0;
-  max-height: 220px;
-  overflow-y: auto;
-  color: #4b6254;
-  font-size: 12px;
-  line-height: 1.8;
-  scrollbar-width: thin;
-  scrollbar-color: #afbcaa #fbfcf9;
-}
-.office-detail .desk-log li {
-  padding: 8px 0;
-  overflow-wrap: anywhere;
-  border-bottom: 1px solid #e3e9df;
-}
-.office-detail .mono {
-  margin-right: 6px;
-  color: var(--office-muted);
-}
-.office-log-status {
-  color: var(--office-status);
-  font-weight: 600;
-}
-
-/* Motion decorates received state; it never changes or completes a task. */
-.office-worker-position {
+/* ── 움직임: 모두 steps(). 반복하는 것은 .loop 로 묶어 정지 버튼이 멈출 수 있습니다 ── */
+.office-worker-position,
+.office-bubble-position {
   transition: transform 650ms steps(12, end);
 }
+.office-art .office-person-body {
+  animation: office-breathe 2400ms steps(2, jump-none) var(--office-phase, 0ms) infinite;
+}
+.office-art .status-running .office-person-body {
+  animation: office-working 800ms steps(2, jump-none) var(--office-phase, 0ms) infinite;
+}
+.office-art .status-running .office-person-hands {
+  animation: office-typing 400ms steps(2, jump-none) infinite;
+}
+/* 켜진 모니터의 줄이 두 장면을 번갈아 보여 흐르듯 바뀝니다(b 는 a 의 반대 박자). */
+.office-art-room.status-needs_input .office-screen-frame-a,
+.office-art-room.status-needs_revision .office-screen-frame-a {
+  animation: office-frame 2400ms steps(2, jump-none) var(--office-phase, 0ms) infinite;
+}
+.office-art-room.status-needs_input .office-screen-frame-b,
+.office-art-room.status-needs_revision .office-screen-frame-b {
+  animation: office-frame 2400ms steps(2, jump-none) var(--office-phase, 0ms) infinite reverse;
+}
+.office-art-room.status-running .office-screen-frame-a {
+  animation: office-frame 800ms steps(2, jump-none) var(--office-phase, 0ms) infinite;
+}
+.office-art-room.status-running .office-screen-frame-b {
+  animation: office-frame 800ms steps(2, jump-none) var(--office-phase, 0ms) infinite reverse;
+}
+.office-art-room.status-completed .office-screen-cursor {
+  animation: office-frame 2400ms steps(2, jump-none) var(--office-phase, 0ms) infinite;
+}
+.office-art-room.status-running .office-work-light {
+  animation: office-light-breathe 1600ms steps(2, jump-none) var(--office-phase, 0ms) infinite;
+}
+.office-led.led-on {
+  animation: office-led 1600ms steps(2, jump-none) var(--office-phase, 0ms) infinite;
+}
+.office-led.led-done {
+  animation: office-led 3000ms steps(2, jump-none) var(--office-phase, 0ms) infinite;
+}
+
+/* 말풍선: 이벤트가 오면 한 번 튀어 오르고(1회), 진행 중이면 생각하듯 흔들립니다(반복). */
 .office-signal {
-  animation: office-signal-arrival 300ms steps(3, end) both;
+  animation: office-signal-arrival 300ms step-end both;
 }
-.office-art-room.status-running .office-person-body {
-  animation: office-working 800ms steps(2, end) infinite;
+.office-cue-room.status-running .office-signal-body {
+  animation: office-thinking 1400ms steps(2, jump-none) 300ms infinite;
 }
-.office-art-room.status-running .office-person-hands {
-  animation: office-typing 400ms steps(2, end) infinite;
+.office-cue-room.status-needs_input .office-signal-body {
+  animation: office-thinking 1000ms steps(2, jump-none) 300ms infinite;
 }
-.office-art-room.status-running .office-server-light {
-  animation: office-signal-light 1600ms steps(2, end) infinite;
+.office-cue-room.is-halted .office-signal-body {
+  animation: none;
 }
-.office-art-room.status-running .office-signal {
-  animation: office-thinking 1400ms steps(2, end) infinite;
+.office-signal-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: office-spin 1200ms steps(4, end) infinite;
 }
-@keyframes office-working {
-  50% {
-    transform: translateY(-2px);
+
+/* 1회성 연출: 서류 전달, 검증원 등장, 견적서 출력. 기본 위치가 도착점입니다. */
+.office-cue-envelope {
+  animation: office-envelope 700ms both;
+}
+.office-validator-arrive {
+  animation: office-validator-arrive 400ms step-end both;
+}
+.office-printout-sheet {
+  animation: office-print 800ms steps(4, end) both;
+}
+
+@keyframes office-border-blink {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.55;
   }
 }
-@keyframes office-typing {
-  50% {
+@keyframes office-breathe {
+  from {
+    transform: translateY(0);
+  }
+  to {
     transform: translateY(-3px);
   }
 }
-@keyframes office-signal-light {
-  50% {
+@keyframes office-working {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-3px);
+  }
+}
+@keyframes office-typing {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-3px);
+  }
+}
+@keyframes office-frame {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes office-light-breathe {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+@keyframes office-led {
+  from {
+    opacity: 1;
+  }
+  to {
     opacity: 0.45;
   }
 }
 @keyframes office-thinking {
-  50% {
+  from {
+    transform: translateY(0);
+  }
+  to {
     transform: translateY(-3px);
   }
 }
+@keyframes office-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* 세 칸: 아래에서 나타남 → 6단위 위로 튐 → 제자리. */
 @keyframes office-signal-arrival {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  34% {
+    opacity: 1;
+    transform: translateY(6px);
+  }
+  67% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+/* 2칸 + 4칸 + 2칸 = 8칸: 앞 팀 책상 → 복도 → 새 팀 책상. */
+@keyframes office-envelope {
+  0% {
+    transform: translate(var(--from-x), var(--from-y));
+    animation-timing-function: steps(2, end);
+  }
+  25% {
+    transform: translate(var(--from-x), var(--hall-y));
+    animation-timing-function: steps(4, end);
+  }
+  75% {
+    transform: translate(var(--to-x), var(--hall-y));
+    animation-timing-function: steps(2, end);
+  }
+  100% {
+    transform: translate(var(--to-x), var(--to-y));
+  }
+}
+@keyframes office-validator-arrive {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes office-print {
   from {
-    transform: translateY(4px);
+    transform: translateY(-24px);
   }
   to {
     transform: translateY(0);
   }
 }
-.office-board[data-motion="paused"] .office-art * {
+
+/* 정지 버튼·화면 밖·탭 숨김·실행 멈춤: 반복만 멈춥니다. 1회성 연출은 끝까지 갑니다. */
+.office-board[data-motion="paused"] .loop,
+.office-board[data-motion="paused"] .office-room::after {
   animation-play-state: paused !important;
 }
-.office-board[data-motion="paused"] .office-worker-position {
+.office-board[data-motion="paused"] .office-worker-position,
+.office-board[data-motion="paused"] .office-bubble-position {
   transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .office-map-instruction b {
-    display: none;
-  }
-  .office-board .office-art * {
+  .office-board *,
+  .office-board *::before,
+  .office-board *::after {
     animation: none !important;
     transition: none !important;
   }
-  .office-board .office-room {
-    transition: none;
-    transform: none;
-  }
-  .office-art-room[data-preview="active"] .office-art-room-zoom {
+  .office-board .office-room[data-preview="active"],
+  .office-art-room[data-preview="active"] .office-art-room-zoom,
+  .office-cue-room[data-preview="active"] .office-art-room-zoom {
     transform: none;
   }
   .office-art-room[data-preview="dim"] .office-art-room-zoom {
     filter: none;
     opacity: 1;
   }
-  .office-room[data-preview="dim"] {
+  .office-board .office-room[data-preview="dim"],
+  .office-cue-room[data-preview="dim"],
+  .office-cues[data-preview] .office-cue-envelope,
+  .office-room-retry[data-preview="dim"] {
     opacity: 1;
-  }
-  .office-scene[data-preview] .office-hall-label {
-    opacity: 1;
+    pointer-events: auto;
   }
 }
-@media (min-width: 1200px) and (max-width: 1399px) {
-  .office-team-card button {
-    gap: 7px;
-    padding: 12px 8px;
-  }
-  .office-team-avatar {
-    width: 27px;
-    height: 29px;
-  }
-  .office-team-card-copy strong {
-    font-size: 11px;
+
+@media (pointer: coarse) {
+  .office-motion-button,
+  .office-detail-close,
+  .office-quote-link {
+    min-height: 44px;
   }
 }
-@media (max-width: 740px) {
+
+@media (min-width: 1200px) {
+  /* 서랍은 .consultation-workspace(셸이 position: relative) 기준으로 콘솔 열을 덮습니다.
+     묶음이 가운데 정렬되어 좌우에 남는 폭이 생겨도 맞도록 그 절반만큼 비켜 둡니다. */
+  .office-board .office-detail {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--map-w) + 34px + max(0px, (100% - var(--map-w) - 454px) / 2));
+    right: max(0px, (100% - var(--map-w) - 454px) / 2);
+    z-index: 20;
+    margin: 0;
+  }
+  .office-board .office-detail .desk-log {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+  }
+}
+
+@media (max-width: 759px) {
+  .panel.office-board {
+    padding: 0;
+  }
   .office-header {
-    padding: 17px 18px;
+    padding: 8px 12px;
   }
-  .office-sidebar {
-    padding: 15px 18px;
-  }
-  .office-floor-column {
-    padding: 0 18px;
-  }
-  .office-header h2 {
-    font-size: 19px;
-  }
-  .office-team-list {
-    gap: 7px;
-  }
-  .office-team-card button {
-    align-items: flex-start;
-    gap: 9px;
-    flex-direction: column;
-    padding: 10px;
-    min-height: 103px;
-  }
-  .office-team-avatar {
-    width: 27px;
-    height: 27px;
-    border-radius: 7px;
-  }
-  .office-team-avatar svg {
-    width: 16px;
-    height: 16px;
-  }
-  .office-team-card-copy strong {
-    font-size: 11px;
-  }
-  .office-map-instruction {
-    font-size: 11px;
-  }
-  .office-board .office-room {
-    padding: 7px 9px;
+  .office-board .office-error {
+    margin: 0 12px 8px;
   }
   .office-room-heading {
-    gap: 6px;
-    font-size: 12px;
+    top: 4%;
+    left: 3%;
+    right: 3%;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    transform: none;
   }
-  .office-room-number {
-    width: 18px;
-    height: 18px;
-    font-size: 9px;
+  .office-board .office-room .desk-name {
+    font-size: var(--fs-13, 13px);
+  }
+  .office-room .office-chip {
+    height: 20px;
+    padding: 0 4px;
+    font-size: var(--fs-12, 12px);
   }
   .office-room-message {
     display: none;
   }
-  .office-room-bottom {
-    gap: 0;
-  }
-  .office-preview-body {
-    gap: 14px;
-  }
-  .office-preview-records {
-    padding-left: 14px;
-  }
-  .office-preview-body li {
+  .office-room[data-preview="active"] .office-room-message {
     display: block;
-  }
-  .office-preview-body time {
-    margin-right: 7px;
-  }
-}
-@media (max-width: 540px) {
-  .office-header {
-    align-items: flex-start;
-    gap: 14px;
-    padding: 16px;
-  }
-  .office-header-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .office-sidebar {
-    padding: 15px 13px;
-  }
-  .office-summary-heading {
-    gap: 8px;
-  }
-  .office-summary-copy {
-    font-size: 11px;
-  }
-  .office-team-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-  }
-  .office-team-card button {
-    align-items: center;
-    flex-direction: row;
-    min-height: 61px;
-    padding: 10px;
-  }
-  .office-team-avatar {
-    width: 30px;
-    height: 30px;
-  }
-  .office-team-card-copy {
-    gap: 5px;
-  }
-  .office-team-card-copy strong {
-    font-size: 12px;
-  }
-  .office-floor-column {
-    padding: 0 10px;
-  }
-  .office-map-toolbar {
-    padding: 0 3px;
-    margin-bottom: 7px;
-  }
-  .office-map-instruction {
-    font-size: 0;
-  }
-  .office-map-instruction b {
-    font-size: 11px;
-  }
-  .office-map-viewport {
-    padding: 4px;
-    border-radius: 8px;
-  }
-  .office-board .office-room {
-    padding: 6px;
-  }
-  .office-room-heading {
-    gap: 4px;
-    font-size: 11px;
-  }
-  .office-room-number {
-    display: none;
-  }
-  .office-room-arrow {
-    font-size: 12px;
-  }
-  .office-room .office-team-status {
-    padding: 2px 3px;
-    font-size: 11px;
-    gap: 4px;
-  }
-  .office-room .office-team-status i {
-    width: 4px;
-    height: 4px;
-  }
-  .office-hall-label {
-    top: 47%;
-    font-size: 9px;
-    letter-spacing: 1px;
-  }
-  .office-hall-label small {
-    display: none;
-  }
-  .office-touch-hint {
-    display: block;
-    margin: 9px 3px 0;
+    font-size: var(--fs-12, 12px);
   }
   .office-preview-slot {
-    margin-top: 11px;
+    height: auto;
+    min-height: 64px;
+    padding: 8px 12px;
   }
-  .office-request {
-    gap: 10px;
-    padding: 14px;
+  .office-preview,
+  .office-quote {
+    flex-wrap: wrap;
+    gap: 4px 8px;
   }
-  .office-request-icon {
-    width: 29px;
-    height: 29px;
+  .office-preview-work {
+    flex-basis: 100%;
   }
-  .office-request-copy > p {
-    font-size: 12px;
+  .office-preview-icon {
+    width: 24px;
+    height: 24px;
   }
-  .office-request-version {
-    font-size: 11px;
-  }
-  .office-preview {
-    padding: 13px;
-  }
-  .office-preview-heading {
-    gap: 7px;
-  }
-  .office-preview-heading > .office-team-status {
-    flex: 1;
-  }
-  .office-preview-time {
-    width: 100%;
-    margin-left: 35px;
-  }
-  .office-preview-body {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 11px;
-  }
-  .office-preview-records {
-    padding: 11px 0 0;
-    border-left: 0;
-    border-top: 1px solid #dfe5dd;
-  }
-  .office-preview-body li {
-    display: flex;
-  }
-  .office-map-footer {
-    gap: 10px;
-    padding: 13px 3px;
-  }
-  .office-legend {
-    gap: 9px;
-  }
-  .office-event-count {
-    font-size: 11px;
+  .office-preview-icon svg {
+    width: 14px;
+    height: 14px;
   }
   .office-detail {
-    padding: 17px;
+    margin: 8px 12px 12px;
+  }
+  .office-detail .desk-log li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .office-detail-message {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── 개발용 상태 견본(?office-gallery). 운영 화면에서는 쓰지 않습니다 ── */
+.office-gallery {
+  --map-w: min(960px, calc(100vw - 50px));
+  max-width: calc(var(--map-w) + 18px + 16px + 420px);
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  color: #20382f;
+}
+.office-gallery > h1 {
+  margin: 0 0 4px;
+  font-size: var(--fs-24, 24px);
+  font-weight: 700;
+}
+.office-gallery > p,
+.office-gallery-head p {
+  margin: 0 0 16px;
+  color: #56625b;
+  font-size: var(--fs-15, 15px);
+}
+.office-gallery-item {
+  margin-bottom: 40px;
+}
+.office-gallery-head h2 {
+  margin: 0 0 4px;
+  font-size: var(--fs-18, 18px);
+  font-weight: 700;
+}
+.office-gallery-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, calc(var(--map-w) + 18px));
+  gap: 16px;
+}
+@media (min-width: 1200px) {
+  .office-gallery {
+    --map-w: min(960px, calc(100vw - 520px));
+  }
+  .office-gallery-stage {
+    width: calc(var(--map-w) + 18px + 16px + 420px);
+    max-width: 100%;
+    grid-template-columns: calc(var(--map-w) + 18px) minmax(300px, 420px);
+    min-height: calc(var(--map-w) * 0.625 + 140px);
   }
 }

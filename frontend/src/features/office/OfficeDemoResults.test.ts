@@ -69,7 +69,25 @@ describe("OfficeDemoResults", () => {
     expect(after.runStatus).toBe("running");
     const markup = render(after);
     expect(quotationSummary(markup)).toBe(quote.message);
-    expect(markup).toContain("가상 상품의 데모 금액이며 실제 판매가가 아닙니다.");
+    expect(markup).toContain("가상 상품으로 낸 금액이라 실제 판매가가 아닙니다.");
+  });
+
+  it("영문 장식 라벨과 '데모' 같은 내부 표현을 화면 글자로 쓰지 않는다", () => {
+    const events = buildMockEvents();
+    for (const state of [
+      initialOfficeState(),
+      events.reduce(officeReducer, initialOfficeState()),
+    ]) {
+      const text = render(state)
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ");
+      expect(text).not.toMatch(/RECOMMENDATIONS|QUOTATION|DEMO/);
+      expect(text).not.toMatch(/데모|Mock|전사|워크스페이스|오피스/);
+    }
+    const done = render(events.reduce(officeReducer, initialOfficeState()));
+    expect(done).toContain("견적·주문팀 결과");
+    expect(done).toContain("사무실 보기");
+    expect(done).toMatch(/class="deliverable-event">후보</);
   });
 
   it("검증 완료 이벤트에 담긴 부적합 사유를 통과로 바꾸지 않는다", () => {

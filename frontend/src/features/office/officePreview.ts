@@ -1,10 +1,25 @@
 import type { AgentEvent, Team } from "../../api/client";
 import { STATUS_LABELS, type OfficeState } from "./officeState";
 
-function eventTime(event: AgentEvent): number {
+/** 걸린 시간을 무엇으로 쟀는지. 화면 문구는 이 값으로 고릅니다. */
+export type ElapsedKind = "server" | "events" | "none";
+
+// 대화 기록(transcript.ts)과 같은 설정이라 같은 이벤트는 어디서나 같은 시각으로 찍힙니다.
+const CLOCK = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
+function parseTime(timestamp: string): number {
   // API timestamps without an offset are UTC, just like the stored events.
-  const timestamp = event.occurred_at;
   return Date.parse(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(timestamp) ? timestamp : `${timestamp}Z`);
+}
+
+function eventTime(event: AgentEvent): number {
+  return parseTime(event.occurred_at);
 }
 
 function durationText(milliseconds: number): string {
@@ -14,11 +29,14 @@ function durationText(milliseconds: number): string {
   return `${Math.floor(seconds / 60)}분 ${Math.floor(seconds % 60)}초`;
 }
 
+/** 한국 시각 'HH:MM:SS'. 읽을 수 없는 시각은 지어내지 않고 '시각 미확인' 으로 씁니다. */
+export function clockText(timestamp: string): string {
+  const time = parseTime(timestamp);
+  return Number.isFinite(time) ? CLOCK.format(time) : "시각 미확인";
+}
+
 export function eventClock(event: AgentEvent): string {
-  const time = eventTime(event);
-  return Number.isFinite(time)
-    ? new Date(time).toLocaleTimeString("ko-KR", { hour12: false })
-    : "시각 미확인";
+  return clockText(event.occurred_at);
 }
 
 export function teamPreview(state: OfficeState, team: Team) {
@@ -29,6 +47,7 @@ export function teamPreview(state: OfficeState, team: Team) {
   const firstStart = runLog.find((event) => event.type === "task.started");
   const recentDuration = latest?.metrics?.duration_ms;
   let elapsed = "시간 기록 없음";
+  let elapsedKind: ElapsedKind = "none";
   let elapsedBasis = "이벤트에 시작·소요 시간이 없어요";
 
   if (
@@ -38,6 +57,7 @@ export function teamPreview(state: OfficeState, team: Team) {
     recentDuration >= 0
   ) {
     elapsed = durationText(recentDuration);
+    elapsedKind = "server";
     elapsedBasis = "최근 작업의 서버 측정값";
   } else if (firstStart && latest && (current.log.length < 30 || runLog[0] !== current.log[0])) {
     // No client wall clock: mock playback, paused tabs and old sessions must not inflate this.
@@ -45,6 +65,7 @@ export function teamPreview(state: OfficeState, team: Team) {
     const duration = eventTime(latest) - eventTime(firstStart);
     if (Number.isFinite(duration) && duration >= 0) {
       elapsed = durationText(duration);
+      elapsedKind = "events";
       elapsedBasis = "팀 시작 → 마지막 수신 이벤트";
     }
   }
@@ -56,6 +77,8 @@ export function teamPreview(state: OfficeState, team: Team) {
     latestProgress: latestProgress?.message ?? null,
     recentEvents: current.log.slice(-3),
     elapsed,
+    elapsedKind,
+    // 기존 시험이 고정한 설명이라 값은 그대로 둡니다. 화면 문구는 elapsedKind 로 고릅니다.
     elapsedBasis,
   };
 }

@@ -1,8 +1,26 @@
 import { describe, expect, it } from "vitest";
 import type { AgentEvent } from "../../api/client";
 import { buildMockEvents } from "../../events/mockEventStream";
-import { eventClock, teamPreview } from "./officePreview";
+import { clockText, eventClock, teamPreview } from "./officePreview";
 import { initialOfficeState, officeReducer } from "./officeState";
+
+describe("eventClock", () => {
+  it("한국 시각 HH:MM:SS 로 쓴다(대화 기록과 같은 형식)", () => {
+    const [event] = buildMockEvents();
+    expect(eventClock({ ...event, occurred_at: "2026-11-16T00:05:07Z" })).toBe("09:05:07");
+    expect(eventClock({ ...event, occurred_at: "2026-11-16T14:59:59Z" })).toBe("23:59:59");
+  });
+
+  it("시간대가 없는 시각은 UTC 로 읽는다", () => {
+    expect(clockText("2026-11-16T03:00:00")).toBe("12:00:00");
+    expect(clockText("2026-11-16T03:00:00+09:00")).toBe("03:00:00");
+  });
+
+  it("읽을 수 없는 시각은 지어내지 않는다", () => {
+    expect(clockText("")).toBe("시각 미확인");
+    expect(clockText("invalid")).toBe("시각 미확인");
+  });
+});
 
 describe("teamPreview", () => {
   it("수신된 작업이 없으면 내용과 시간을 만들지 않는다", () => {
@@ -35,6 +53,16 @@ describe("teamPreview", () => {
       elapsed: "1.2초",
       elapsedBasis: "최근 작업의 서버 측정값",
     });
+  });
+
+  it("걸린 시간을 무엇으로 쟀는지 함께 돌려준다", () => {
+    const events = buildMockEvents();
+    expect(teamPreview(initialOfficeState(), "design").elapsedKind).toBe("none");
+    const running = events.slice(0, 9).reduce(officeReducer, initialOfficeState());
+    expect(teamPreview(running, "validation").elapsedKind).toBe("events");
+    events[7] = { ...events[7], metrics: { duration_ms: 1240 } };
+    const measured = events.slice(0, 8).reduce(officeReducer, initialOfficeState());
+    expect(teamPreview(measured, "design").elapsedKind).toBe("server");
   });
 
   it("같은 요구사항의 재실행에 이전 실행의 시작 시각을 섞지 않는다", () => {

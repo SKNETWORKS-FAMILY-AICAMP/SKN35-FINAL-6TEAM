@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { AgentEvent } from "../../api/client";
 import { buildMockEvents } from "../../events/mockEventStream";
 import { OfficeBoard } from "./OfficeBoard";
+import { OFFICE_FIXTURES, fixtureState } from "./officeFixtures";
 import { initialOfficeState, officeReducer, TEAMS, type OfficeState } from "./officeState";
 
 function render(state: OfficeState, onRetry?: () => void) {
@@ -91,5 +92,129 @@ describe("OfficeBoard", () => {
     expect(render(withRunEvent({ error: { ...error, retryable: false } }), vi.fn())).not.toContain(
       "다시 시도",
     );
+  });
+});
+
+function upTo(seq: number) {
+  return buildMockEvents().slice(0, seq).reduce(officeReducer, initialOfficeState());
+}
+
+function fixture(id: string) {
+  const found = OFFICE_FIXTURES.find((item) => item.id === id);
+  if (!found) throw new Error(`견본이 없습니다: ${id}`);
+  return fixtureState(found);
+}
+
+function desk(markup: string, team: string) {
+  const match = markup.match(
+    new RegExp(`<button\\b[^>]*data-testid="desk-${team}"[^>]*>(.*?)</button>`, "s"),
+  );
+  if (!match) throw new Error(`방을 찾을 수 없습니다: ${team}`);
+  return match[0];
+}
+
+function count(markup: string, pattern: RegExp) {
+  return markup.match(pattern)?.length ?? 0;
+}
+
+function visibleText(markup: string) {
+  return markup
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+describe("OfficeBoard 사무실 화면", () => {
+  it("완료·확인 필요·재검토에서는 장면을 멈추지 않는다", () => {
+    for (const state of [upTo(13), fixture("needs-input"), fixture("needs-revision")]) {
+      expect(render(state)).toContain('data-motion="playing"');
+    }
+    expect(render(fixture("cancelled"))).toContain('data-motion="paused"');
+  });
+
+  it("머리에는 제목·실행 상태·요약·완료 수·움직임 버튼만 두고, 지운 띠는 다시 나오지 않는다", () => {
+    const markup = render(upTo(9));
+    expect(markup).toContain("AI 팀 사무실");
+    expect(markup).toContain("완료 2/4팀");
+    expect(markup).toContain('aria-pressed="false"');
+    expect(markup).toContain("움직임 멈춤");
+    expect(count(markup, /role="status"/g)).toBe(1);
+    expect(markup).not.toContain("aria-live");
+    for (const removed of [
+      "office-team-list",
+      "office-legend",
+      "office-map-toolbar",
+      "office-hall-label",
+      "office-intro",
+      "office-room-number",
+    ]) {
+      expect(markup).not.toContain(removed);
+    }
+  });
+
+  it("화면 글자에 영문 장식 라벨과 옛 표현이 없다", () => {
+    for (const state of [initialOfficeState(), upTo(7), upTo(13), fixture("superseded")]) {
+      const text = visibleText(render(state));
+      expect(text).not.toMatch(/\b(?!BUILDWISE\b)[A-Z]{4,}\b/);
+      expect(text).not.toMatch(/오피스|워크스페이스|데모|Mock|전사|당신의/);
+    }
+    expect(render(initialOfficeState())).not.toContain("AI 오피스");
+  });
+
+  it("요약 문구는 실행 상태를 따른다", () => {
+    expect(summary(render(upTo(13)))).toBe("요청을 모두 완료했어요");
+    expect(summary(render(fixture("failed-final")))).toBe("작업 중 문제가 생겼어요");
+    expect(summary(render(fixture("superseded")))).toBe("새 요청이 들어와 이 작업은 멈췄어요");
+    expect(summary(render(upTo(7)))).toBe("2개 팀이 일하고 있어요");
+  });
+
+  it("방 칩은 픽셀 아이콘과 한글 라벨을 같이 두고, 진행 중 방에는 작업 수를 붙인다", () => {
+    const validation = desk(render(upTo(7)), "validation");
+    expect(validation).toContain('class="office-chip chip-working"');
+    expect(validation).toContain('class="office-icon"');
+    expect(validation).toContain("진행 중 · 2개 작업");
+    expect(desk(render(upTo(13)), "quotation")).toContain("완료");
+  });
+
+  it("실행이 멈췄는데 진행 중으로 남은 팀은 멈춤으로 표시한다", () => {
+    const design = desk(render(fixture("superseded")), "design");
+    expect(design).toContain("is-halted");
+    expect(design).toContain("진행 중 · 멈춤");
+    expect(design).toContain("chip-stopped");
+  });
+
+  it("대기 중인 방에는 말풍선을 그리지 않는다", () => {
+    expect(count(render(initialOfficeState()), /class="office-signal"/g)).toBe(0);
+    // seq 4: 상담팀(요구사항 정리 완료)과 설계·분석팀(진행 중)만 말풍선이 있다.
+    expect(count(render(upTo(4)), /class="office-signal"/g)).toBe(2);
+  });
+
+  it("지도 아래 띠는 평소 현재 요청과 최근 기록, 견적이 오면 그 문장을 크게 보여 준다", () => {
+    expect(render(initialOfficeState())).toContain("상담을 시작하면 네 팀의 작업이 여기에 나와요");
+    const working = render(upTo(4));
+    expect(working).toContain("요구사항 v1 정리: 노트북 · 예산 2,500,000원");
+    expect(working).toMatch(/설계·분석팀<\/span><span class="office-recent-message">후보 1:/);
+    expect(working).not.toContain("office-quote-value");
+    const quoted = render(upTo(12));
+    expect(quoted).toContain('<strong class="office-quote-value">참고 견적 2,190,000원</strong>');
+    expect(quoted).toContain("가상 상품 기준");
+    expect(quoted).toContain('href="#results"');
+  });
+
+  it("서류 봉투·검증원·견적서는 그 이벤트를 받았을 때만 나온다", () => {
+    expect(render(upTo(3))).toContain("office-cue-envelope");
+    expect(render(upTo(4))).not.toContain("office-cue-envelope");
+    expect(render(upTo(11))).toContain("office-cue-envelope");
+    expect(count(render(upTo(7)), /class="office-validator"/g)).toBe(1);
+    expect(count(render(upTo(9)), /class="office-validator"/g)).toBe(0);
+    expect(render(upTo(12))).not.toContain("office-printout");
+    expect(render(upTo(13))).toContain("office-printout");
+  });
+
+  it("실패한 방 옆 다시 시도는 기존 재시도 조건을 그대로 따른다", () => {
+    const retry = /class="office-room-retry retry-quotation"/;
+    expect(render(fixture("failed-retryable"), vi.fn())).toMatch(retry);
+    expect(render(fixture("failed-retryable"))).not.toMatch(retry);
+    expect(render(fixture("failed-final"), vi.fn())).not.toMatch(retry);
   });
 });

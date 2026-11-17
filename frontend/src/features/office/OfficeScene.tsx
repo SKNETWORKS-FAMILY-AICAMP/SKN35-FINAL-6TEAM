@@ -1,8 +1,18 @@
-import { useId } from "react";
+import { useId, type CSSProperties } from "react";
 import type { Team } from "../../api/client";
+import {
+  handoff,
+  printOut,
+  signalKind,
+  teamHalted,
+  validators,
+  type Handoff,
+  type SignalKind,
+} from "./officeCues";
 import { TEAMS, type DisplayStatus, type OfficeState } from "./officeState";
 
 // Original daylight pixel office. All furniture, wood grain and sunlight use this integer grid.
+// New details are drawn on a 3-unit grid (3 SVG units = one art pixel).
 const ROOMS = [
   {
     x: 24,
@@ -42,24 +52,43 @@ const ROOMS = [
   },
 ];
 
-const SIGNAL: Record<DisplayStatus, { color: string; mark: string }> = {
-  idle: { color: "#859083", mark: "·" },
-  pending: { color: "#859083", mark: "·" },
-  running: { color: "#3d7f61", mark: "···" },
-  completed: { color: "#487957", mark: "✓" },
-  failed: { color: "#b65e55", mark: "!" },
-  needs_input: { color: "#9d7337", mark: "?" },
-  needs_revision: { color: "#9d7337", mark: "↻" },
-  cancelled: { color: "#839184", mark: "−" },
-  superseded: { color: "#839184", mark: "−" },
+// 말풍선·책상 램프 색. 방 칩의 상태 토큰(--st-*)과 같은 값입니다.
+const SIGNAL: Record<SignalKind, string> = {
+  none: "#8d978a",
+  working: "#1f63c6",
+  retrying: "#1f63c6",
+  done: "#1d6b3f",
+  attention: "#a35c00",
+  revision: "#7a4a00",
+  failed: "#c0362c",
+  stopped: "#56625b",
 };
+
+const AWAY: DisplayStatus[] = ["idle", "pending", "cancelled", "superseded"];
+const AT_DESK = { x: 216, y: 143 };
+const AT_SIDE = { x: 111, y: 154 };
+// 검증팀 책상의 남는 두 자리. 가운데 자리는 방의 원래 직원이 앉습니다.
+const EXTRA_SEATS = [
+  { x: 165, hair: "#57463e", variant: 1 },
+  { x: 267, hair: "#4c3930", variant: 3 },
+];
+// 서류 봉투가 놓이는 책상 위 지점(방 기준)과 복도 한가운데 높이(지도 기준).
+const DESK_DROP = { x: 216, y: 114 };
+const HALL_Y = 298;
+
+type Led = "off" | "on" | "done" | "alert";
+
+/** Pixel rectangle with one stepped notch on each corner. */
+function notched(x: number, y: number, w: number, h: number, n: number): string {
+  return `M${x + n} ${y}h${w - 2 * n}v${n}h${n}v${h - 2 * n}h${-n}v${n}h${-(w - 2 * n)}v${-n}h${-n}v${-(h - 2 * n)}h${n}Z`;
+}
 
 function PixelPerson({ shirt, hair, variant }: { shirt: string; hair: string; variant: number }) {
   const skin = ["#e6b794", "#c79879", "#eac6a7", "#d2a084"][variant];
   return (
     <g className="office-person">
       <path d="M-15 31h30v3h6v6h-36v-3h-6v-3h6Z" fill="#83917d" opacity=".55" />
-      <g className="office-person-body">
+      <g className="office-person-body loop">
         <path d="M-9-3H9v3h3v15H9v6H-9v-6h-3V0h3Z" fill="#101923" />
         <path d="M-9-3H9v3h3v12H-12V0h3Z" fill={hair} />
         {variant === 3 && <path d="M9 3h6v6h3v12h-6V12H9Z" fill={hair} />}
@@ -76,7 +105,7 @@ function PixelPerson({ shirt, hair, variant }: { shirt: string; hair: string; va
         <path d="M0 24h2v6H0Z" fill="#223244" opacity=".4" />
         <path d="M4 25h4v5H4Z" fill="#e5e6db" />
         <path d="M5 26h2v1H5Z" fill="#617483" />
-        <path className="office-person-hands" d="M-15 24h6v6h-6Zm24 0h6v6H9Z" fill={skin} />
+        <path className="office-person-hands loop" d="M-15 24h6v6h-6Zm24 0h6v6H9Z" fill={skin} />
         <path d="M-9 33h6v3h-9v-3Zm12 0h6v3h3v3H3Z" fill="#3b485a" />
         <path d="M-12 36h9v3h-9Zm15 0h9v3H3Z" fill="#152233" />
         <path d="M-12 38h9v1h-9Zm15 0h9v1H3Z" fill="#6f7c88" />
@@ -103,7 +132,7 @@ function PixelPerson({ shirt, hair, variant }: { shirt: string; hair: string; va
   );
 }
 
-function TeamFurniture({ index, signal }: { index: number; signal: string }) {
+function TeamFurniture({ index, rack, printer }: { index: number; rack: Led[]; printer: Led }) {
   if (index === 0)
     return (
       <g>
@@ -170,12 +199,11 @@ function TeamFurniture({ index, signal }: { index: number; signal: string }) {
             <rect x="336" y={123 + n * 18} width="54" height="15" fill="#142331" />
             <path d={`M336 ${123 + n * 18}h54v2h-54Z`} fill="#64858d" />
             <rect
-              className="office-server-light"
+              className={`office-led led-${rack[n]} loop`}
               x="339"
               y={126 + n * 18}
               width="3"
               height="3"
-              fill={signal}
             />
             <path d={`M345 ${126 + n * 18}h3v3h-3Z`} fill="#71a6ab" />
             <path d={`M357 ${127 + n * 18}h24v2h-24Zm0 4h24v2h-24Z`} fill="#4f6d7e" />
@@ -218,7 +246,114 @@ function TeamFurniture({ index, signal }: { index: number; signal: string }) {
       <path d="M66 153h36v9H66Z" fill="#263f41" />
       <path d="M75 156h21v15H75Z" fill="#f3efd8" />
       <path d="M78 163h15m-15 4h9" stroke="#899c86" strokeWidth="1" />
-      <path d="M96 147h6v3h-6Z" fill={signal} />
+      <rect className={`office-led led-${printer} loop`} x="96" y="147" width="6" height="3" />
+    </g>
+  );
+}
+
+/** Monitor face drawn over the desk. Colours come from the room's status variables. */
+function Screen() {
+  return (
+    <g className="office-screen" transform="translate(187 71)">
+      <rect className="office-screen-face" width="58" height="29" />
+      <rect className="office-screen-bar" width="58" height="5" />
+      <g className="office-screen-content">
+        <path d="M3 1h3v3H3Zm5 0h3v3H8Zm5 0h3v3h-3Z" fill="#cfe3ff" opacity=".8" />
+        <rect x="3" y="8" width="12" height="18" fill="#0d2440" opacity=".25" />
+        <path
+          className="office-screen-frame-a loop"
+          d="M18 8h27v3H18Zm0 6h33v3H18Zm0 6h21v3H18Z"
+          fill="#cfe3ff"
+        />
+        <path
+          className="office-screen-frame-b loop"
+          d="M18 8h33v3H18Zm0 6h21v3H18Zm0 6h30v3H18Z"
+          fill="#cfe3ff"
+        />
+      </g>
+      <g className="office-screen-check">
+        <path
+          d="M18 12h3v6h-3ZM21 15h3v6h-3ZM24 18h3v6h-3ZM27 15h3v6h-3ZM30 12h3v6h-3ZM33 9h3v6h-3ZM36 6h3v6h-3Z"
+          fill="#c9f5d8"
+        />
+        <path className="office-screen-cursor loop" d="M45 21h6v3h-6Z" fill="#c9f5d8" />
+      </g>
+      <path className="office-screen-alert" d="M26 6h6v12h-6Zm0 15h6v3h-6Z" fill="#ffd9d4" />
+    </g>
+  );
+}
+
+function SignalBubble({ kind }: { kind: SignalKind }) {
+  const color = SIGNAL[kind];
+  if (kind === "attention") {
+    const outer = "M-18-51H18V-12H9V-3H-9V-12H-18Z";
+    return (
+      <g className="office-signal-body loop">
+        <path d={outer} fill="#4f5d4a" opacity=".25" transform="translate(3 3)" />
+        <path d={outer} fill={color} />
+        <path d="M-12-45H12V-18H3V-9H-3V-18H-12Z" fill="#fff3dc" />
+        <path
+          d="M-6-42h12v3h-12ZM-9-39h6v3h-6ZM3-39h6v6H3ZM0-33h6v3H0ZM-3-30h6v3h-6ZM-3-24h6v3h-6Z"
+          fill={color}
+        />
+      </g>
+    );
+  }
+  const outer = "M-18-36H18V-9H6V-3H-6V-9H-18Z";
+  return (
+    <g className="office-signal-body loop">
+      <path d={outer} fill="#4f5d4a" opacity=".25" transform="translate(3 3)" />
+      <path d={outer} fill={color} />
+      <path d="M-15-33H15V-12H3V-6H-3V-12H-15Z" fill="#fffdf0" />
+      {kind === "working" && <path d="M-12-27h6v6h-6Zm9 0h6v6h-6Zm9 0h6v6h-6Z" fill={color} />}
+      {kind === "retrying" && (
+        <path
+          className="office-signal-spin loop"
+          d="M-6-30h9v3h-9ZM-9-27h3v12h-3ZM3-27h3v3H3ZM0-24h9v3H0ZM3-21h3v3H3ZM-6-15h12v3h-12Z"
+          fill={color}
+        />
+      )}
+      {kind === "done" && (
+        <path
+          d="M6-30h6v3H6ZM3-27h6v3H3ZM-12-24h6v3h-6ZM0-24h6v3H0ZM-9-21h12v3H-9ZM-6-18h6v3h-6Z"
+          fill={color}
+        />
+      )}
+      {kind === "failed" && <path d="M-3-30h6v9h-6Zm0 12h6v3h-6Z" fill={color} />}
+      {kind === "stopped" && <path d="M-9-24h18v3h-18Z" fill={color} />}
+      {kind === "revision" && (
+        <g>
+          <path d="M-3-30h12v15h-12Z" fill="#d9b06a" />
+          <path d="M-9-27h12v15h-12Z" fill="#f3e3c2" />
+          <path d="M-6-24h6v3h-6Zm0 6h6v3h-6Z" fill={color} />
+        </g>
+      )}
+    </g>
+  );
+}
+
+/** A folder carried from one team's desk, down the corridor, to the next team's desk. */
+function Envelope({ cue }: { cue: Handoff }) {
+  const from = ROOMS[TEAMS.indexOf(cue.from)];
+  const to = ROOMS[TEAMS.indexOf(cue.to)];
+  const toX = to.x + DESK_DROP.x;
+  const toY = to.y + DESK_DROP.y;
+  // The resting position is the destination; the keyframes start from the sender's desk.
+  // With reduced motion the animation is off and the folder simply sits on the new desk.
+  const route = {
+    "--from-x": `${from.x + DESK_DROP.x}px`,
+    "--from-y": `${from.y + DESK_DROP.y}px`,
+    "--hall-y": `${HALL_Y}px`,
+    "--to-x": `${toX}px`,
+    "--to-y": `${toY}px`,
+  } as CSSProperties;
+  return (
+    <g className="office-cue-envelope" style={route} transform={`translate(${toX} ${toY})`}>
+      <path d="M-6 6h18v3h-18Z" fill="#4f5d4a" opacity=".3" />
+      <path d="M-6-9h12v3h-12Z" fill="#fffaf0" />
+      <path d="M-9-6h18v12h-18Z" fill="#e9c37d" />
+      <path d="M-9-6h18v3h-18Z" fill="#c99a4b" />
+      <path d="M-3-3h6v3h-6Z" fill="#8c6a32" />
     </g>
   );
 }
@@ -230,12 +365,27 @@ export function OfficeScene({
   state: OfficeState;
   previewTeam?: Team | null;
 }) {
-  const prefix = useId().replaceAll(":", "");
+  const prefix = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const ref = (name: string) => `#${prefix}-${name}`;
+  const crew = validators(state);
+  const pass = handoff(state);
+  const printed = printOut(state);
   // Paint the enlarged room last so its furniture stays above the other rooms.
+  // One-off cues live in the separate layer below, whose order never changes, so hovering
+  // a room never remounts (and replays) them.
   const paintedTeams = previewTeam
     ? [...TEAMS.filter((team) => team !== previewTeam), previewTeam]
     : TEAMS;
+
+  function roomClass(team: Team) {
+    const { status } = state.teams[team];
+    return `office-art-room-${team} status-${status}${teamHalted(state, team) ? " is-halted" : ""}`;
+  }
+
+  function preview(team: Team) {
+    return previewTeam === team ? "active" : previewTeam ? "dim" : undefined;
+  }
+
   return (
     <svg
       className="office-art"
@@ -257,11 +407,6 @@ export function OfficeScene({
           <stop stopColor="#ecd4ad" />
           <stop offset="1" stopColor="#d5b88b" />
         </linearGradient>
-        <radialGradient id={`${prefix}-lamp-light`}>
-          <stop stopColor="#fff5ce" stopOpacity=".28" />
-          <stop offset=".6" stopColor="#fff5ce" stopOpacity=".12" />
-          <stop offset="1" stopColor="#dbc397" stopOpacity="0" />
-        </radialGradient>
         <linearGradient id={`${prefix}-sunlight`} x1="1" y1="0" x2="0" y2="1">
           <stop stopColor="#fffbe3" stopOpacity=".7" />
           <stop offset="1" stopColor="#fffbe3" stopOpacity="0" />
@@ -272,6 +417,9 @@ export function OfficeScene({
             <stop offset="1" stopColor={room.accent} stopOpacity="0" />
           </radialGradient>
         ))}
+        <clipPath id={`${prefix}-print-clip`}>
+          <rect x="60" y="159" width="51" height="36" />
+        </clipPath>
         <pattern id={`${prefix}-floor`} width="48" height="24" patternUnits="userSpaceOnUse">
           <rect width="48" height="24" fill="#e8d9ba" />
           <path d="M0 23H48M47 0V24M23 0V3" stroke="#c2b395" strokeWidth="1" opacity=".5" />
@@ -340,21 +488,9 @@ export function OfficeScene({
           <path d="M6 15h21m87 18h15M6 36h24" stroke="#bf9f72" strokeWidth="1" opacity=".3" />
           <path d="M33 24h78v18H33Z" fill="#9bb6aa" />
           <path d="M36 26h72v13H36Z" fill="#b9cabc" />
+          {/* Monitor bezel only: the screen face is drawn per room by <Screen />. */}
           <path d="M39-17h60v3h3v36H36v-36h3Z" fill="#132330" />
           <path d="M39-17h60v2H39Zm-3 3h2v33h-2Z" fill="#7e9794" />
-          <rect className="office-monitor" x="40" y="-13" width="58" height="29" fill="#203947" />
-          <rect x="40" y="-13" width="58" height="29" fill="currentColor" opacity=".12" />
-          <path d="M40-13h58v5H40Z" fill="#365360" />
-          <path d="M43-11h2v2h-2Zm5 0h2v2h-2Zm5 0h2v2h-2Z" fill="currentColor" opacity=".8" />
-          <path d="M43-4h13v17H43Z" fill="#182e3b" />
-          <path d="M46-1h7m-7 4h5m-5 4h7" stroke="#6a9298" strokeWidth="1" />
-          <path
-            className="office-monitor-lines"
-            d="M60-4h27v2H60Zm0 6h32v2H60Zm0 6h21v2H60Z"
-            fill="#b7d7c2"
-            opacity=".75"
-          />
-          <path d="M84 10h8v2h-8Z" fill="currentColor" opacity=".35" />
           <path d="M63 22h12v6h9v3H54v-3h9Z" fill="#253946" />
           <path d="M54 29h30v2H54Z" fill="#4b5e67" />
           <path d="M42 33h45v9H42Z" fill="#a1b3a0" />
@@ -434,108 +570,205 @@ export function OfficeScene({
       {paintedTeams.map((team) => {
         const index = TEAMS.indexOf(team);
         const room = ROOMS[index];
-        const { status, log } = state.teams[team];
-        const signal = SIGNAL[status];
-        const atDesk = !["idle", "pending", "cancelled", "superseded"].includes(status);
+        const { status } = state.teams[team];
+        const kind = signalKind(state, team);
+        const atDesk = !AWAY.includes(status);
+        const topRow = index < 2;
+        const rack: Led[] = [0, 1, 2].map((n) =>
+          n < crew.count
+            ? "on"
+            : status === "completed"
+              ? "done"
+              : status === "failed"
+                ? "alert"
+                : "off",
+        );
+        const printer: Led =
+          status === "running"
+            ? "on"
+            : status === "completed"
+              ? "done"
+              : status === "failed"
+                ? "alert"
+                : "off";
         return (
           <g
             key={team}
             transform={`translate(${room.x} ${room.y})`}
-            className={`office-art-room office-art-room-${team} status-${status}`}
-            data-preview={previewTeam === team ? "active" : previewTeam ? "dim" : undefined}
+            className={`office-art-room ${roomClass(team)}`}
+            data-preview={preview(team)}
             style={{ color: room.accent }}
           >
             <g className="office-art-room-zoom">
-              <rect x="3" y="9" width="436" height="237" fill="#9ba48c" opacity=".3" />
-              <rect width="436" height="240" fill="#f8f7ee" />
-              <rect x="12" y="60" width="412" height="135" fill={room.floor} />
-              <rect x="12" y="60" width="412" height="135" fill={`url(${ref("tile")})`} />
-              <path d="M12 60h412v9H21v126h-9Z" fill="#8f977f" opacity=".15" />
-              <path d="M0 0H436V6H6V234h430v6H0Z" fill="#bec8b4" />
-              <path d="M6 6H430V12H12V234H6Z" fill="#fffdf2" />
-              <path d="M0 0h436v2H2v232H0Z" fill="#ffffff" opacity=".3" />
-              <path d="M430 6h6v228h-6Z" fill="#ccd4bf" />
-              <path d="M12 12h418v45H12Z" fill="#fcfaf2" />
-              <path d="M12 57h418v3H12Z" fill="#d4dcc7" />
-              <path d="M15 58h123v1H15Z" fill={room.accent} opacity=".55" />
-              <path d="M12 60h418v2H12Z" fill={room.accent} opacity=".09" />
-              <rect x="130" y="73" width="174" height="124" fill="#98a18c" opacity=".18" />
-              <rect x="135" y="75" width="165" height="120" fill={room.rug} />
-              <rect x="135" y="75" width="165" height="120" fill={`url(${ref("weave")})`} />
-              <rect
-                x="141"
-                y="81"
-                width="153"
-                height="108"
-                fill="none"
-                stroke={room.accent}
-                strokeOpacity=".2"
-                strokeWidth="2"
-              />
-              <path d="M144 192h147v3H144Z" fill="#83917d" opacity=".4" />
-              <ellipse
-                cx="220"
-                cy="110"
-                rx="100"
-                ry="65"
-                fill={`url(${ref(`room-light-${index}`)})`}
-              />
-              <path d="M330 105h72l-42 87H267Z" fill={`url(${ref("sunlight")})`} />
-              <path d="M334 108h27l-25 74h-30Zm37 0h27l-30 74h-27Z" fill="#fffbe1" opacity=".3" />
-              <g transform="translate(30 72)">
-                <use href={ref("shelf")} />
-                <use href={ref("tiny-plant")} x="51" y="-3" />
-                <path d="M9-6h21v6H9Z" fill="#7e725b" />
-                <path d="M12-9h21v6H12Z" fill="#bab297" />
-                <path d="M15-8h15v1H15Z" fill="#d9ccb0" />
-              </g>
-              <use href={ref("window")} x="327" y="66" />
-              <use href={ref("tiny-plant")} x="393" y="108" />
-              <use href={ref("plant")} x="36" y="166" />
-              <path d="M114 78h3v90h-3Z" fill="#a5af9b" opacity=".6" />
-              <path d="M114 78h2v90h-2Z" fill="#6b746d" opacity=".35" />
-              <use href={ref("chair")} x="216" y="149" />
-              <use href={ref("desk")} x="147" y="84" />
-              <TeamFurniture index={index} signal={signal.color} />
-              <ellipse cx="305" cy="159" rx="43" ry="31" fill={`url(${ref("lamp-light")})`} />
-              <use href={ref("lamp")} x="308" y="120" />
-              <path d="M309 137h6l10 37h-30Z" fill="#e5cd97" opacity=".055" />
-              <g
-                className="office-worker-position"
-                style={{ transform: `translate(${atDesk ? 216 : 111}px, ${atDesk ? 143 : 154}px)` }}
-              >
-                <PixelPerson shirt={room.shirt} hair={room.hair} variant={index} />
-                <g className="office-signal" key={`${state.version}-${log.at(-1)?.seq ?? 0}`}>
-                  <path
-                    d="M-15-33H15v21H3v6H-3v-6H-15Z"
-                    fill="#97a28c"
-                    opacity=".5"
-                    transform="translate(2 3)"
-                  />
-                  <path d="M-15-33H15v21H3v6H-3v-6H-15Z" fill="#fffdf0" />
-                  <path d="M-15-33H15v2H-13v19h-2Z" fill="#c5d1ba" opacity=".7" />
-                  <text
-                    x="0"
-                    y="-18"
-                    textAnchor="middle"
-                    fill={signal.color}
-                    fontSize="15"
-                    fontFamily="system-ui, sans-serif"
-                    fontWeight="700"
-                  >
-                    {signal.mark}
-                  </text>
+              <g className="office-art-room-body">
+                <rect x="3" y="9" width="436" height="237" fill="#9ba48c" opacity=".3" />
+                <rect width="436" height="240" fill="#f8f7ee" />
+                <rect x="12" y="60" width="412" height="135" fill={room.floor} />
+                <rect x="12" y="60" width="412" height="135" fill={`url(${ref("tile")})`} />
+                <path d="M12 60h412v9H21v126h-9Z" fill="#8f977f" opacity=".15" />
+                <path d="M0 0H436V6H6V234h430v6H0Z" fill="#bec8b4" />
+                <path d="M6 6H430V12H12V234H6Z" fill="#fffdf2" />
+                <path d="M0 0h436v2H2v232H0Z" fill="#ffffff" opacity=".3" />
+                <path d="M430 6h6v228h-6Z" fill="#ccd4bf" />
+                <path d="M12 12h418v45H12Z" fill="#fcfaf2" />
+                <path d="M12 57h418v3H12Z" fill="#d4dcc7" />
+                <path d="M15 58h123v1H15Z" fill={room.accent} opacity=".55" />
+                <path d="M12 60h418v2H12Z" fill={room.accent} opacity=".09" />
+                <rect x="130" y="73" width="174" height="124" fill="#98a18c" opacity=".18" />
+                <rect x="135" y="75" width="165" height="120" fill={room.rug} />
+                <rect x="135" y="75" width="165" height="120" fill={`url(${ref("weave")})`} />
+                <rect
+                  x="141"
+                  y="81"
+                  width="153"
+                  height="108"
+                  fill="none"
+                  stroke={room.accent}
+                  strokeOpacity=".2"
+                  strokeWidth="2"
+                />
+                <path d="M144 192h147v3H144Z" fill="#83917d" opacity=".4" />
+                {/* Work light: three stepped layers, shown once the room has received work. */}
+                <g className="office-work-light loop" fill="#ffd66b">
+                  <path d={notched(123, 72, 186, 123, 9)} opacity=".16" />
+                  <path d={notched(141, 84, 150, 105, 9)} opacity=".18" />
+                  <path d={notched(165, 102, 102, 81, 6)} opacity=".2" />
                 </g>
+                <ellipse
+                  cx="220"
+                  cy="110"
+                  rx="100"
+                  ry="65"
+                  fill={`url(${ref(`room-light-${index}`)})`}
+                />
+                <path d="M330 105h72l-42 87H267Z" fill={`url(${ref("sunlight")})`} />
+                <path d="M334 108h27l-25 74h-30Zm37 0h27l-30 74h-27Z" fill="#fffbe1" opacity=".3" />
+                <g transform="translate(30 72)">
+                  <use href={ref("shelf")} />
+                  <use href={ref("tiny-plant")} x="51" y="-3" />
+                  <path d="M9-6h21v6H9Z" fill="#7e725b" />
+                  <path d="M12-9h21v6H12Z" fill="#bab297" />
+                  <path d="M15-8h15v1H15Z" fill="#d9ccb0" />
+                </g>
+                <use href={ref("window")} x="327" y="66" />
+                <use href={ref("tiny-plant")} x="393" y="108" />
+                <use href={ref("plant")} x="36" y="166" />
+                <path d="M114 78h3v90h-3Z" fill="#a5af9b" opacity=".6" />
+                <path d="M114 78h2v90h-2Z" fill="#6b746d" opacity=".35" />
+                {index === 2 &&
+                  EXTRA_SEATS.map((seat) => (
+                    <use key={seat.x} href={ref("chair")} x={seat.x} y="149" />
+                  ))}
+                <use href={ref("chair")} x="216" y="149" />
+                <use href={ref("desk")} x="147" y="84" />
+                <Screen />
+                {status === "needs_revision" && (
+                  <g className="office-review-pile">
+                    <path d="M252 111h21v12h-21Z" fill="#d9c9a3" />
+                    <path d="M255 108h21v12h-21Z" fill="#efe3c6" />
+                    <path d="M258 105h21v12h-21Z" fill="#fffaf0" />
+                    <path d="M261 108h12v3h-12Z" fill="#a35c00" />
+                    <path d="M261 114h9v3h-9Z" fill="#b8ad8f" />
+                  </g>
+                )}
+                <TeamFurniture index={index} rack={rack} printer={printer} />
+                <g className="office-lamp-cone" fill="#ffd66b">
+                  <path d="M299 135h18v12h-18Z" opacity=".3" />
+                  <path d="M293 147h30v12h-30Z" opacity=".22" />
+                  <path d="M287 159h42v15h-42Z" opacity=".15" />
+                </g>
+                <use href={ref("lamp")} x="308" y="120" />
+                <rect className="office-lamp-shade" x="302" y="120" width="12" height="12" />
+                <rect className="office-lamp-bulb" x="296" y="132" width="24" height="3" />
+                <g
+                  className="office-worker-position"
+                  style={{
+                    transform: `translate(${atDesk ? AT_DESK.x : AT_SIDE.x}px, ${atDesk ? AT_DESK.y : AT_SIDE.y}px)`,
+                  }}
+                >
+                  <PixelPerson shirt={room.shirt} hair={room.hair} variant={index} />
+                </g>
+                <path d="M154 87h6v6h-6Z" fill={SIGNAL[kind]} />
+                {/* Waiting rooms are slightly lowered; rooms that received work stay at daylight. */}
+                <rect
+                  className="office-room-shade"
+                  x="12"
+                  y="60"
+                  width="412"
+                  height="135"
+                  fill="#20382f"
+                  fillOpacity=".12"
+                />
+                <path d="M12 195h418v39H12Z" fill="#f8f9f2" />
+                <path d="M12 195h418v2H12Z" fill="#dbe2ce" />
+                <path d="M21 197h57v1H21Z" fill={room.accent} opacity=".25" />
+                <path d="M12 232h418v2H12Z" fill="#d7dfca" />
+                {/* Door to the corridor, where the folders pass. */}
+                <path d={`M198 ${topRow ? 234 : 0}h3v6h-3Zm33 0h3v6h-3Z`} fill="#9aa58e" />
+                <path d={`M201 ${topRow ? 234 : 0}h30v6h-30Z`} fill="#e6d8b8" />
               </g>
-              <path d="M154 87h6v6h-6Z" fill={signal.color} />
-              <path d="M12 195h418v39H12Z" fill="#f8f9f2" />
-              <path d="M12 195h418v2H12Z" fill="#dbe2ce" />
-              <path d="M21 197h57v1H21Z" fill={room.accent} opacity=".25" />
-              <path d="M12 232h418v2H12Z" fill="#d7dfca" />
             </g>
           </g>
         );
       })}
+      <g className="office-cues" data-preview={previewTeam ? "on" : undefined}>
+        {TEAMS.map((team, index) => {
+          const room = ROOMS[index];
+          const { status, log } = state.teams[team];
+          const kind = signalKind(state, team);
+          const spot = AWAY.includes(status) ? AT_SIDE : AT_DESK;
+          return (
+            <g
+              key={team}
+              className={`office-cue-room ${roomClass(team)}`}
+              data-preview={preview(team)}
+              transform={`translate(${room.x} ${room.y})`}
+            >
+              <g className="office-art-room-zoom">
+                {index === 2 &&
+                  EXTRA_SEATS.slice(0, Math.max(0, crew.count - 1)).map((seat, seatIndex) => (
+                    <g
+                      key={`seat-${seatIndex}`}
+                      className="office-validator"
+                      transform={`translate(${seat.x} ${AT_DESK.y})`}
+                    >
+                      <g className="office-validator-arrive">
+                        <PixelPerson shirt={room.shirt} hair={seat.hair} variant={seat.variant} />
+                      </g>
+                    </g>
+                  ))}
+                {index === 3 && printed !== null && (
+                  <g
+                    key={`print-${printed}`}
+                    className="office-printout"
+                    clipPath={`url(${ref("print-clip")})`}
+                  >
+                    <g className="office-printout-sheet">
+                      <path d="M75 162h27v30H75Z" fill="#4f5d4a" opacity=".25" />
+                      <path d="M72 159h27v30H72Z" fill="#fffdf4" />
+                      <path d="M72 159h27v3H72Z" fill="#e4e8d6" />
+                      <path d="M75 165h15v3H75Z" fill="#1d6b3f" />
+                      <path d="M75 171h21v3H75Zm0 6h15v3H75Z" fill="#9aa69a" />
+                      <path d="M84 183h12v3H84Z" fill="#20382f" />
+                    </g>
+                  </g>
+                )}
+                <g
+                  className="office-bubble-position"
+                  style={{ transform: `translate(${spot.x}px, ${spot.y}px)` }}
+                >
+                  {kind !== "none" && (
+                    <g className="office-signal" key={`${state.version}-${log.at(-1)?.seq ?? 0}`}>
+                      <SignalBubble kind={kind} />
+                    </g>
+                  )}
+                </g>
+              </g>
+            </g>
+          );
+        })}
+        {pass && <Envelope key={pass.seq} cue={pass} />}
+      </g>
     </svg>
   );
 }
