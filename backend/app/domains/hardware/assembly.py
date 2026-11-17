@@ -3,7 +3,17 @@
 import re
 from collections import defaultdict
 from dataclasses import dataclass
+from decimal import Decimal
+from math import ceil
 from typing import Any, Literal
+
+from app.domains.hardware.power_planning import (
+    ESTIMATE_FIELD,
+    PERIPHERAL_CATEGORIES,
+    cpu_peak_estimate,
+    peripheral_estimate,
+    rated_watts,
+)
 
 Result = Literal["PASS", "FAIL", "CONDITIONAL", "UNKNOWN"]
 
@@ -20,6 +30,7 @@ class AssemblyPart:
     category: str
     specs: dict[str, Any]
     quantity: int = 1
+    power_draw_w: Decimal | int | float | None = None
 
     def positive(self, field: str) -> int | None:
         value = self.specs.get(field)
@@ -196,30 +207,77 @@ def _gpu_clearance(case, gpu, front_radiator_mm):
     )
 
 
-def _power_capacity(cpu, gpu, psu, other_load_w):
+def _power_capacity(processor, gpu, psu, parts, other_load_w, *, gpu_selected):
     code = "PSU_CAPACITY"
-    if not cpu or not gpu or not psu:
-        return AssemblyCheck(code, "UNKNOWN", "CPU·외장 GPU·파워를 각각 하나 선택해야 합니다.")
+    if not psu or (gpu_selected and not gpu):
+        return AssemblyCheck(
+            code, "UNKNOWN", "파워 한 개와 외장 GPU 최대 한 개를 비교할 수 있습니다."
+        )
+    if not processor:
+        return AssemblyCheck(code, "UNKNOWN", "파워 용량을 비교하려면 CPU 구성을 확인해야 합니다.")
+    integrated = processor.category == "motherboard"
+    graphics = processor.specs.get("graphics")
+    has_graphics = isinstance(graphics, str) and graphics.strip().casefold() not in {"", "none"}
+    if not gpu and not integrated and not has_graphics:
+        return AssemblyCheck(code, "UNKNOWN", "외장 GPU나 내장 그래픽 구성을 확인해야 합니다.")
     watts = psu.positive("wattage_w")
-    cpu_limit, gpu_power = cpu.positive("cpu_power_limit_w"), gpu.positive("gpu_power_w")
-    recommended = gpu.positive("recommended_psu_w")
+    cpu_limit = rated_watts(processor.specs.get("cpu_power_limit_w"))
+    cpu_base = rated_watts(processor.power_draw_w)
+    cpu_estimated = ESTIMATE_FIELD in processor.specs or cpu_limit is None
+    if integrated:
+        cpu_limit = max((value for value in (cpu_limit, cpu_base) if value), default=None)
+        if cpu_limit is None:
+            cpu_limit = peripheral_estimate("motherboard", processor.specs)[0]
+    elif cpu_limit is None and cpu_base:
+        cpu_limit = cpu_peak_estimate(cpu_base, processor.specs)
+    elif cpu_base and cpu_limit:
+        cpu_limit = max(cpu_base, cpu_limit)
+
+    gpu_power = (
+        (rated_watts(gpu.power_draw_w) or rated_watts(gpu.specs.get("gpu_power_w"))) if gpu else 0
+    )
+    recommended = gpu.positive("recommended_psu_w") if gpu else None
+    platform_w = 0
+    estimated_platform_parts = 0
+    for part in parts:
+        if part.category not in PERIPHERAL_CATEGORIES or part is processor:
+            continue
+        part_w = rated_watts(part.power_draw_w)
+        estimated_platform_parts += part_w is None or ESTIMATE_FIELD in part.specs
+        if part_w is None:
+            part_w = peripheral_estimate(part.category, part.specs)[0]
+        platform_w += part_w * part.quantity
+
     estimate = None
-    if cpu_limit and gpu_power:
-        load = cpu_limit + gpu_power + other_load_w
-        estimate = (load * (100 + PSU_HEADROOM_PERCENT) + 99) // 100
+    if cpu_limit and gpu_power is not None:
+        other = max(platform_w, other_load_w)
+        load = cpu_limit + gpu_power + other
+        estimate = ceil(Decimal(load) * (100 + PSU_HEADROOM_PERCENT) / 100)
     thresholds = [value for value in (recommended, estimate) if value is not None]
     power_text = f"파워 {watts}W" if watts else "파워 정격 미확인"
     if recommended:
         power_text += f", GPU 제조사 권장 {recommended}W"
     if estimate is not None:
-        power_text += f", 시스템 추정 {estimate}W (CPU {cpu_limit}W + GPU {gpu_power}W + 기타 {other_load_w}W에 여유 {PSU_HEADROOM_PERCENT}%)"
+        cpu_label = "CPU 내장 보드" if integrated else "CPU"
+        power_text += (
+            f", 시스템 추정 {estimate}W ({cpu_label} {cpu_limit}W + GPU {gpu_power}W + "
+            f"기타 {other}W에 여유 {PSU_HEADROOM_PERCENT}%)"
+        )
+        if estimated_platform_parts:
+            power_text += f", 기타 부품 {estimated_platform_parts}종에 산정용 추정값 적용"
+        if cpu_estimated or (gpu and ESTIMATE_FIELD in gpu.specs):
+            power_text += ", CPU 또는 GPU 최대 부하 추정 포함"
     if not watts or not thresholds:
         return AssemblyCheck(code, "UNKNOWN", power_text + ". 비교에 필요한 전력값이 없습니다.")
     if watts < max(thresholds):
         return AssemblyCheck(
             code, "FAIL", power_text + f". 필요 기준 {max(thresholds)}W에 미달합니다."
         )
-    if estimate is None or not recommended:
+    if (
+        estimate is None
+        or cpu_estimated
+        or (gpu and (not recommended or ESTIMATE_FIELD in gpu.specs))
+    ):
         return AssemblyCheck(
             code, "CONDITIONAL", power_text + ". 나머지 전력 기준을 확인해야 합니다."
         )
@@ -252,9 +310,25 @@ def validate_assembly(
     cpu, board, gpu, case, psu = (
         single(role) for role in ("cpu", "motherboard", "gpu", "case", "psu")
     )
+    socket = board.specs.get("socket") if board else None
+    processor = cpu
+    if isinstance(socket, str) and re.match(r"\s*integrated\s+\S", socket, re.IGNORECASE):
+        if grouped["cpu"]:
+            cpu_check = AssemblyCheck(
+                "CPU_SUPPORT", "FAIL", "CPU 내장형 메인보드에는 별도 CPU를 장착할 수 없습니다."
+            )
+            processor = None
+        else:
+            cpu_check = AssemblyCheck("CPU_SUPPORT", "PASS", "메인보드에 CPU가 내장되어 있습니다.")
+            processor = board
+    else:
+        cpu_check = _cpu_support(board, cpu, evidence, bios_version)
+
     return [
-        _cpu_support(board, cpu, evidence, bios_version),
+        cpu_check,
         *_memory_checks(board, cpu, grouped["ram"], evidence),
         _gpu_clearance(case, gpu, front_radiator_mm),
-        _power_capacity(cpu, gpu, psu, other_load_w),
+        _power_capacity(
+            processor, gpu, psu, parts, other_load_w, gpu_selected=bool(grouped["gpu"])
+        ),
     ]

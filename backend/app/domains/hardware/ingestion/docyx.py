@@ -143,10 +143,13 @@ def specs_for(category, raw):
     return specs
 
 
-def prepare_parts(snapshot, reviewed_parts, rate, rate_date, rate_url, checked_at):
+def prepare_parts(
+    snapshot, reviewed_parts, rate, rate_date, rate_url, checked_at, *, excluded_keys=()
+):
     """Keep priced rows, merge identical variants, and apply exact manufacturer reviews."""
     if not rate.is_finite() or not Decimal("0.01") <= rate <= Decimal("100000"):
         raise ValueError("환율은 양수인 원/USD 값이어야 합니다.")
+    excluded_keys = frozenset(excluded_keys)
     parts, counts = {}, {}
     for slug, rows in snapshot.items():
         category, _ = FILES[slug]
@@ -204,6 +207,9 @@ def prepare_parts(snapshot, reviewed_parts, rate, rate_date, rate_url, checked_a
             }
 
     names = Counter((p["category"], name_key(p["name"])) for p in parts.values())
+    for key in excluded_keys:
+        if removed := parts.pop(key, None):
+            counts[removed["category"]]["skipped_excluded"] += 1
     for key, part in parts.items():
         if names[part["category"], name_key(part["name"])] > 1 or len(part["name"]) > 255:
             part["name"] = f"{part['name'][:239]} [{key[6:18]}]"

@@ -1,4 +1,4 @@
-"""Check a local MySQL quote or a proposed list of catalog parts."""
+"""Check a stored quote or a proposed list of catalog parts."""
 
 import argparse
 import json
@@ -32,7 +32,7 @@ def check_catalog_assembly(
                 raise ValueError(f"견적 {quote_id}을 찾을 수 없습니다.")
             quote_version = quote["version"]
             cursor.execute(
-                "SELECT p.part_id,p.category,p.name,p.specs,i.quantity "
+                "SELECT p.part_id,p.category,p.name,p.specs,p.power_draw_w,i.quantity "
                 "FROM quote_items AS i JOIN parts AS p ON p.part_id=i.part_id "
                 "WHERE i.quote_id=%s ORDER BY i.quote_item_id",
                 (quote_id,),
@@ -42,7 +42,7 @@ def check_catalog_assembly(
             ids = tuple(selection)
             placeholders = ",".join(["%s"] * len(ids))
             cursor.execute(
-                f"SELECT part_id,category,name,specs FROM parts WHERE part_id IN ({placeholders}) "
+                f"SELECT part_id,category,name,specs,power_draw_w FROM parts WHERE part_id IN ({placeholders}) "
                 "ORDER BY part_id",
                 ids,
             )
@@ -117,14 +117,16 @@ def main():
         "--other-load-w",
         type=int,
         default=DEFAULT_OTHER_LOAD_W,
-        help="기타 부품 소비전력 추정치(W)",
+        help="기타 부품의 최소 설계 부하(W). 선택 부품 합계가 더 크면 합계를 사용합니다.",
     )
     args = parser.parse_args()
     selection = Counter()
     for part_id, quantity in args.part or ():
         selection[part_id] += quantity
     with closing(get_connection()) as connection:
-        connection.start_transaction(consistent_snapshot=True, readonly=True)
+        # TiDB provides a consistent snapshot but can reject the MySQL READ ONLY option.
+        is_tidb = "tidb" in (connection.server_info or "").casefold()
+        connection.start_transaction(consistent_snapshot=True, readonly=None if is_tidb else True)
         result = check_catalog_assembly(
             connection,
             quote_id=args.quote_id,
