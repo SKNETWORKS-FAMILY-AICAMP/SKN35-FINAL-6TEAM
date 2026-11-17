@@ -1,4 +1,5 @@
 from dataclasses import replace
+from decimal import Decimal
 
 from app.domains.hardware.assembly import AssemblyPart, validate_assembly
 
@@ -100,6 +101,25 @@ def test_bios_release_confirmed_to_support_cpu_is_not_a_minimum():
     assert "최소 지원 버전은 미확인" in result.reason
 
 
+def test_cpu_integrated_board_passes_without_a_separate_cpu():
+    board = replace(BOARD, specs={**BOARD.specs, "socket": "Integrated CPU specimen"})
+    result = checks([board, MEMORY])
+    assert result["CPU_SUPPORT"].result == "PASS"
+    assert result["RAM_TYPE"].result == "PASS"
+    assert checks([BOARD, MEMORY])["CPU_SUPPORT"].result == "UNKNOWN"
+    assert checks([board, CPU])["CPU_SUPPORT"].result == "FAIL"
+    assert checks([board, replace(CPU, quantity=2)])["CPU_SUPPORT"].result == "FAIL"
+
+
+def test_cpu_integrated_board_uses_available_power_limits():
+    board = replace(BOARD, specs={**BOARD.specs, "socket": "Integrated CPU specimen"})
+    assert checks([board, GPU, PSU])["PSU_CAPACITY"].result == "CONDITIONAL"
+    low_psu = replace(PSU, specs={"wattage_w": 500})
+    assert checks([board, GPU, low_psu])["PSU_CAPACITY"].result == "FAIL"
+    specified = replace(board, specs={**board.specs, "cpu_power_limit_w": 20})
+    assert checks([specified, GPU, PSU])["PSU_CAPACITY"].result == "PASS"
+
+
 def test_gpu_clearance_accounts_for_documented_radiator_configuration():
     assert checks([CASE, GPU])["GPU_CLEARANCE"].result == "PASS"
     assert checks([CASE, GPU], front_radiator_mm=360)["GPU_CLEARANCE"].result == "FAIL"
@@ -123,3 +143,38 @@ def test_cpu_tdp_does_not_substitute_for_max_power():
     assert checks([tdp_only, GPU, PSU])["PSU_CAPACITY"].result == "CONDITIONAL"
     no_power_data = replace(GPU, specs={"length_mm": 348})
     assert checks([tdp_only, no_power_data, PSU])["PSU_CAPACITY"].result == "UNKNOWN"
+
+
+def test_psu_sums_catalog_loads_and_quantities_and_reports_gpu_estimate():
+    gpu = replace(
+        GPU,
+        specs={"recommended_psu_w": 550, "_power_estimate": {"status": "unconfirmed"}},
+        power_draw_w=Decimal("200.00"),
+    )
+    psu = replace(PSU, specs={"wattage_w": 600}, power_draw_w=900)
+    parts = [
+        replace(CPU, power_draw_w=65),
+        replace(BOARD, power_draw_w=80),
+        replace(MEMORY, quantity=2, power_draw_w=20),
+        replace(CASE, power_draw_w=10),
+        AssemblyPart(7, "SSD", "storage", {}, quantity=2, power_draw_w=15),
+        AssemblyPart(8, "Cooler", "cooler", {}, quantity=2, power_draw_w=Decimal("12.50")),
+        gpu,
+    ]
+    insufficient = checks([*parts, psu])["PSU_CAPACITY"]
+    assert insufficient.result == "FAIL"
+    assert "시스템 추정 628W" in insufficient.reason
+    assert "기타 185" in insufficient.reason
+    sufficient = checks([*parts, replace(psu, specs={"wattage_w": 650})])["PSU_CAPACITY"]
+    assert sufficient.result == "CONDITIONAL"
+    assert "최대 부하 추정 포함" in sufficient.reason
+
+
+def test_psu_counts_board_with_integrated_cpu_as_one_load():
+    board = replace(
+        BOARD,
+        specs={"socket": "Integrated Atom"},
+        power_draw_w=80,
+    )
+    result = checks([board, replace(MEMORY, power_draw_w=20), PSU], other_load_w=0)["PSU_CAPACITY"]
+    assert "시스템 추정 125W" in result.reason
