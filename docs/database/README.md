@@ -62,6 +62,26 @@ uv run --directory backend --frozen python -X utf8 -m app.db.schema --migrate-pa
 
 명령은 대상 테이블의 컬럼 구성과 기존 견적 존재 여부를 먼저 확인합니다. 과거 견적이 있으면 DDL 실행 전에 중단합니다. 결제 식별값 등 필요한 정보를 확인해 이관 계획을 세운 뒤 구조를 변경할 수 있습니다. 견적이 비어 있다면 사용 중인 부품·호환성 데이터와 사용자 데이터를 유지한 채 견적 관련 테이블 구조만 전환합니다.
 
+## 기존 DB의 부품 출처 URL 컬럼 정리
+
+기존 `dev_database`의 부품 출처 URL 두 컬럼은 [006 마이그레이션](../../backend/app/db/sql/migrations/006_remove_parts_source_urls.sql)으로 정리합니다.
+
+```powershell
+uv run --directory backend --frozen python -X utf8 -m app.db.schema --migrate-part-source-urls
+```
+
+명령은 부품 출처와 값이 다른 가격 출처가 있으면 변경 전에 중단합니다. 상품과 가격의 데이터셋 출처는 `parts.specs._provenance`에서 찾을 수 있습니다. 가격이 있는 부품에는 가격 확인 시각이 필요합니다.
+
+## 기존 DB의 호환성 출처 URL 컬럼 정리
+
+[007 마이그레이션](../../backend/app/db/sql/migrations/007_remove_compatibility_source_url.sql)은 `part_compatibility`의 중복 출처 URL 컬럼을 제거합니다.
+
+```powershell
+uv run --directory backend --frozen python -X utf8 -m app.db.schema --migrate-compatibility-source-url
+```
+
+명령은 각 행의 `conditions._record_key`로 [별도 호환성 근거 자료](../../data/hardware/docyx_compatibility.json)를 찾아 URL이 모두 일치하는지 확인합니다. 키나 URL이 일치하지 않는 행이 있으면 컬럼 삭제 전에 중단합니다. 적용 후 `list_compatibility`는 같은 키로 원문 URL을 조회해 반환합니다.
+
 ## 부품 소비전력과 이미지 URL
 
 기존 DB에 두 컬럼이 없으면 DBeaver에서 [004 마이그레이션](../../backend/app/db/sql/migrations/004_add_part_power_and_image.sql)을 실행합니다.
@@ -94,7 +114,7 @@ uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.inges
 
 ## 현재 카탈로그 원본
 
-- 부품과 기준 가격은 [고정 리비전의 docyx 스냅샷](https://github.com/docyx/pc-part-dataset/tree/06ffc8eec068db5e8145e012ad2ec11e56a7c969/data/json)에서 가져옵니다. `specs._provenance.price_status=test`로 테스트 가격을 표시합니다.
+- 부품과 기준 가격은 [고정 리비전의 docyx 스냅샷](https://github.com/docyx/pc-part-dataset/tree/06ffc8eec068db5e8145e012ad2ec11e56a7c969/data/json)에서 가져옵니다. `specs._provenance`에 데이터셋, 리비전과 원본 매칭 키를 기록하고 `price_status=test`로 테스트 가격을 표시합니다.
 - 공식 CPU 지원 및 RAM QVL은 [호환성 근거](../../data/hardware/docyx_compatibility.json)에 기록합니다. `import_parts --apply`가 금액이 있는 부품을 먼저 적재한 뒤 두 부품을 찾을 수 있는 호환성 근거를 연결합니다.
 - 부품 고유 키는 분류·브랜드·제품명입니다. 원본 매칭 키는 `specs._provenance.source_key`에 보존하며, 가져오기 작업은 named lock으로 직렬화합니다. 오류가 나면 이번 적재에 포함된 데이터 변경을 롤백합니다.
 

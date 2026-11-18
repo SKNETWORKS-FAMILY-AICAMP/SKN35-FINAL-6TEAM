@@ -1,12 +1,22 @@
 import unittest
 from datetime import date
 from decimal import Decimal
+from unittest.mock import Mock
 
 import pytest
 
-from app.domains.hardware.ingestion.common import DATA, price_value, read_json, sql_time
+from app.domains.hardware.ingestion.common import (
+    DATA,
+    compatibility_source_urls,
+    price_value,
+    read_json,
+    sql_time,
+)
 from app.domains.hardware.ingestion.docyx import REVISION, prepare_parts
-from app.domains.hardware.ingestion.import_compatibility import validate_records
+from app.domains.hardware.ingestion.import_compatibility import (
+    upsert_compatibility,
+    validate_records,
+)
 from app.domains.hardware.ingestion.part_images import (
     IMAGE_PLACEHOLDER_URL,
     match_images,
@@ -40,11 +50,16 @@ class DocyxTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["current_price"], Decimal("268251"))
         self.assertEqual(rows[0]["price_checked_at"], CHECKED_AT)
-        self.assertIn("/data/json/cpu.json", rows[0]["price_source_url"])
+        self.assertNotIn("source_url", rows[0])
+        self.assertNotIn("price_source_url", rows[0])
         self.assertEqual(counts["cpu"]["skipped_price"], 2)
         provenance = rows[0]["specs"]["_provenance"]
+        self.assertEqual(provenance["source"], "docyx")
+        self.assertEqual(provenance["revision"], REVISION)
+        self.assertTrue(provenance["source_key"].startswith("docyx:"))
         self.assertEqual(provenance["price_usd"], "196.97")
         self.assertEqual(provenance["fx_date"], "2026-11-06")
+        self.assertEqual(provenance["fx_source_url"], REF_URL)
         self.assertEqual(provenance["price_status"], "test")
         self.assertNotIn("socket", rows[0]["specs"])
 
@@ -90,6 +105,7 @@ class DocyxTests(unittest.TestCase):
         self.assertEqual(missing, [])
         self.assertEqual(rows[0]["specs"]["max_gpu_length_mm"], 410)
         self.assertEqual(rows[0]["specs"]["_provenance"]["source_key"], case["source_key"])
+        self.assertEqual(rows[0]["specs"]["_provenance"]["reviewed_specs_url"], case["source_url"])
         self.assertNotIn("max_gpu_length_mm", rows[1]["specs"])
         self.assertTrue(validate_records(review["records"], review["parts"]))
 
@@ -125,6 +141,20 @@ class DocyxTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError, "QVL"):
             validate_records([record], parts)
+
+
+def test_compatibility_import_rejects_a_source_not_in_the_archive_before_writing():
+    record_key, source_url = next(iter(compatibility_source_urls().items()))
+    connection = Mock()
+
+    with pytest.raises(ValueError, match="출처와 일치하지 않습니다"):
+        upsert_compatibility(
+            connection,
+            [{"record_key": record_key, "source_url": source_url + "#wrong-source"}],
+            CHECKED_AT,
+        )
+
+    connection.cursor.assert_not_called()
 
 
 def test_cpu_tdp_moves_to_column_and_reviewed_limit_remains_separate():

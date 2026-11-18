@@ -73,7 +73,7 @@ def check_catalog_assembly(
         front_radiator_mm=front_radiator_mm,
         other_load_w=other_load_w,
     )
-    sources = {row["compatibility_id"]: row["source_url"] for row in evidence}
+    sources = {row["compatibility_id"]: row["source_url"] for row in evidence if row["source_url"]}
     return {
         "quote_id": quote_id,
         "parts": [
@@ -83,7 +83,9 @@ def check_catalog_assembly(
         "checks": [
             {
                 **asdict(check),
-                "source_urls": sorted({sources[key] for key in check.compatibility_ids}),
+                "source_urls": sorted(
+                    {sources[key] for key in check.compatibility_ids if key in sources}
+                ),
             }
             for check in checks
         ],
