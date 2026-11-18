@@ -49,8 +49,18 @@ uv run --directory backend --frozen python -X utf8 -m app.domains.hardware.inges
 DBeaver에서도 [최초 생성 SQL](../../backend/app/db/sql/parts_catalog.sql) 전체를 실행할 수 있습니다.
 대상 스키마는 `dev_database`입니다. 생성 후 탐색기에서 새로고침하면 됩니다.
 `CREATE TABLE IF NOT EXISTS`는 이미 존재하는 테이블을 새 구조로 변경하지 않습니다.
-기존 테이블에 첫 변경이 생기면 `backend/app/db/sql/migrations/`에 변경 SQL을 추가하고 ERD를 갱신합니다.
+기존 테이블의 변경 SQL은 `backend/app/db/sql/migrations/`에서 관리하며 변경 후 ERD를 갱신합니다.
 MySQL의 테이블 생성 DDL은 전체 롤백이 되지 않습니다. 데이터 가져오기는 트랜잭션으로 처리합니다.
+
+## 기존 DB의 결제 견적 구조 적용
+
+초기 생성은 새 결제 견적 구조를 사용합니다. 기존 `dev_database`는 견적 저장 작업을 잠시 멈춘 상태에서 아래 명령으로 [005 마이그레이션](../../backend/app/db/sql/migrations/005_paid_quotes.sql)을 적용합니다.
+
+```powershell
+uv run --directory backend --frozen python -X utf8 -m app.db.schema --migrate-paid-quotes
+```
+
+명령은 대상 테이블의 컬럼 구성과 기존 견적 존재 여부를 먼저 확인합니다. 과거 견적이 있으면 DDL 실행 전에 중단합니다. 결제 식별값 등 필요한 정보를 확인해 이관 계획을 세운 뒤 구조를 변경할 수 있습니다. 견적이 비어 있다면 사용 중인 부품·호환성 데이터와 사용자 데이터를 유지한 채 견적 관련 테이블 구조만 전환합니다.
 
 ## 부품 소비전력과 이미지 URL
 
@@ -251,10 +261,10 @@ MSI A850GS는 PSU 쪽 포트 수와 GPU용 동봉 케이블 수를 구분하여 
 검증 대상 항목이 다른 견적에 속하지 못하도록 복합 FK로도 소속을 확인합니다.
 필요한 FK는 삭제 제한을 사용해 과거 기록이 의도 없이 지워지지 않게 합니다.
 
-견적 변경 시 항목 수정, 본체 총액 계산, `version` 증가를 한 트랜잭션에서 처리해야 합니다.
-검증 결과를 적용할 때는 `quote_version`과 현재 `quotes.version`이 같은지 확인해야 합니다.
-이 파이프라인은 수집·저장 기반이며 견적 추천·전체 호환성 판정 API는 아직 구현하지 않았습니다.
-테이블 간 합계와 버전 증가는 CHECK 제약만으로 자동 처리되지 않습니다.
+기존 부품과 호환성 자료는 `app.db.catalog`의 `list_parts`와 `list_compatibility`에서 조회합니다.
+결제 성공을 확인한 호출자는 기존 사용자 ID, 견적 유형(`UPGRADE` 또는 `NEW_BUILD`), 결제 식별값과 완료 시각, 목표 성능, 부품별 결제 단가와 선택 근거를 `app.db.paid_quotes`의 `PaidQuote` 및 `PaidQuoteItem`으로 구성합니다.
+열린 트랜잭션이 없는 연결을 `save_paid_quote(connection, quote)`에 넘기면 최종 견적과 품목이 한 트랜잭션으로 저장됩니다. 총액은 품목별 단가와 수량으로 확인하며, 동일한 결제 식별값의 재전달은 같은 견적을 반환합니다.
+구매한 품목은 `get_paid_quote(connection, user_id=..., quote_id=...)`에서 해당 사용자의 저장 시점 정보로 조회합니다. 결제 전 초안의 수명은 상담 흐름에서 관리합니다.
 
 ## ERD와 테스트
 

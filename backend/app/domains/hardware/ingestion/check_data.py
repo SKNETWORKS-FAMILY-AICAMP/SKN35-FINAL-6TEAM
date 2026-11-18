@@ -17,7 +17,7 @@ from app.domains.hardware.ingestion.docyx import REVISION
 
 
 def inspect_database(connection):
-    errors, warnings, counts = [], [], {}
+    errors, counts = [], {}
     sql = SCHEMA_PATH.read_text(encoding="utf-8")
     definitions = re.findall(r"CREATE TABLE IF NOT EXISTS (\w+) \((.*?)\n\) ENGINE", sql, re.S)
     with connection.cursor(dictionary=True) as cursor:
@@ -102,30 +102,22 @@ def inspect_database(connection):
             errors.append({"issue": "MISSING_REVIEWED_EVIDENCE", "keys": sorted(missing)})
 
         cursor.execute(
-            "SELECT q.quote_id,q.status,q.total_amount,COUNT(i.quote_item_id) AS item_count,"
-            "SUM(i.unit_price IS NULL) AS unknown_prices,SUM(i.unit_price*i.quantity) AS component_total "
+            "SELECT q.quote_id,q.total_amount,COUNT(i.quote_item_id) AS item_count,"
+            "SUM(i.unit_price*i.quantity) AS component_total "
             "FROM quotes q LEFT JOIN quote_items i ON q.quote_id=i.quote_id "
-            "GROUP BY q.quote_id,q.status,q.total_amount"
+            "GROUP BY q.quote_id,q.total_amount"
         )
         for row in cursor.fetchall():
-            unknown = row["item_count"] == 0 or bool(row["unknown_prices"])
-            total = row["total_amount"]
-            if total is not None and (unknown or total != row["component_total"]):
+            if row["item_count"] == 0:
+                errors.append({"issue": "PAID_QUOTE_INCOMPLETE", "id": row["quote_id"]})
+            elif row["total_amount"] != row["component_total"]:
                 errors.append({"issue": "QUOTE_TOTAL_MISMATCH", "id": row["quote_id"]})
-            if row["status"] == "CONFIRMED" and (unknown or total is None):
-                errors.append({"issue": "CONFIRMED_QUOTE_INCOMPLETE", "id": row["quote_id"]})
-        cursor.execute(
-            "SELECT COUNT(*) AS n FROM quote_validations v JOIN quotes q ON q.quote_id=v.quote_id "
-            "WHERE q.version<>v.quote_version"
-        )
-        if count := cursor.fetchone()["n"]:
-            warnings.append({"issue": "HISTORICAL_VALIDATIONS_NOT_CURRENT", "count": count})
 
     return {
         "passed": not errors,
         "table_counts": counts,
         "errors": errors,
-        "warnings": warnings,
+        "warnings": [],
         "parts_by_category": dict(Counter(p["category"] for p in parts)),
         "evidence_by_type": dict(Counter(row["check_type"] for row in evidence)),
     }
