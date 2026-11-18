@@ -8,7 +8,8 @@ from contextlib import closing
 from app.db.connection import get_connection
 from app.db.schema import SCHEMA_PATH
 from app.domains.hardware.ingestion.common import (
-    DATA,
+    COMPATIBILITY_REVIEWS,
+    compatibility_source_urls,
     read_json,
     read_specs,
     run_cli,
@@ -53,7 +54,7 @@ def inspect_database(connection):
             cursor.execute(f"SELECT COUNT(*) AS n FROM {table}")
             counts[table] = cursor.fetchone()["n"]
         cursor.execute(
-            "SELECT part_id,category,model_number,specs,current_price,currency,price_source_url,price_checked_at FROM parts"
+            "SELECT part_id,category,model_number,specs,current_price,currency,price_checked_at FROM parts"
         )
         parts = cursor.fetchall()
         keys = Counter()
@@ -66,7 +67,6 @@ def inspect_database(connection):
                 or provenance.get("price_status") != "test"
                 or not part["current_price"]
                 or part["currency"] != "KRW"
-                or not part["price_source_url"]
                 or not part["price_checked_at"]
                 or not all(
                     provenance.get(k)
@@ -93,9 +93,16 @@ def inspect_database(connection):
                 errors.append({"issue": "INVALID_QVL", "key": conditions.get("_record_key")})
         if None in record_keys or any(n > 1 for n in record_keys.values()):
             errors.append({"issue": "MISSING_OR_DUPLICATE_COMPATIBILITY_KEYS"})
+        if unknown := record_keys.keys() - compatibility_source_urls().keys() - {None}:
+            errors.append(
+                {
+                    "issue": "UNRECOGNIZED_COMPATIBILITY_SOURCE_KEYS",
+                    "keys": sorted(unknown, key=str),
+                }
+            )
         expected_evidence = {
             row["record_key"]
-            for row in read_json(DATA / "docyx_compatibility.json")["records"]
+            for row in read_json(COMPATIBILITY_REVIEWS)["records"]
             if {row["part_a_key"], row["part_b_key"]} <= keys.keys()
         }
         if missing := expected_evidence - record_keys.keys():
