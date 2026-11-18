@@ -58,10 +58,8 @@ def upsert_parts(connection, parts, *, power_reviews=None, gpu_estimates=None):
                 part["name"],
                 part["model_number"],
                 json_text(specs),
-                part["source_url"],
                 part["verified_at"],
                 part["current_price"],
-                part["price_source_url"],
                 sql_time(part["price_checked_at"]),
                 power,
                 resolve_image_url(part.get("image_url"), None),
@@ -72,9 +70,9 @@ def upsert_parts(connection, parts, *, power_reviews=None, gpu_estimates=None):
     new_estimate = f"JSON_CONTAINS_PATH(VALUES(specs),'one','{estimate_path}')"
     query = f"""
         INSERT INTO parts
-            (category,brand,name,model_number,specs,source_url,verified_at,
-             current_price,currency,price_source_url,price_checked_at,power_draw_w,image_url)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,'KRW',%s,%s,%s,%s)
+            (category,brand,name,model_number,specs,verified_at,
+             current_price,currency,price_checked_at,power_draw_w,image_url)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,'KRW',%s,%s,%s)
         ON DUPLICATE KEY UPDATE model_number=VALUES(model_number),
              specs=CASE
                  WHEN VALUES(power_draw_w) IS NULL AND {old_estimate}
@@ -82,9 +80,9 @@ def upsert_parts(connection, parts, *, power_reviews=None, gpu_estimates=None):
                  WHEN {new_estimate} AND parts.power_draw_w IS NOT NULL AND NOT {old_estimate}
                      THEN JSON_REMOVE(VALUES(specs),'{estimate_path}')
                  ELSE VALUES(specs) END,
-             source_url=VALUES(source_url),verified_at=VALUES(verified_at),
+             verified_at=VALUES(verified_at),
              current_price=VALUES(current_price),currency=VALUES(currency),
-             price_source_url=VALUES(price_source_url),price_checked_at=VALUES(price_checked_at),
+             price_checked_at=VALUES(price_checked_at),
              power_draw_w=CASE WHEN {new_estimate} AND NOT {old_estimate}
                  THEN COALESCE(parts.power_draw_w,VALUES(power_draw_w))
                  ELSE COALESCE(VALUES(power_draw_w),parts.power_draw_w) END,

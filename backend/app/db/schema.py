@@ -8,9 +8,16 @@ from pathlib import Path
 import mysql.connector
 
 from app.db.connection import get_connection
+from app.domains.hardware.ingestion.common import compatibility_source_urls, read_specs
 
 SCHEMA_PATH = Path(__file__).resolve().parent / "sql" / "parts_catalog.sql"
 PAID_QUOTES_MIGRATION_PATH = SCHEMA_PATH.parent / "migrations" / "005_paid_quotes.sql"
+PART_SOURCE_URLS_MIGRATION_PATH = (
+    SCHEMA_PATH.parent / "migrations" / "006_remove_parts_source_urls.sql"
+)
+COMPATIBILITY_SOURCE_URL_MIGRATION_PATH = (
+    SCHEMA_PATH.parent / "migrations" / "007_remove_compatibility_source_url.sql"
+)
 LEGACY_QUOTE_COLUMNS = {
     "quotes": [
         "quote_id",
@@ -90,6 +97,14 @@ def main() -> int:
     action.add_argument(
         "--migrate-paid-quotes", action="store_true", help="비어 있는 기존 견적 테이블 전환"
     )
+    action.add_argument(
+        "--migrate-part-source-urls", action="store_true", help="parts의 중복 출처 URL 컬럼 제거"
+    )
+    action.add_argument(
+        "--migrate-compatibility-source-url",
+        action="store_true",
+        help="part_compatibility의 중복 출처 URL 컬럼 제거",
+    )
     args = parser.parse_args()
     try:
         database, version = check_connection()
@@ -99,7 +114,11 @@ def main() -> int:
             initialize_schema()
         if args.migrate_paid_quotes:
             migrated = migrate_paid_quotes()
-    except ValueError as error:
+        if args.migrate_part_source_urls:
+            migrated = migrate_part_source_urls()
+        if args.migrate_compatibility_source_url:
+            migrated = migrate_compatibility_source_url()
+    except (OSError, ValueError) as error:
         print(f"설정 확인: {error}", file=sys.stderr)
         return 1
     except mysql.connector.Error as error:
@@ -122,6 +141,14 @@ def main() -> int:
     if args.migrate_paid_quotes:
         print(
             "결제 견적 구조 적용 완료" if migrated else "결제 견적 구조가 이미 적용되어 있습니다."
+        )
+    if args.migrate_part_source_urls:
+        print("부품 출처 URL 컬럼 제거 완료" if migrated else "부품 출처 URL 컬럼이 이미 없습니다.")
+    if args.migrate_compatibility_source_url:
+        print(
+            "호환성 출처 URL 컬럼 제거 완료"
+            if migrated
+            else "호환성 출처 URL 컬럼이 이미 없습니다."
         )
     return 0
 
@@ -171,6 +198,102 @@ def migrate_paid_quotes() -> bool:
             raise ValueError("기존 견적이 있습니다. 결제 근거 확인과 이관 계획이 필요합니다.")
         for statement in pending:
             cursor.execute(statement)
+        return True
+
+
+def _parts_price_checks(cursor) -> tuple[bool, bool]:
+    cursor.execute("SHOW CREATE TABLE parts")
+    _, ddl = cursor.fetchone()
+    checks = set(re.findall(r"CONSTRAINT `?(\w+)`?\s+CHECK\b[^\n]*", ddl, re.IGNORECASE))
+    return "ck_parts_price_source" in checks, "ck_parts_price_checked_at" in checks
+
+
+def migrate_part_source_urls() -> bool:
+    """Apply 006 under the catalog import lock, resuming any completed DDL steps."""
+    expected = _schema_columns(SCHEMA_PATH.read_text(encoding="utf-8"))["parts"]
+    sql = PART_SOURCE_URLS_MIGRATION_PATH.read_text(encoding="utf-8")
+    add_check, drop_check, drop_price_url, drop_source_url = re.findall(
+        r"ALTER TABLE parts\s+[^;]+", sql
+    )
+    with closing(get_connection()) as connection, closing(connection.cursor()) as cursor:
+        cursor.execute("SELECT GET_LOCK(CONCAT(DATABASE(), ':catalog_import'), 10)")
+        if cursor.fetchone()[0] != 1:
+            raise ValueError("부품 적재 잠금을 얻지 못했습니다.")
+
+        columns = _current_columns(cursor, "parts")
+        source_urls = {"source_url", "price_source_url"}
+        if [col for col in columns if col not in source_urls] != expected or (
+            "price_source_url" in columns and "source_url" not in columns
+        ):
+            raise ValueError("parts: 출처 URL 마이그레이션 대상 컬럼 구성이 아닙니다.")
+
+        if "price_source_url" in columns:
+            cursor.execute(
+                "SELECT EXISTS (SELECT 1 FROM parts WHERE price_source_url IS NOT NULL "
+                "AND NOT (BINARY price_source_url <=> BINARY source_url))"
+            )
+            if cursor.fetchone()[0]:
+                raise ValueError("부품 출처와 다른 가격 출처가 있어 마이그레이션을 중단했습니다.")
+
+        old_check, new_check = _parts_price_checks(cursor)
+        if columns == expected and new_check and not old_check:
+            return False
+        if not new_check:
+            cursor.execute(add_check)
+            if not _parts_price_checks(cursor)[1]:
+                raise ValueError("가격 확인 시각 제약을 추가하지 못했습니다.")
+        if old_check:
+            cursor.execute(drop_check)
+        if "price_source_url" in columns:
+            cursor.execute(drop_price_url)
+        if "source_url" in columns:
+            cursor.execute(drop_source_url)
+
+        if _current_columns(cursor, "parts") != expected or _parts_price_checks(cursor) != (
+            False,
+            True,
+        ):
+            raise ValueError("부품 출처 URL 마이그레이션 결과가 예상한 구조와 다릅니다.")
+        return True
+
+
+def migrate_compatibility_source_url() -> bool:
+    """Apply 007 only if every stored URL can be recovered from the evidence file."""
+    table = "part_compatibility"
+    expected = _schema_columns(SCHEMA_PATH.read_text(encoding="utf-8"))[table]
+    previous = expected.copy()
+    previous.insert(expected.index("source_publisher") + 1, "source_url")
+    sql = COMPATIBILITY_SOURCE_URL_MIGRATION_PATH.read_text(encoding="utf-8")
+    with closing(get_connection()) as connection, closing(connection.cursor()) as cursor:
+        cursor.execute("SELECT GET_LOCK(CONCAT(DATABASE(), ':catalog_import'), 10)")
+        if cursor.fetchone()[0] != 1:
+            raise ValueError("부품 적재 잠금을 얻지 못했습니다.")
+
+        columns = _current_columns(cursor, table)
+        if columns == expected:
+            return False
+        if columns != previous:
+            raise ValueError("part_compatibility: 출처 URL 마이그레이션 대상 컬럼 구성이 아닙니다.")
+
+        sources = compatibility_source_urls()
+        first_mismatch = None
+        cursor.execute("SELECT compatibility_id, conditions, source_url FROM part_compatibility")
+        for compatibility_id, raw_conditions, url in cursor:
+            conditions = read_specs(raw_conditions)
+            key = conditions.get("_record_key") if isinstance(conditions, dict) else None
+            if first_mismatch is None and (
+                not isinstance(key, str) or not url or sources.get(key) != url
+            ):
+                first_mismatch = compatibility_id
+        if first_mismatch is not None:
+            raise ValueError(
+                "원본 자료와 출처 URL이 일치하지 않아 마이그레이션을 중단했습니다 "
+                f"(compatibility_id={first_mismatch})."
+            )
+
+        cursor.execute(sql)
+        if _current_columns(cursor, table) != expected:
+            raise ValueError("호환성 출처 URL 마이그레이션 결과가 예상한 구조와 다릅니다.")
         return True
 
 

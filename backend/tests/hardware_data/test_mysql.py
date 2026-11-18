@@ -6,6 +6,7 @@ import uuid
 
 import mysql.connector
 
+from app.db.catalog import list_compatibility
 from app.db.connection import get_connection
 from app.domains.hardware.check_assembly import check_catalog_assembly
 from app.domains.hardware.ingestion.common import DATA, read_json, read_specs
@@ -98,6 +99,25 @@ class MySQLTests(unittest.TestCase):
             "SELECT compatibility_id FROM part_compatibility ORDER BY compatibility_id"
         )
         self.assertEqual(self.cursor.fetchall(), original_evidence)
+
+    def test_compatibility_read_resolves_url_from_original_evidence(self):
+        self.cursor.execute(
+            "SELECT compatibility_id,part_a_id,part_b_id,conditions FROM part_compatibility "
+            "ORDER BY compatibility_id LIMIT 1"
+        )
+        evidence_id, part_a_id, part_b_id, conditions = self.cursor.fetchone()
+        record_key = read_specs(conditions)["_record_key"]
+        record = next(
+            record
+            for record in read_json(DATA / "docyx_compatibility.json")["records"]
+            if record["record_key"] == record_key
+        )
+
+        rows = list_compatibility(self.connection, part_ids=[part_a_id, part_b_id])
+        self.assertEqual(
+            next(row["source_url"] for row in rows if row["compatibility_id"] == evidence_id),
+            record["source_url"],
+        )
 
     def test_price_refresh_preserves_quote_snapshot(self):
         quotes, _ = self.make_quotes()

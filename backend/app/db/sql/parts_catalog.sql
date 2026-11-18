@@ -41,11 +41,9 @@ CREATE TABLE IF NOT EXISTS parts (
     name VARCHAR(255) NOT NULL,
     model_number VARCHAR(150) COLLATE utf8mb4_0900_bin NULL,
     specs JSON NOT NULL,
-    source_url TEXT NOT NULL,
     verified_at DATETIME(6) NULL,
     current_price DECIMAL(15,2) NULL,
     currency CHAR(3) NOT NULL DEFAULT 'KRW',
-    price_source_url TEXT NULL,
     price_checked_at DATETIME(6) NULL,
     power_draw_w DECIMAL(8,2) NULL,
     image_url TEXT NULL,
@@ -54,7 +52,7 @@ CREATE TABLE IF NOT EXISTS parts (
     KEY ix_parts_model (category, brand, model_number),
     CONSTRAINT ck_parts_category CHECK (category IN ('cpu','motherboard','ram','gpu','storage','psu','case','cooler')),
     CONSTRAINT ck_parts_price CHECK (current_price IS NULL OR current_price > 0),
-    CONSTRAINT ck_parts_price_source CHECK (current_price IS NULL OR (price_source_url IS NOT NULL AND price_checked_at IS NOT NULL)),
+    CONSTRAINT ck_parts_price_checked_at CHECK ((current_price IS NULL OR price_checked_at IS NOT NULL)),
     CONSTRAINT ck_parts_power_draw CHECK (power_draw_w IS NULL OR power_draw_w > 0),
     CONSTRAINT ck_parts_currency CHECK (currency = 'KRW')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -112,7 +110,6 @@ CREATE TABLE IF NOT EXISTS part_compatibility (
     min_bios_version VARCHAR(50) NULL,
     conditions JSON NOT NULL,
     source_publisher VARCHAR(80) NOT NULL,
-    source_url TEXT NOT NULL,
     source_updated_at DATETIME(6) NULL,
     verified_at DATETIME(6) NOT NULL,
     PRIMARY KEY (compatibility_id),
