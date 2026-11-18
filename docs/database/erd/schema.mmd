@@ -36,13 +36,14 @@ erDiagram
     }
     quotes {
         bigint quote_id PK
-        bigint consultation_id FK
-        int version
-        varchar status
+        bigint user_id FK
+        varchar consultation_type
+        varchar payment_reference UK
+        datetime paid_at
         char currency
         decimal total_amount
+        json performance_goal_snapshot
         datetime created_at
-        datetime updated_at
     }
     quote_items {
         bigint quote_item_id PK
@@ -54,6 +55,7 @@ erDiagram
         text price_source_url
         datetime price_checked_at
         json configuration
+        json selection_basis
     }
     part_compatibility {
         bigint compatibility_id PK
@@ -72,7 +74,6 @@ erDiagram
     quote_validations {
         bigint validation_id PK
         bigint quote_id FK
-        int quote_version
         bigint item_a_id FK
         bigint item_b_id FK
         bigint compatibility_id FK
@@ -85,7 +86,7 @@ erDiagram
     }
     users ||..o{ consultations : "상담 생성"
     consultations ||..o{ messages : "대화 기록"
-    consultations ||..o{ quotes : "견적 생성"
+    users ||..o{ quotes : "결제 견적"
     quotes ||..o{ quote_items : "견적 구성"
     parts ||..o{ quote_items : "선택 부품"
     parts ||..o{ part_compatibility : "부품 A"

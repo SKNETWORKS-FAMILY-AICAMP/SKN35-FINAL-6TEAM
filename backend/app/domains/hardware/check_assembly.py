@@ -6,6 +6,7 @@ from collections import Counter
 from contextlib import closing
 from dataclasses import asdict
 
+from app.db.catalog import list_compatibility, list_parts
 from app.db.connection import get_connection
 from app.domains.hardware.assembly import DEFAULT_OTHER_LOAD_W, AssemblyPart, validate_assembly
 from app.domains.hardware.ingestion.common import read_specs, run_cli
@@ -23,14 +24,11 @@ def check_catalog_assembly(
     """Resolve the selection in one database snapshot controlled by the caller."""
     if (quote_id is None) == (not selection):
         raise ValueError("견적 ID나 부품 목록 중 하나를 지정하세요.")
-    quote_version = None
-    with connection.cursor(dictionary=True) as cursor:
-        if quote_id is not None:
-            cursor.execute("SELECT version FROM quotes WHERE quote_id=%s", (quote_id,))
-            quote = cursor.fetchone()
-            if not quote:
+    if quote_id is not None:
+        with connection.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT quote_id FROM quotes WHERE quote_id=%s", (quote_id,))
+            if cursor.fetchone() is None:
                 raise ValueError(f"견적 {quote_id}을 찾을 수 없습니다.")
-            quote_version = quote["version"]
             cursor.execute(
                 "SELECT p.part_id,p.category,p.name,p.specs,p.power_draw_w,i.quantity "
                 "FROM quote_items AS i JOIN parts AS p ON p.part_id=i.part_id "
@@ -38,37 +36,35 @@ def check_catalog_assembly(
                 (quote_id,),
             )
             rows = cursor.fetchall()
-        else:
-            ids = tuple(selection)
-            placeholders = ",".join(["%s"] * len(ids))
-            cursor.execute(
-                f"SELECT part_id,category,name,specs,power_draw_w FROM parts WHERE part_id IN ({placeholders}) "
-                "ORDER BY part_id",
-                ids,
-            )
-            rows = cursor.fetchall()
-            if missing := set(ids) - {row["part_id"] for row in rows}:
-                raise ValueError(f"DB에 없는 부품 ID: {sorted(missing)}")
-            for row in rows:
-                row["quantity"] = selection[row["part_id"]]
-        parts = [AssemblyPart(**{**row, "specs": read_specs(row["specs"])}) for row in rows]
+    else:
+        rows = list_parts(connection, part_ids=selection)
+        if missing := set(selection) - {row["part_id"] for row in rows}:
+            raise ValueError(f"DB에 없는 부품 ID: {sorted(missing)}")
+        for row in rows:
+            row["quantity"] = selection[row["part_id"]]
 
-        boards = tuple(sorted({part.part_id for part in parts if part.category == "motherboard"}))
-        targets = tuple(sorted({part.part_id for part in parts if part.category in ("cpu", "ram")}))
-        evidence = []
-        if boards and targets:
-            board_params = ",".join(["%s"] * len(boards))
-            target_params = ",".join(["%s"] * len(targets))
-            cursor.execute(
-                "SELECT compatibility_id,part_a_id,part_b_id,check_type,support_status,"
-                "bios_scope,min_bios_version,conditions,source_url FROM part_compatibility "
-                f"WHERE part_a_id IN ({board_params}) AND part_b_id IN ({target_params}) "
-                "AND check_type IN ('CPU_SUPPORT','MEMORY_QVL') ORDER BY compatibility_id",
-                (*boards, *targets),
-            )
-            evidence = cursor.fetchall()
-            for row in evidence:
-                row["conditions"] = read_specs(row["conditions"])
+    parts = [
+        AssemblyPart(
+            part_id=row["part_id"],
+            name=row["name"],
+            category=row["category"],
+            specs=read_specs(row["specs"]),
+            quantity=row["quantity"],
+            power_draw_w=row["power_draw_w"],
+        )
+        for row in rows
+    ]
+    board_ids = {part.part_id for part in parts if part.category == "motherboard"}
+    target_ids = {part.part_id for part in parts if part.category in ("cpu", "ram")}
+    evidence = []
+    if board_ids and target_ids:
+        evidence = [
+            row
+            for row in list_compatibility(connection, part_ids=sorted(board_ids | target_ids))
+            if row["part_a_id"] in board_ids
+            and row["part_b_id"] in target_ids
+            and row["check_type"] in ("CPU_SUPPORT", "MEMORY_QVL")
+        ]
 
     checks = validate_assembly(
         parts,
@@ -80,7 +76,6 @@ def check_catalog_assembly(
     sources = {row["compatibility_id"]: row["source_url"] for row in evidence}
     return {
         "quote_id": quote_id,
-        "quote_version": quote_version,
         "parts": [
             {"part_id": p.part_id, "name": p.name, "category": p.category, "quantity": p.quantity}
             for p in parts

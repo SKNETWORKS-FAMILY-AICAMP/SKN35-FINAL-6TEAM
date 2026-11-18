@@ -15,7 +15,7 @@ LABELS = {
     "consultations": "상담",
     "messages": "대화",
     "parts": "부품",
-    "quotes": "견적",
+    "quotes": "결제 완료 견적",
     "quote_items": "견적 항목",
     "part_compatibility": "공식 호환성 근거",
     "quote_validations": "견적 검증 결과",
@@ -23,7 +23,7 @@ LABELS = {
 RELATIONS = [
     ("users", "user_id", "consultations", "user_id", "상담 생성", False),
     ("consultations", "consultation_id", "messages", "consultation_id", "대화 기록", False),
-    ("consultations", "consultation_id", "quotes", "consultation_id", "견적 생성", False),
+    ("users", "user_id", "quotes", "user_id", "결제 견적", False),
     ("quotes", "quote_id", "quote_items", "quote_id", "견적 구성", False),
     ("parts", "part_id", "quote_items", "part_id", "선택 부품", False),
     ("parts", "part_id", "part_compatibility", "part_a_id", "부품 A", False),
@@ -60,6 +60,7 @@ def main():
         )
         pk = re.search(r"PRIMARY KEY \((\w+)\)", definition)[1]
         fks = {r[3] for r in RELATIONS if r[2] == name}
+        unique_columns = set(re.findall(r"^    UNIQUE KEY \w+ \((\w+)\),?$", definition, re.M))
         mermaid.append(f"    {name} {{")
         table = [
             '<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="7" COLOR="#cbd5e1">',
@@ -67,7 +68,16 @@ def main():
             "<TR><TD><B>키</B></TD><TD><B>컬럼</B></TD><TD><B>자료형</B></TD></TR>",
         ]
         for field, dtype, rest in fields:
-            key = "PK" if field == pk else "FK" if field in fks else ""
+            keys = [
+                key
+                for applies, key in (
+                    (field == pk, "PK"),
+                    (field in fks, "FK"),
+                    (field in unique_columns, "UK"),
+                )
+                if applies
+            ]
+            key = ", ".join(keys)
             mermaid.append(
                 f"        {dtype.split('(')[0].lower()} {field}" + (f" {key}" if key else "")
             )
