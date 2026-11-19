@@ -7,7 +7,7 @@ import pytest
 
 from app.domains.hardware.ingestion.common import (
     DATA,
-    compatibility_source_urls,
+    compatibility_sources,
     price_value,
     read_json,
     sql_time,
@@ -143,16 +143,17 @@ class DocyxTests(unittest.TestCase):
             validate_records([record], parts)
 
 
-def test_compatibility_import_rejects_a_source_not_in_the_archive_before_writing():
-    record_key, source_url = next(iter(compatibility_source_urls().items()))
+@pytest.mark.parametrize(
+    ("field", "wrong_value"),
+    [("source_url", "https://example.com/wrong-source"), ("source_publisher", "wrong-source")],
+)
+def test_compatibility_import_rejects_mismatched_source_before_writing(field, wrong_value):
+    record_key, source = next(iter(compatibility_sources().items()))
+    record = {"record_key": record_key, **source, field: wrong_value}
     connection = Mock()
 
     with pytest.raises(ValueError, match="출처와 일치하지 않습니다"):
-        upsert_compatibility(
-            connection,
-            [{"record_key": record_key, "source_url": source_url + "#wrong-source"}],
-            CHECKED_AT,
-        )
+        upsert_compatibility(connection, [record])
 
     connection.cursor.assert_not_called()
 
