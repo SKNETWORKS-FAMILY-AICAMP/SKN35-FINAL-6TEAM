@@ -27,6 +27,10 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+RUN_DIR = Path(__file__).resolve().parents[2] / "data" / "collection" / "runs" / "2026-11-17"
+CONFIG_DIR = RUN_DIR / "configs" / "current"
+OUTPUT_DIR = RUN_DIR / "output"
+
 USER_AGENT = "BUILDWISE-DatasetCollector/0.1 (research; contact: project owner)"
 MAX_RESPONSE_BYTES = 25 * 1024 * 1024
 DEFAULT_MAX_FILE_BYTES = 250 * 1024 * 1024
@@ -544,16 +548,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="공개 성능 평가 데이터 후보 탐색 및 승인 기반 수집")
     sub = parser.add_subparsers(dest="command", required=True)
     discover_parser = sub.add_parser("discover", help="Hugging Face, GitHub, Kaggle에서 후보 메타데이터 탐색")
-    discover_parser.add_argument("--topics", type=Path, default=Path(__file__).with_name("topics.json"))
-    discover_parser.add_argument("--output", type=Path, default=Path("output/candidates.csv"))
+    discover_parser.add_argument("--topics", type=Path, default=CONFIG_DIR / "topics.json")
+    discover_parser.add_argument("--output", type=Path, default=OUTPUT_DIR / "candidates.csv")
     discover_parser.add_argument("--limit", type=int, default=10)
     discover_parser.add_argument("--delay", type=float, default=1.0)
     discover_parser.add_argument("--platforms", nargs="+", choices=sorted(DISCOVERERS))
     discover_parser.set_defaults(func=discover)
 
     collect_parser = sub.add_parser("collect", help="검토·승인한 manifest의 파일만 계획/수집")
-    collect_parser.add_argument("--manifest", type=Path, default=Path(__file__).with_name("approved_sources.json"))
-    collect_parser.add_argument("--output-dir", type=Path, default=Path("output/raw"))
+    collect_parser.add_argument("--manifest", type=Path, default=CONFIG_DIR / "approved_sources.json")
+    collect_parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR / "raw")
     collect_parser.add_argument("--delay", type=float, default=2.0)
     collect_parser.add_argument("--execute", action="store_true", help="승인 검사를 통과한 경우 실제 다운로드")
     collect_parser.set_defaults(func=collect)
@@ -563,8 +567,8 @@ def main() -> int:
     parts_parser.set_defaults(func=import_parts_command)
 
     benchmark_parser = sub.add_parser("prepare-benchmarks", help="기존 벤치마크 원자료를 ERD 미리보기로 변환")
-    benchmark_parser.add_argument("--parts-file", type=Path, default=Path(__file__).with_name("output") / "normalized" / "pc-part-dataset_c52a04ca" / "parts_import_preview.csv")
-    benchmark_parser.add_argument("--output-dir", type=Path, default=Path(__file__).with_name("output") / "normalized" / "benchmarks")
+    benchmark_parser.add_argument("--parts-file", type=Path, default=OUTPUT_DIR / "normalized" / "pc-part-dataset_c52a04ca" / "parts_import_preview.csv")
+    benchmark_parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR / "normalized" / "benchmarks")
     benchmark_parser.add_argument("--sources", nargs="+", choices=["opengpu", "blender", "llmspeed"], default=["opengpu", "blender", "llmspeed"])
     benchmark_parser.add_argument("--limit", type=int, default=1000, help="출처별 최대 행 수; 0은 전체 처리")
     benchmark_parser.add_argument("--all", action="store_true", help="선택한 원자료의 전체 행 처리 (Blender 대용량)")

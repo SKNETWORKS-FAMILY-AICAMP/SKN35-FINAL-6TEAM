@@ -1,18 +1,18 @@
 # 2026-11-17 공유 데이터 다운로드
 
-이 폴더에는 팀원이 받을 **공유 데이터 ZIP 하나와 이 안내서만** 있습니다. 봇·검색 로그·보고서·시각화·일일 작업일지는 [2주차 11월 17일 작업 폴더](../../작업일지/주차별/2주차/11월17일/)에서 확인합니다.
+벤치마크·부품 미리보기 배포본을 받는 방법입니다. [수집 봇](../../../scripts/collection/README.md), [실행 기록](../../../data/collection/runs/2026-11-17/), [산출물 요약](결과/2026-11-17_수집_산출물_요약.md), [당일 작업일지와 시각화](../../작업일지/주차별/2주차/11월17일/11월17일_작업일지.md)를 함께 볼 수 있습니다.
 
 ## 다운로드
 
-- [2026-11-17 공유 데이터 전체 ZIP](https://raw.githubusercontent.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM/ssu/docs/%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%88%98%EC%A7%91/2026-11-17/2026-11-17_%EA%B3%B5%EC%9C%A0%EB%8D%B0%EC%9D%B4%ED%84%B0_%EC%9D%BC%EA%B4%84%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.zip)
+- [2026-11-17 공유 데이터 전체 ZIP](../../../data/benchmarks/releases/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip)
 - 크기: 76,628,126 bytes
 - SHA-256: `1085284418344EE4F8B4710546D501BC8E7C98B89BACB0A67AF08C15D77DA4E0`
 
-Windows PowerShell에서 압축을 풀고 파일 무결성을 확인합니다.
+저장소 루트의 PowerShell에서 파일 해시를 확인한 뒤 압축을 풉니다.
 
 ```powershell
-Get-FileHash .\2026-11-17_공유데이터_일괄다운로드.zip -Algorithm SHA256
-Expand-Archive .\2026-11-17_공유데이터_일괄다운로드.zip -DestinationPath .\2026-11-17_공유데이터
+Get-FileHash .\data\benchmarks\releases\2026-11-17\2026-11-17_공유데이터_일괄다운로드.zip -Algorithm SHA256
+Expand-Archive .\data\benchmarks\releases\2026-11-17\2026-11-17_공유데이터_일괄다운로드.zip -DestinationPath .\data\collection\runs\2026-11-17\output\공유데이터
 ```
 
 ## 압축에 들어 있는 파일
@@ -44,4 +44,4 @@ Expand-Archive .\2026-11-17_공유데이터_일괄다운로드.zip -DestinationP
 
 CSV는 적재 검토 산출물이며 실제 DB에 넣은 데이터가 아닙니다. ERD 8개 테이블을 유지하기로 했으므로 DB 담당자와 실제 저장 위치·필드·PK/FK를 먼저 맞춥니다. 검증 전에는 추천이나 견적에 바로 사용하지 않습니다.
 
-원본 데이터 재수집이 필요하면 [출처 링크와 이용 조건](../README.md)을 확인하고, 봇 사용법·분야별 한계는 [작업 기록 폴더](../../작업일지/주차별/2주차/11월17일/)를 참고합니다.
+원본 데이터 재수집이 필요하면 [출처 링크와 이용 조건](../README.md)을 확인하고, [봇 사용법](../../../scripts/collection/README.md)과 [분야별 한계](결과/2026-11-17_누락후보_재탐색_비교.md)를 참고합니다.
