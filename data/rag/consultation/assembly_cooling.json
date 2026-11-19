@@ -1,0 +1,20 @@
+[
+  {
+    "chunk_key": "AMD:RYZEN-5-7600",
+    "title": "AMD Ryzen 5 7600 공식 사양",
+    "url": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600.html",
+    "text": "AMD는 Ryzen 5 7600의 기본 열설계전력(TDP)을 65 W, 소켓을 AM5, 최대 동작 온도(Tjmax)를 95°C로 명시한다. 박스 제품의 기본 쿨러는 Wraith Stealth다. 이 사양표는 기본 TDP와 최대 동작 온도를 제시하며 타사 쿨러의 냉각 시험 결과는 제공하지 않는다.",
+    "model": "Ryzen 5 7600",
+    "publisher": "AMD",
+    "topic": "CPU 냉각과 기본 TDP"
+  },
+  {
+    "chunk_key": "THERMALRIGHT:PA120-SE:DTPC",
+    "title": "Thermalright Peerless Assassin 120 SE 공식 DTPC 시험 설명",
+    "url": "https://www.thermalright.com.cn/upload/ab5782a70fc046ffb2b108a18064a984.jpg",
+    "text": "Thermalright의 Peerless Assassin 120 SE 제품 도표는 DTPC(동적 방열 용량)를 125~260 W로 표기한다. 별도 AGHP 기술 비교 도표에는 120~265 W 범위가 표시된다. 제조사는 열 시험대에서 얻은 값이며 CPU의 공칭 TDP와 직접 대응하지 않고 실제 방열 성능은 플랫폼에 따라 달라진다고 설명한다. 도표에는 Ryzen 5 7600을 장시간 구동했을 때의 온도 측정 결과가 없다.",
+    "model": "Peerless Assassin 120 SE",
+    "publisher": "Thermalright",
+    "topic": "공랭 쿨러 방열 용량과 CPU 조합 검증"
+  }
+]
