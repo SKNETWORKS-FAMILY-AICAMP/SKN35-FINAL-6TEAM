@@ -19,7 +19,7 @@ REPO = "docyx/pc-part-dataset"
 REVISION = "c52a04ca9465c83997ed335f7767b09a2005dd26"
 DATASET_LAST_UPDATED = "2025-07-23"
 BASE_URL = f"https://raw.githubusercontent.com/{REPO}/{REVISION}/data/csv"
-OUTPUT_ROOT = Path(__file__).with_name("output")
+OUTPUT_ROOT = Path(__file__).resolve().parents[2] / "data" / "collection" / "runs" / "2026-11-17" / "output"
 RAW_DIR = OUTPUT_ROOT / "raw" / "pc-part-dataset_c52a04ca" / "csv"
 NORMALIZED_DIR = OUTPUT_ROOT / "normalized" / "pc-part-dataset_c52a04ca"
 

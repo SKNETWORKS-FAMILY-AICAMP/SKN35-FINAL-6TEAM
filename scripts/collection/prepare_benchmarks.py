@@ -13,8 +13,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
-BOT_DIR = Path(__file__).resolve().parent
-OUTPUT = BOT_DIR / "output"
+OUTPUT = Path(__file__).resolve().parents[2] / "data" / "collection" / "runs" / "2026-11-17" / "output"
 DEFAULT_PARTS = OUTPUT / "normalized" / "pc-part-dataset_c52a04ca" / "parts_import_preview.csv"
 OPEN_GPU_DIR = OUTPUT / "raw" / "opengpubenchmarks_48310db"
 BLENDER_DIR = OUTPUT / "raw" / "blender_open_data_cc0_20261116"
