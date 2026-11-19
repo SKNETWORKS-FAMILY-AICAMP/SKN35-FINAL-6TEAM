@@ -37,13 +37,15 @@ flowchart LR
 | 사용자 식별 | `users` | 사용자 ID, 표시 이름 |
 | 상담 시작·요구사항 관리 | `consultations` | 사용자 ID, 상담 목적, 요구사항 JSON |
 | 상담 내용 조회 | `messages` | 상담 ID, 발화자 역할, 메시지, 작성 시각 |
-| 부품 검색·후보 선택 | `parts` | 분류, 모델, 사양, 기준 가격, 전력, 사진 URL 및 출처 |
-| 제조사 호환성 확인 | `part_compatibility` | 메인보드–CPU 또는 메인보드–RAM 등의 부품 쌍, 지원 상태, BIOS·QVL 조건, 출처 |
+| 부품 검색·후보 선택 | `parts` | 분류, 모델, 사양, 기준 가격, 전력, 사진 URL, 사양 JSON 내 원본 출처 |
+| 제조사 호환성 확인 | `part_compatibility` | 메인보드–CPU 또는 메인보드–RAM 등의 부품 쌍, 지원 상태, BIOS·QVL 조건, 근거 원본 키 |
 | 결제 완료 견적 | `quotes` | 사용자 ID, 부품 교체 또는 신규 조립 유형, 결제 식별값·시각, 당시 목표 성능, 총액 |
 | 결제 품목 조회 | `quote_items` | 견적 ID, 부품 ID, 수량, 선택 옵션, 당시 상품명·단가와 선택 근거 |
 | 검증 결과 보관 구조 | `quote_validations` | 견적 ID, 검사 종류, 결과·사유, 입력·근거 자료, 선택적인 대상 항목과 제조사 근거 ID |
 
-부품 가격을 갱신한 이후에도 견적의 결제 단가는 `quote_items.unit_price`에서 조회합니다. `part_compatibility`에 있는 제조사 지원 근거는 여러 상담에서 조회할 수 있습니다. 결제 저장 경로가 기록하는 테이블은 `quotes`와 `quote_items`입니다.
+`list_compatibility`는 `part_compatibility.conditions._record_key`로 출처 발행자와 원문 URL을 찾아 반환합니다. [호환성 근거 자료](../../data/hardware/docyx_compatibility.json)
+
+부품 가격을 갱신한 이후에도 견적의 결제 단가는 `quote_items.unit_price`에서 조회합니다. 결제 저장 경로가 기록하는 테이블은 `quotes`와 `quote_items`입니다.
 
 ## PSU 산정과 RAG의 경계
 

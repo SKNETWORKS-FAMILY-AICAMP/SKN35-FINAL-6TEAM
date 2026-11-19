@@ -165,5 +165,5 @@ python .\dataset_crawler.py prepare-benchmarks --all
 - [API.md](https://github.com/docyx/pc-part-dataset/blob/main/API.md) — 부품별 필드/단위 설명
 - [`data/` 디렉터리](https://github.com/docyx/pc-part-dataset/tree/main/data) — CSV/JSON/JSONL 및 압축 파일
 - [고정 커밋 CPU CSV](https://github.com/docyx/pc-part-dataset/blob/c52a04ca9465c83997ed335f7767b09a2005dd26/data/csv/cpu.csv) 및 같은 `data/csv/`의 나머지 7개 원본
-- 기존 수집 데이터: [수집 인벤토리](../dataset_inventory.json). 원본 Blender·llm-speed·Open GPU Benchmarks 파일은 저장소에 복제하지 않고 위 안내의 원본 링크를 사용한다.
-- 가져오기 변환기/산출물: [부품 가져오기 봇](../../봇/import_pc_parts.py), [부품 정규화 미리보기가 포함된 전체 데이터 ZIP](../../../../../../데이터_수집/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip)
+- 기존 수집 데이터: [수집 인벤토리](../../../../../data/collection/runs/2026-11-17/dataset_inventory.json). 원본 Blender·llm-speed·Open GPU Benchmarks 파일은 저장소에 복제하지 않고 위 안내의 원본 링크를 사용한다.
+- 가져오기 변환기/산출물: [부품 가져오기 봇](../../../../../scripts/collection/import_pc_parts.py), [부품 정규화 미리보기가 포함된 전체 데이터 ZIP](../../../../../data/benchmarks/releases/2026-11-17/2026-11-17_공유데이터_일괄다운로드.zip)

@@ -25,11 +25,8 @@ erDiagram
         varchar name
         varchar model_number
         json specs
-        text source_url
-        datetime verified_at
         decimal current_price
         char currency
-        text price_source_url
         datetime price_checked_at
         decimal power_draw_w
         text image_url
@@ -66,10 +63,6 @@ erDiagram
         varchar bios_scope
         varchar min_bios_version
         json conditions
-        varchar source_publisher
-        text source_url
-        datetime source_updated_at
-        datetime verified_at
     }
     quote_validations {
         bigint validation_id PK
