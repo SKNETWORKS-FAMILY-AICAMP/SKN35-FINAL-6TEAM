@@ -89,7 +89,7 @@ class MySQLTests(unittest.TestCase):
         self.assertTrue(original_evidence)
         for _ in range(2):
             upsert_parts(self.connection, [part])
-            refresh = upsert_compatibility(self.connection, evidence, "2026-11-16T06:00:00Z")
+            refresh = upsert_compatibility(self.connection, evidence)
             self.assertEqual(refresh["inserted"], 0)
             self.assertEqual(refresh["withheld"], [])
         self.cursor.execute("SELECT COUNT(*) FROM parts")
@@ -100,13 +100,14 @@ class MySQLTests(unittest.TestCase):
         )
         self.assertEqual(self.cursor.fetchall(), original_evidence)
 
-    def test_compatibility_read_resolves_url_from_original_evidence(self):
+    def test_compatibility_read_resolves_source_from_original_evidence(self):
         self.cursor.execute(
             "SELECT compatibility_id,part_a_id,part_b_id,conditions FROM part_compatibility "
             "ORDER BY compatibility_id LIMIT 1"
         )
         evidence_id, part_a_id, part_b_id, conditions = self.cursor.fetchone()
-        record_key = read_specs(conditions)["_record_key"]
+        conditions = read_specs(conditions)
+        record_key = conditions["_record_key"]
         record = next(
             record
             for record in read_json(DATA / "docyx_compatibility.json")["records"]
@@ -114,10 +115,10 @@ class MySQLTests(unittest.TestCase):
         )
 
         rows = list_compatibility(self.connection, part_ids=[part_a_id, part_b_id])
-        self.assertEqual(
-            next(row["source_url"] for row in rows if row["compatibility_id"] == evidence_id),
-            record["source_url"],
-        )
+        evidence = next(row for row in rows if row["compatibility_id"] == evidence_id)
+        self.assertEqual(evidence["source_url"], record["source_url"])
+        self.assertEqual(evidence["source_publisher"], record["source_publisher"])
+        self.assertEqual(evidence["conditions"], conditions)
 
     def test_price_refresh_preserves_quote_snapshot(self):
         quotes, _ = self.make_quotes()

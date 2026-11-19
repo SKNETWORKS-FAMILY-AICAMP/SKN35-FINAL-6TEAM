@@ -197,7 +197,6 @@ def prepare_parts(
                 "name": name,
                 "model_number": None,
                 "specs": specs,
-                "verified_at": None,
                 "current_price": won,
                 "price_checked_at": checked_at,
             }
