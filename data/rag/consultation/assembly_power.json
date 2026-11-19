@@ -1,0 +1,56 @@
+[
+  {
+    "chunk_key": "POWER:NZXT-H5-FLOW-2024-PSU",
+    "title": "NZXT H5 Flow (2024) 파워 장착 규격",
+    "url": "https://nzxt.com/products/h5-flow",
+    "publisher": "NZXT",
+    "model": "H5 Flow (2024)",
+    "topic": "ATX 파워 장착 규격과 길이",
+    "text": "NZXT H5 Flow 2024 기본 모델 CC-H52FB-01(블랙)과 CC-H52FW-01(화이트)은 ATX 파워를 지원한다. 장착할 파워 본체의 길이는 최대 200 mm다."
+  },
+  {
+    "chunk_key": "POWER:MONTECH-APX-650W",
+    "title": "MONTECH APX 650W 출력·치수·케이블",
+    "url": "https://www.montechpc.com/apx-650w",
+    "publisher": "MONTECH",
+    "model": "Montech APX 650W",
+    "topic": "파워 장착 길이, 정격 출력과 PCIe 보조전원",
+    "text": "MONTECH APX 650W의 정격 출력은 650 W다. ATX 규격이며 본체 길이 140 mm, 폭 150 mm, 높이 86 mm다. 기본 PCIe 케이블 한 가닥에 6+2핀 커넥터가 두 개 달려 있다."
+  },
+  {
+    "chunk_key": "POWER:MONTECH-APX-650W-SECOND-SPEC",
+    "title": "MONTECH APX 650W 사양표 · Telon 제품 페이지",
+    "url": "https://www.telon.com.tw/en/products_detail.php?nid=408",
+    "publisher": "MONTECH",
+    "model": "Montech APX 650W",
+    "topic": "ATX 파워 본체 치수와 표기 순서",
+    "text": "MONTECH의 Telon 제품 페이지에서 APX 650W는 Intel ATX12V 파워이며, 길이×폭×높이는 150×140×86 mm로 표기된다. 총 출력은 650 W이고 PCIe 6+2핀 커넥터 두 개가 명시돼 있다."
+  },
+  {
+    "chunk_key": "POWER:ZOTAC-3060-TWIN-EDGE-E",
+    "title": "ZOTAC RTX 3060 Twin Edge 12GB 전력 사양 (ZT-A30600E-10M)",
+    "url": "https://www.zotac.com/download/mediadrivers/External/GraphicsCard/3060/Brochure/ZT-A30600E-10M-brochure.pdf",
+    "publisher": "ZOTAC",
+    "model": "GeForce RTX 3060 Twin Edge 12GB",
+    "topic": "GPU 권장 파워와 최대 소비전력",
+    "text": "ZOTAC의 12GB RTX 3060 Twin Edge ZT-A30600E-10M은 부스트 클럭 1777 MHz, 카드 길이 224.1 mm다. GPU 최대 소비전력은 170 W, 권장 시스템 파워는 600 W이며 보조전원으로 8핀 하나를 사용한다."
+  },
+  {
+    "chunk_key": "POWER:ZOTAC-3060-TWIN-EDGE-E2",
+    "title": "ZOTAC RTX 3060 Twin Edge 12GB 전력 사양 (ZT-A30600E2-10M)",
+    "url": "https://www.zotac.com/download/mediadrivers/External/GraphicsCard/3060/Brochure/ZT-A30600E2-10M-brochure.pdf",
+    "publisher": "ZOTAC",
+    "model": "GeForce RTX 3060 Twin Edge 12GB",
+    "topic": "GPU 권장 파워와 최대 소비전력",
+    "text": "ZOTAC의 12GB RTX 3060 Twin Edge ZT-A30600E2-10M은 부스트 클럭 1777 MHz, 카드 길이 224.1 mm다. GPU 최대 소비전력은 170 W, 권장 시스템 파워는 600 W이며 보조전원으로 8핀 하나를 사용한다."
+  },
+  {
+    "chunk_key": "POWER:AMD-RYZEN-MASTER-PPT",
+    "title": "AMD Ryzen Master 사용자 가이드 · CPU 소켓 전력 한도",
+    "url": "https://docs.amd.com/r/en-US/68886-ryzen-master-user-guide/CPU",
+    "publisher": "AMD",
+    "model": "AMD Ryzen Master",
+    "topic": "CPU 소켓 전력(PPT)과 Precision Boost Overdrive",
+    "text": "AMD Ryzen Master는 PPT를 CPU 소켓 전체의 전력 한도로 표시한다. Precision Boost Overdrive(PBO)를 사용하면 기본 전력 한도를 넘어 메인보드가 허용하는 한도까지 동작할 수 있다. 사용 중인 CPU의 적용 한도는 BIOS 또는 Ryzen Master의 설정에서 확인한다."
+  }
+]
