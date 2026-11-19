@@ -10,7 +10,6 @@ from urllib.request import urlopen
 from app.domains.hardware.ingestion.common import json_text, price_value
 
 REVISION = "06ffc8eec068db5e8145e012ad2ec11e56a7c969"
-REPOSITORY = "https://github.com/docyx/pc-part-dataset"
 RAW = "https://raw.githubusercontent.com/docyx/pc-part-dataset"
 FILES = {
     "cpu": ("cpu", "1e3fd9ba6bf11fca4217675d67ed5edd0d60cc6cb2604418c443cf474fe58c1c"),
@@ -153,7 +152,6 @@ def prepare_parts(
     parts, counts = {}, {}
     for slug, rows in snapshot.items():
         category, _ = FILES[slug]
-        source = f"{REPOSITORY}/blob/{REVISION}/data/json/{slug}.json"
         stats = counts[category] = Counter(source_rows=len(rows))
         for raw in rows:
             usd = price_value(raw.get("price"))
@@ -199,10 +197,7 @@ def prepare_parts(
                 "name": name,
                 "model_number": None,
                 "specs": specs,
-                "source_url": source,
-                "verified_at": None,
                 "current_price": won,
-                "price_source_url": source,
                 "price_checked_at": checked_at,
             }
 
