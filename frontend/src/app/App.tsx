@@ -69,6 +69,7 @@ export function App() {
     <main>
       <header className="top">
         <h1>BUILDWISE</h1>
+        <a href="?rag=1">PC 부품 상담 시연</a>
         <span className="badge" data-testid="test-data-badge">
           테스트 데이터 · Mock 모드
         </span>
