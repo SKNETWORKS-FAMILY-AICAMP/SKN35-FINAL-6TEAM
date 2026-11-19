@@ -4,8 +4,8 @@
 
 ## 다운로드
 
-- [전체 데이터 ZIP](BUILDWISE_RAG_통합데이터_최종본_2026-11-17.zip): 데이터 사전, ID 충돌·조인 안내, ID 배정표, 정규화 CSV/JSONL 등 전체 패키지
-- [확인용 Excel](BUILDWISE_RAG_데이터_통합_최종본_2026-11-17.xlsx): 시트별 통합 결과와 ID 배정표를 빠르게 확인
+- [전체 데이터 ZIP](../../../data/rag/releases/2026-11-18/BUILDWISE_RAG_통합데이터_최종본_2026-11-17.zip): 데이터 사전, ID 충돌·조인 안내, ID 배정표, 정규화 CSV/JSONL 등 전체 패키지
+- [확인용 Excel](../../../data/rag/releases/2026-11-18/BUILDWISE_RAG_데이터_통합_최종본_2026-11-17.xlsx): 시트별 통합 결과와 ID 배정표를 빠르게 확인
 - [Google Sheets 최종본](https://docs.google.com/spreadsheets/d/1OOguiAQCe1_D4CHUZweHut-FTDGw36N0BuO9Ws6_sZ0/edit)
 
 ## 압축 해제 후 읽는 순서
@@ -17,11 +17,11 @@
 
 ## 무결성 확인
 
-PowerShell에서 다운로드한 파일이 이 폴더의 파일과 같은지 확인할 수 있습니다.
+저장소 루트의 PowerShell에서 두 배포 파일의 SHA-256을 확인합니다.
 
 ```powershell
-Get-FileHash .\BUILDWISE_RAG_통합데이터_최종본_2026-11-17.zip -Algorithm SHA256
-Get-FileHash .\BUILDWISE_RAG_데이터_통합_최종본_2026-11-17.xlsx -Algorithm SHA256
+Get-FileHash .\data\rag\releases\2026-11-18\BUILDWISE_RAG_통합데이터_최종본_2026-11-17.zip -Algorithm SHA256
+Get-FileHash .\data\rag\releases\2026-11-18\BUILDWISE_RAG_데이터_통합_최종본_2026-11-17.xlsx -Algorithm SHA256
 ```
 
 - ZIP SHA-256: `FF32588B0EC12B69661C910CD920304AF2CBC7D711BDEDAFB136F287A3AA1261`

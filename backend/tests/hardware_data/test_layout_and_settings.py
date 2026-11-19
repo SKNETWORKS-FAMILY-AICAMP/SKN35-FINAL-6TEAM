@@ -1,6 +1,8 @@
 """Regression checks for the move into the shared backend structure."""
 
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -72,6 +74,20 @@ class SettingsTests(unittest.TestCase):
 
 
 class LayoutTests(unittest.TestCase):
+    def test_mysql_modules_load_without_the_mock_hardware_pack(self):
+        subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import sys\n"
+                "import app.db.catalog\n"
+                "import app.domains.hardware.check_assembly\n"
+                "assert 'app.domains.hardware.pack' not in sys.modules",
+            ],
+            cwd=REPO_ROOT / "backend",
+            check=True,
+        )
+
     def test_schema_tools_and_erd_are_outside_data(self):
         self.assertEqual(DATA, REPO_ROOT / "data/hardware")
         self.assertTrue(SCHEMA_PATH.is_file())

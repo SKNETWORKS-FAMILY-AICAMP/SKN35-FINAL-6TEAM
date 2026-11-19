@@ -1,0 +1,254 @@
+{
+  "parts": [
+    {
+      "part_source_key": "verified-motherboard-0ea2734772202653",
+      "category": "motherboard",
+      "brand": "ASUS",
+      "name": "Asus TUF GAMING B550-PLUS",
+      "model_number": "TUF GAMING B550-PLUS",
+      "match_specs": {
+        "ram_type": "DDR4"
+      },
+      "review_file": "docyx_compatibility.json"
+    },
+    {
+      "part_source_key": "verified-motherboard-f4c6d46c2b8a73c0",
+      "category": "motherboard",
+      "brand": "MSI",
+      "name": "MSI MAG B550 TOMAHAWK",
+      "model_number": "MAG B550 TOMAHAWK",
+      "match_specs": {
+        "ram_type": "DDR4"
+      },
+      "review_file": "docyx_compatibility.json"
+    },
+    {
+      "part_source_key": "docyx:bc4ec98849f0fc359e52d90f34b8c6cd1cee014808898333c0881c597b5a3dc9",
+      "category": "cooler",
+      "brand": "Noctua",
+      "name": "Noctua NH-D12L",
+      "model_number": null,
+      "match_specs": {
+        "rpm": [
+          450,
+          2000
+        ],
+        "color": "Beige / Brown"
+      },
+      "review_file": "reviewed_power_specs.json"
+    },
+    {
+      "part_source_key": "docyx:f7a57a26ccb0568c295f899acae8704735cf5a317960736726140765963c0d9b",
+      "category": "cooler",
+      "brand": "Noctua",
+      "name": "Noctua NH-D12L CHROMAX.BLACK",
+      "model_number": null,
+      "match_specs": {
+        "rpm": [
+          450,
+          2000
+        ],
+        "color": "Black"
+      },
+      "review_file": "reviewed_power_specs.json"
+    },
+    {
+      "part_source_key": "docyx:ad6ff5e42f1cb73ab3e704bc273d4b79c6bef4b52e0b6f9013fe3383e2ad88ff",
+      "category": "cooler",
+      "brand": "Noctua",
+      "name": "Noctua NH-D15",
+      "model_number": null,
+      "match_specs": {
+        "rpm": [
+          300,
+          1500
+        ]
+      },
+      "review_file": "reviewed_power_specs.json"
+    },
+    {
+      "part_source_key": "docyx:8f6f1e08121ddcd9f15e9ec399a6438a48f3209a819d1f90ea0e80981909ea97",
+      "category": "cooler",
+      "brand": "Noctua",
+      "name": "Noctua NH-D15 G2",
+      "model_number": null,
+      "match_specs": {
+        "rpm": 1500,
+        "color": "Brown / Silver"
+      },
+      "review_file": "reviewed_power_specs.json"
+    },
+    {
+      "part_source_key": "docyx:f8c855aaddda55bbff4fc694a762332ca62af5458532c52badcd72667478395d",
+      "category": "cooler",
+      "brand": "Noctua",
+      "name": "Noctua NH-D15 G2 HBC",
+      "model_number": null,
+      "match_specs": {
+        "rpm": 1500,
+        "color": "Brown / Silver"
+      },
+      "review_file": "reviewed_power_specs.json"
+    },
+    {
+      "part_source_key": "docyx:add3a40ae1d356a0b2ce7dc4eb03bb831db40d755e687e947b34e2794c561c51",
+      "category": "cooler",
+      "brand": "Noctua",
+      "name": "Noctua NH-D15 G2 LBC",
+      "model_number": null,
+      "match_specs": {
+        "rpm": 1500,
+        "color": "Brown / Silver"
+      },
+      "review_file": "reviewed_power_specs.json"
+    },
+    {
+      "part_source_key": "docyx:0f3103bd48eff9c8315cf6a8f3e1365686c95252325a69f18b7b362915732b41",
+      "category": "cooler",
+      "brand": "Noctua",
+      "name": "Noctua NH-D15S",
+      "model_number": null,
+      "match_specs": {
+        "rpm": [
+          300,
+          1500
+        ]
+      },
+      "review_file": "reviewed_power_specs.json"
+    },
+    {
+      "part_source_key": "docyx:01c1ab86b8ef7e9ad591da4cd5f233d793d07b97afa307c52673b4edb24bc26b",
+      "category": "cooler",
+      "brand": "Noctua",
+      "name": "Noctua NH-U12A",
+      "model_number": null,
+      "match_specs": {
+        "rpm": [
+          450,
+          2000
+        ],
+        "color": "Brown"
+      },
+      "review_file": "reviewed_power_specs.json"
+    },
+    {
+      "part_source_key": "docyx:caacd7829fa66e43e9d6b5606fff60b36a397894acc2268ddd13b01ea8f177f4",
+      "category": "cooler",
+      "brand": "Noctua",
+      "name": "Noctua NH-U12A chromax.black",
+      "model_number": null,
+      "match_specs": {
+        "rpm": [
+          450,
+          2000
+        ],
+        "color": "Black"
+      },
+      "review_file": "reviewed_power_specs.json"
+    }
+  ],
+  "links": [
+    {
+      "chunk_key": "BW20261119:CHK-HW19-006",
+      "require_model_match": true,
+      "source_key": "SOURCE-088",
+      "reviewed_text_sha256": "4f8a315aa62c7bc6610b3b0554f033ee3262addc206577c76d7fa9b716be1e78",
+      "review_note": "M2_1과 M2_2 규격을 설명하는 보드 모델이 일치합니다.",
+      "part_source_keys": [
+        "verified-motherboard-f4c6d46c2b8a73c0"
+      ],
+      "compatibility_record_keys": []
+    },
+    {
+      "chunk_key": "BW20261119:CHK-HW19-007",
+      "require_model_match": true,
+      "source_key": "SOURCE-088",
+      "reviewed_text_sha256": "d54719b32e18f6df933967a03da711dcf9f0cd62b385f8c0c77bccd556f5fcc7",
+      "review_note": "세 슬롯을 동시 사용할 때의 대역폭 조건이 이 보드 모델에 적용됩니다.",
+      "part_source_keys": [
+        "verified-motherboard-f4c6d46c2b8a73c0"
+      ],
+      "compatibility_record_keys": []
+    },
+    {
+      "chunk_key": "BW20261119:CHK-HW19-008",
+      "require_model_match": true,
+      "source_key": "SOURCE-089",
+      "reviewed_text_sha256": "2ee3c0c5b924451fa965fbfcecc63aa77295eb65d48aed9538cf8c35cad37c5e",
+      "review_note": "M.2_2와 SATA 포트의 공유 조건을 설명하는 보드 모델이 일치합니다.",
+      "part_source_keys": [
+        "verified-motherboard-0ea2734772202653"
+      ],
+      "compatibility_record_keys": []
+    },
+    {
+      "chunk_key": "BW20261119:CHK-HW19-009",
+      "require_model_match": true,
+      "source_key": "SOURCE-089",
+      "reviewed_text_sha256": "0784bed95ce2495a9ccdbcda5ee2028e1693ce97d8d731dcb0ef64f54f7e8fdf",
+      "review_note": "PCIEX16_2 대역폭 공유 조건을 설명하는 보드 모델이 일치합니다.",
+      "part_source_keys": [
+        "verified-motherboard-0ea2734772202653"
+      ],
+      "compatibility_record_keys": []
+    },
+    {
+      "chunk_key": "BW20261119:CHK-HW19-020",
+      "source_key": "SOURCE-096",
+      "reviewed_text_sha256": "dc787f75af2104832c6a67ffd0d893193d5ff56dace79cabb87a91782f94e84e",
+      "review_note": "전면 팬과 RAM 간격 설명은 본문에서 NH-D15 G2에 한정합니다.",
+      "part_source_keys": [
+        "docyx:8f6f1e08121ddcd9f15e9ec399a6438a48f3209a819d1f90ea0e80981909ea97"
+      ],
+      "compatibility_record_keys": []
+    },
+    {
+      "chunk_key": "BW20261119:CHK-HW19-021",
+      "source_key": "SOURCE-096",
+      "reviewed_text_sha256": "78e25e78ce94f21849a592a2298c6b7535bd0464008c42e0273f06c9ea19faff",
+      "review_note": "전면 팬 제거 시 여유 공간을 비교한 두 쿨러의 기본 모델입니다.",
+      "part_source_keys": [
+        "docyx:ad6ff5e42f1cb73ab3e704bc273d4b79c6bef4b52e0b6f9013fe3383e2ad88ff",
+        "docyx:8f6f1e08121ddcd9f15e9ec399a6438a48f3209a819d1f90ea0e80981909ea97"
+      ],
+      "compatibility_record_keys": []
+    },
+    {
+      "chunk_key": "BW20261119:CHK-HW19-022",
+      "source_key": "SOURCE-097",
+      "reviewed_text_sha256": "1f680e1028a676a7a4abc686a85b7ebbb2767b8ca2ab5301f71ba39cdd178a22",
+      "review_note": "본문의 오프셋 바 대응표가 NH-D15, NH-D15S, NH-D15 G2 및 G2 HBC·LBC를 명시합니다.",
+      "part_source_keys": [
+        "docyx:ad6ff5e42f1cb73ab3e704bc273d4b79c6bef4b52e0b6f9013fe3383e2ad88ff",
+        "docyx:0f3103bd48eff9c8315cf6a8f3e1365686c95252325a69f18b7b362915732b41",
+        "docyx:8f6f1e08121ddcd9f15e9ec399a6438a48f3209a819d1f90ea0e80981909ea97",
+        "docyx:f8c855aaddda55bbff4fc694a762332ca62af5458532c52badcd72667478395d",
+        "docyx:add3a40ae1d356a0b2ce7dc4eb03bb831db40d755e687e947b34e2794c561c51"
+      ],
+      "compatibility_record_keys": []
+    },
+    {
+      "chunk_key": "BW20261119:CHK-HW19-023",
+      "source_key": "SOURCE-097",
+      "reviewed_text_sha256": "da2936be236b9e561d3a0aaff1826f0bddf5bd4c729042cc832a1182b5f57460",
+      "review_note": "본문에 NH-U12A와 NH-D12L의 일반 모델과 chromax.black 변형이 명시되어 있습니다.",
+      "part_source_keys": [
+        "docyx:01c1ab86b8ef7e9ad591da4cd5f233d793d07b97afa307c52673b4edb24bc26b",
+        "docyx:caacd7829fa66e43e9d6b5606fff60b36a397894acc2268ddd13b01ea8f177f4",
+        "docyx:bc4ec98849f0fc359e52d90f34b8c6cd1cee014808898333c0881c597b5a3dc9",
+        "docyx:f7a57a26ccb0568c295f899acae8704735cf5a317960736726140765963c0d9b"
+      ],
+      "compatibility_record_keys": []
+    },
+    {
+      "chunk_key": "BW20261119:CHK-HW19-024",
+      "source_key": "SOURCE-098",
+      "reviewed_text_sha256": "bc08ebfd17e627e7f0bfc677f5361d2158d21882d810849ae9d6ad6cc118cf11",
+      "review_note": "7 mm 오프셋 사용 설명에 명시된 쿨러는 NH-D15 G2입니다.",
+      "part_source_keys": [
+        "docyx:8f6f1e08121ddcd9f15e9ec399a6438a48f3209a819d1f90ea0e80981909ea97"
+      ],
+      "compatibility_record_keys": []
+    }
+  ]
+}
