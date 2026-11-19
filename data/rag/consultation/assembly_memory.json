@@ -1,0 +1,20 @@
+[
+  {
+    "chunk_key": "MSI:S1102-01-AVL:CT32G48C40U5",
+    "title": "MSI S1102-01 AVL · Crucial 메모리 장착 형태",
+    "url": "https://download-2.msi.com/archive/mnu_exe/server/S1102-01-AVL.pdf",
+    "text": "MSI의 S1102-01 메모리 검증표에는 Crucial CT32G48C40U5가 DDR5-4800, 32GB, 비버퍼드 DIMM(UDIMM)으로 기재돼 있다. 이 항목으로 모듈의 장착 형태를 확인할 수 있다. ASUS 보드에서의 시험 결과는 해당 ASUS 보드의 QVL에서 별도로 확인해야 한다.",
+    "model": "CT32G48C40U5",
+    "publisher": "MSI",
+    "topic": "메모리 장착 형태"
+  },
+  {
+    "chunk_key": "ASUS:B850-PLUS-WIFI:RYZEN7000:CT32G48C40U5.M16A1",
+    "title": "ASUS TUF GAMING B850-PLUS WIFI · Ryzen 7000 메모리 QVL",
+    "url": "https://www.asus.com/support/api/product.asmx/GetPDQVLMemory?website=au&model=tuf+gaming+b850-plus+wifi&pdhashedid=&PageSize=50&PageIndex=1&Vendors=&Size=&RAMSpeed=&DIMM=&ECCDIMM=&XMPEXPO=&keyword=CT32G48C40U5&CPUSeries=AMD+Ryzen%E2%84%A2+7000+Series+Processors&pdid=99999&siteID=www&sitelang=",
+    "text": "ASUS TUF GAMING B850-PLUS WIFI의 Ryzen 7000 프로세서용 QVL에서 Crucial CT32G48C40U5로 검색한 결과는 CT32G48C40U5.M16A1 한 행이다. 해당 32GB 모듈의 시험 속도는 4800 MT/s이며 XMP, 1.1 V, 1개 또는 2개 장착으로 기재돼 있다. 이 행을 적용하려면 실제 모듈 라벨의 전체 품번이 .M16A1까지 일치해야 한다. 기본 품번만으로 실물 리비전이나 현재 BIOS 설정을 확인할 수 없다.",
+    "model": "CT32G48C40U5.M16A1",
+    "publisher": "ASUS",
+    "topic": "Ryzen 7000 메모리 QVL 및 모듈 리비전"
+  }
+]
