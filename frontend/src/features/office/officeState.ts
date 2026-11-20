@@ -44,6 +44,8 @@ export interface OfficeState {
   runStatus: DisplayStatus;
   runMessage: string;
   runError: EventError | null;
+  /** 지금 버전에서 받은 마지막 run.* 이벤트. 새 버전이 오면 비웁니다. */
+  runEvent: AgentEvent | null;
   teams: Record<Team, TeamState>;
 }
 
@@ -62,6 +64,7 @@ export function initialOfficeState(): OfficeState {
     runStatus: "idle",
     runMessage: "",
     runError: null,
+    runEvent: null,
     teams: emptyTeams(),
   };
 }
@@ -95,6 +98,7 @@ export function officeReducer(state: OfficeState, event: AgentEvent): OfficeStat
       runStatus: "pending",
       runMessage: "",
       runError: null,
+      runEvent: null,
       teams: emptyTeams(),
     };
   }
@@ -105,6 +109,7 @@ export function officeReducer(state: OfficeState, event: AgentEvent): OfficeStat
       runStatus: event.status,
       runMessage: event.message,
       runError: event.error ?? null,
+      runEvent: event,
     };
   }
 

@@ -7,11 +7,18 @@
   여러 업무팀이 동시에 이벤트를 남겨도 seq 순서 = 커밋 순서가 되어 빈 번호가 생기지 않습니다.
 """
 
-import json
-from typing import Any
+from __future__ import annotations
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+import json
+from dataclasses import dataclass, field
+from threading import Lock
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from app.core.db import Database
+    from app.db.models import AgentEvent, ConsultationSession
 
 from app.contracts.schemas import (
     AgentEventOut,
@@ -22,9 +29,22 @@ from app.contracts.schemas import (
     WorkStatus,
 )
 from app.core.clock import utcnow
-from app.core.db import Database
 from app.core.errors import NotFoundError
-from app.db.models import AgentEvent, ConsultationSession
+
+
+@dataclass
+class SessionEventLog:
+    """Replayable for the anonymous session's lifetime. Readers never wait on catalog work."""
+
+    id: str
+    company_id: int
+    current_requirement_version: int = 0
+    events: list[AgentEventOut] = field(default_factory=list)
+    lock: Lock = field(default_factory=Lock)
+
+    def after(self, cursor: int) -> list[AgentEventOut]:
+        with self.lock:
+            return self.events[cursor : cursor + 100]
 
 
 class SessionNotFound(NotFoundError):
@@ -33,6 +53,10 @@ class SessionNotFound(NotFoundError):
 
 
 def lock_session(db: Session, session_id: str) -> ConsultationSession:
+    from sqlalchemy import select
+
+    from app.db.models import ConsultationSession
+
     row = db.scalar(
         select(ConsultationSession).where(ConsultationSession.id == session_id).with_for_update()
     )
@@ -42,8 +66,8 @@ def lock_session(db: Session, session_id: str) -> ConsultationSession:
 
 
 def append_event(
-    db: Session,
-    session_row: ConsultationSession,
+    db: Session | None,
+    session_row: ConsultationSession | SessionEventLog,
     *,
     type: EventType,
     status: WorkStatus,
@@ -54,11 +78,9 @@ def append_event(
     error: EventError | None = None,
     artifact: ArtifactRef | None = None,
     metrics: dict[str, float] | None = None,
-) -> AgentEvent:
-    session_row.last_event_seq += 1
-    event = AgentEvent(
+) -> AgentEvent | AgentEventOut:
+    fields = dict(
         session_id=session_row.id,
-        seq=session_row.last_event_seq,
         company_id=session_row.company_id,
         run_id=run_id,
         requirement_version=(
@@ -75,6 +97,16 @@ def append_event(
         metrics=metrics,
         occurred_at=utcnow(),
     )
+    if isinstance(session_row, SessionEventLog):
+        with session_row.lock:
+            event = AgentEventOut(seq=len(session_row.events) + 1, **fields)
+            session_row.events.append(event)
+            return event
+
+    from app.db.models import AgentEvent
+
+    session_row.last_event_seq += 1
+    event = AgentEvent(seq=session_row.last_event_seq, **fields)
     db.add(event)
     return event
 
@@ -86,6 +118,10 @@ def to_event_out(event: AgentEvent) -> AgentEventOut:
 def list_events(
     db: Session, session_id: str, after: int = 0, limit: int = 500
 ) -> list[AgentEventOut]:
+    from sqlalchemy import select
+
+    from app.db.models import AgentEvent
+
     rows = db.scalars(
         select(AgentEvent)
         .where(AgentEvent.session_id == session_id, AgentEvent.seq > after)
