@@ -1830,3 +1830,33 @@
     scroll-behavior: auto !important;
   }
 }
+.seller-chart-unavailable,
+.seller-category-unavailable {
+  display: grid;
+  min-height: 8rem;
+  place-content: center;
+  justify-items: center;
+  gap: 0.65rem;
+  color: #647772;
+  font-size: 0.8rem;
+}
+.seller-chart-unavailable {
+  border-left: 1px solid #dce7e3;
+  border-bottom: 1px solid #dce7e3;
+  background: repeating-linear-gradient(to top, #edf2f0 0 1px, transparent 1px 2rem);
+}
+.seller-chart-unavailable > span {
+  padding: 0.4rem 0.65rem;
+  background: white;
+}
+.seller-category-unavailable > span {
+  display: grid;
+  width: 5rem;
+  height: 5rem;
+  place-items: center;
+  border: 0.65rem solid #e8eeeb;
+  border-radius: 50%;
+}
+.seller-upload.seller-upload-unavailable {
+  cursor: default;
+}
