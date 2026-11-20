@@ -8,6 +8,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
+
 from app.contracts.schemas import (
     AgentEventOut,
     ArtifactKind,
@@ -16,7 +18,6 @@ from app.contracts.schemas import (
     Team,
     WorkStatus,
 )
-from pydantic import ValidationError
 
 PROJECT_ROOT = Path(
     os.environ.get("TEST_PROJECT_PATH", Path(__file__).resolve().parents[4])
@@ -78,8 +79,7 @@ def test_environment_contract_has_no_breaking_changes() -> None:
 def test_api_contract_has_no_breaking_changes() -> None:
     breaking_changes = contract_breaking_changes("api")
     assert not breaking_changes, (
-        "API 계약에 Breaking 변경이 있습니다: "
-        f"{json.dumps(breaking_changes, ensure_ascii=False)}"
+        f"API 계약에 Breaking 변경이 있습니다: {json.dumps(breaking_changes, ensure_ascii=False)}"
     )
 
 
@@ -91,9 +91,7 @@ def test_saved_event_schema_matches_event_contract() -> None:
 
 
 @pytest.mark.parametrize(("enum_type", "expected"), EXPECTED_ENUM_VALUES.items())
-def test_shared_enum_values_are_stable(
-    enum_type: type, expected: tuple[str, ...]
-) -> None:
+def test_shared_enum_values_are_stable(enum_type: type, expected: tuple[str, ...]) -> None:
     assert tuple(item.value for item in enum_type) == expected
 
 
