@@ -13,6 +13,7 @@ import { CandidateScreen } from "./components/CandidateScreen";
 import { BudgetScreen } from "./components/BudgetScreen";
 import { PaymentScreen, QuoteScreen, SavedScreen } from "./components/QuoteScreen";
 import { SummaryPanel } from "./components/SummaryPanel";
+import type { ProductVisualMap } from "./components/PartVisual";
 import {
   consultReducer,
   currentCategory,
@@ -20,29 +21,106 @@ import {
   initialConsultState,
   isSelectionComplete,
   type ConsultEvent,
+  type ConsultState,
 } from "./state";
 import { CATEGORY_LABELS, type CandidateRequest, type Survey } from "./types";
 import "./pcConsult.css";
+
 export function PcConsult({
   source,
   sessionId,
   onContext,
+  embedded = false,
+  onTransition,
+  onAcceptedTransition,
   renderLayout,
+  initialSurvey,
+  requestedDiscountPercent,
+  onStateChange,
 }: {
   source: ConsultDataSource;
-  sessionId: string;
-  onContext: (survey: Survey | null, selected: import("./types").SelectionMap) => void;
-  renderLayout: (content: ReactNode, intake: boolean) => ReactNode;
+  /** 상담 서버 세션 번호. 있으면 상담 번호로 그대로 씁니다(실제 백엔드). 없으면 시연용 번호를 만듭니다. */
+  sessionId?: string;
+  /** 서버 대화가 지금 설문과 고른 부품을 알 수 있게 넘겨 줍니다. */
+  onContext?: (survey: Survey | null, selected: import("./types").SelectionMap) => void;
+  embedded?: boolean;
+  onTransition?: (event: ConsultEvent, previous: ConsultState, next: ConsultState) => Promise<void>;
+  onAcceptedTransition?: (event: ConsultEvent, previous: ConsultState, next: ConsultState) => void;
+  /** The shell places intake inside voice consultation without remounting this controller. */
+  renderLayout?: (
+    content: ReactNode,
+    intake: boolean,
+    summary: ReactNode,
+    screen: ConsultState["screen"],
+  ) => ReactNode;
+  initialSurvey?: Survey;
+  requestedDiscountPercent?: number;
+  onStateChange?: (state: ConsultState) => void;
 }) {
-  const [state, dispatch] = useReducer(consultReducer, undefined, () =>
-    consultReducer(initialConsultState(), { type: "ENTER", account: "personal" }),
-  );
-  const deliver = useCallback(async (event: ConsultEvent) => dispatch(event), []);
-  const [draft, setDraft] = useState<Survey | null>(null);
+  const initial = () => {
+    let initialState = embedded
+      ? consultReducer(initialConsultState(), { type: "ENTER", account: "personal" })
+      : initialConsultState();
+    if (initialSurvey) {
+      initialState = consultReducer(initialState, {
+        type: "CHOOSE_MODE",
+        mode: initialSurvey.mode,
+      });
+      initialState = consultReducer(initialState, { type: "SURVEY_REVIEW", survey: initialSurvey });
+    }
+    return initialState;
+  };
+  const [state, rawDispatch] = useReducer(consultReducer, undefined, initial);
+  // View-only image lookup retains earlier quote products without changing stored quote items.
+  const [productVisuals, setProductVisuals] = useState<ProductVisualMap>({});
+  useEffect(() => {
+    setProductVisuals((previous) => {
+      const additions = Object.values(state.selected).filter((part) => !previous[part.source_key]);
+      if (!additions.length) return previous;
+      return {
+        ...previous,
+        ...Object.fromEntries(
+          additions.map((part) => [
+            part.source_key,
+            { image_url: part.image_url, brand: part.brand },
+          ]),
+        ),
+      };
+    });
+  }, [state.selected]);
+  useEffect(() => onStateChange?.(state), [state, onStateChange]);
   useEffect(
-    () => onContext(state.plan ? state.survey : null, state.selected),
+    () => onContext?.(state.plan ? state.survey : null, state.selected),
     [onContext, state.plan, state.survey, state.selected],
   );
+  const stateRef = useRef(state);
+  const transition = useRef(onTransition);
+  const acceptedTransition = useRef(onAcceptedTransition);
+  useEffect(() => {
+    transition.current = onTransition;
+    acceptedTransition.current = onAcceptedTransition;
+  }, [onTransition, onAcceptedTransition]);
+  const dispatch = useCallback((event: ConsultEvent) => {
+    const previous = stateRef.current;
+    const next = consultReducer(previous, event);
+    if (previous === next) return;
+    stateRef.current = next;
+    rawDispatch(event);
+    acceptedTransition.current?.(event, previous, next);
+    void transition.current?.(event, previous, next);
+  }, []);
+  // Results enter the consultation after the same completed work has reached the office.
+  const deliver = useCallback(async (event: ConsultEvent) => {
+    const previous = stateRef.current;
+    const next = consultReducer(previous, event);
+    if (previous === next) return;
+    await transition.current?.(event, previous, next);
+    if (stateRef.current !== previous) return;
+    stateRef.current = next;
+    rawDispatch(event);
+    acceptedTransition.current?.(event, previous, next);
+  }, []);
+  const [draft, setDraft] = useState<Survey | null>(null);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -125,6 +203,7 @@ export function PcConsult({
           : Math.min(state.plan.allocations[category], remaining),
       color: state.conditions.color,
       note: state.conditions.note,
+      requestedDiscountPercent,
     };
   }, [
     state.survey,
@@ -134,6 +213,7 @@ export function PcConsult({
     state.editingCategory,
     state.stepIndex,
     category,
+    requestedDiscountPercent,
   ]);
 
   useEffect(() => {
@@ -174,6 +254,7 @@ export function PcConsult({
         version: state.quotes.length + 1,
         survey: state.survey,
         selected: state.selected,
+        requestedDiscountPercent,
       })
       .then(
         (result) => {
@@ -202,15 +283,22 @@ export function PcConsult({
     quoteRetry,
     dispatch,
     deliver,
+    requestedDiscountPercent,
   ]);
 
   useEffect(() => {
     const position = `${state.screen}:${category ?? ""}`;
-    if (lastFocus.current !== null && lastFocus.current !== position)
+    if (
+      embedded &&
+      !content.current?.closest("dialog") &&
+      lastFocus.current !== null &&
+      lastFocus.current !== position
+    )
       content.current?.scrollIntoView({ block: "start" });
     content.current?.focus({ preventScroll: true });
+    if (!embedded) window.scrollTo({ top: 0, behavior: "instant" });
     lastFocus.current = position;
-  }, [state.screen, category]);
+  }, [state.screen, category, embedded]);
 
   async function start() {
     if (!state.survey || starting) return;
@@ -218,14 +306,19 @@ export function PcConsult({
     setStartError("");
     try {
       const plan = await source.planConsultation(state.survey);
-      dispatch({ type: "START", survey: state.survey, plan, consultationId: sessionId });
+      const consultationId =
+        sessionId ??
+        (typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `demo-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      dispatch({ type: "START", survey: state.survey, plan, consultationId });
     } catch (failure) {
       setStartError(failure instanceof Error ? failure.message : "상담을 준비하지 못했습니다.");
     } finally {
       setStarting(false);
     }
   }
-  async function confirm(acceptConditions: boolean) {
+  async function confirm(acceptConditions = false) {
     if (!quote || saving.current) return;
     saving.current = true;
     const requestId = ++requestSequence.current;
@@ -263,6 +356,19 @@ export function PcConsult({
   const showSteps =
     state.plan && ["selection", "budget", "quote", "saved", "payment"].includes(state.screen);
   const showSummary = state.survey && state.plan && ["selection", "budget"].includes(state.screen);
+  const selectionSummary = showSummary ? (
+    <SummaryPanel
+      selected={state.selected}
+      budget={state.survey!.budget}
+      steps={state.plan!.steps}
+      needsReview={state.needsReview}
+      onVisit={
+        state.screen === "selection" && !state.quotePending && !state.editingCategory
+          ? (index) => dispatch({ type: "VISIT_STEP", index })
+          : undefined
+      }
+    />
+  ) : null;
   const phaseIndex = ["start", "type"].includes(state.screen)
     ? 0
     : ["survey", "review"].includes(state.screen)
@@ -270,8 +376,9 @@ export function PcConsult({
       : ["selection", "budget"].includes(state.screen)
         ? 2
         : 3;
+  const Content = embedded ? "div" : "main";
   const screen = (
-    <div className="pc-app pc-embedded">
+    <div className={`pc-app${embedded ? " pc-embedded" : ""}`}>
       <a className="pc-skip" href="#pc-main-content">
         본문으로 건너뛰기
       </a>
@@ -289,7 +396,7 @@ export function PcConsult({
           ))}
         </nav>
       )}
-      <div className={`pc-main${state.screen === "start" ? " pc-main-start" : ""}`}>
+      <Content className={`pc-main${state.screen === "start" ? " pc-main-start" : ""}`}>
         {showSteps && (
           <nav className="pc-steps" aria-label="부품 구성 순서">
             {state.plan!.steps.map((step, index) => {
@@ -319,7 +426,7 @@ export function PcConsult({
             })}
           </nav>
         )}
-        <div className={showSummary ? "pc-workspace" : "pc-single"}>
+        <div className={showSummary && !renderLayout ? "pc-workspace" : "pc-single"}>
           <div id="pc-main-content" className="pc-content" tabIndex={-1} ref={content}>
             {state.screen === "type" && (
               <TypeScreen
@@ -438,6 +545,7 @@ export function PcConsult({
               <QuoteScreen
                 key={quote.version}
                 quotes={state.quotes}
+                products={productVisuals}
                 budget={state.survey.budget}
                 pending={state.savePending}
                 error={state.error}
@@ -454,6 +562,7 @@ export function PcConsult({
               <SavedScreen
                 receipt={state.receipt}
                 mode={state.survey.mode}
+                products={productVisuals}
                 onQuote={() => dispatch({ type: "VIEW_QUOTE" })}
                 onPayment={() => dispatch({ type: "PAYMENT" })}
               />
@@ -461,26 +570,22 @@ export function PcConsult({
             {state.screen === "payment" && state.receipt && (
               <PaymentScreen
                 receipt={state.receipt}
+                products={productVisuals}
                 onQuote={() => dispatch({ type: "VIEW_QUOTE" })}
               />
             )}
           </div>
-          {showSummary && (
-            <SummaryPanel
-              selected={state.selected}
-              budget={state.survey!.budget}
-              steps={state.plan!.steps}
-              needsReview={state.needsReview}
-              onVisit={
-                state.screen === "selection" && !state.quotePending && !state.editingCategory
-                  ? (index) => dispatch({ type: "VISIT_STEP", index })
-                  : undefined
-              }
-            />
-          )}
+          {!renderLayout && selectionSummary}
         </div>
-      </div>
+      </Content>
     </div>
   );
-  return renderLayout(screen, ["type", "survey", "review"].includes(state.screen));
+  return renderLayout
+    ? renderLayout(
+        screen,
+        ["type", "survey", "review"].includes(state.screen),
+        selectionSummary,
+        state.screen,
+      )
+    : screen;
 }

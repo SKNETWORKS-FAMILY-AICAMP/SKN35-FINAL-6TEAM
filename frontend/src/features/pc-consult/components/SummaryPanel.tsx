@@ -7,6 +7,7 @@ import {
   type SelectionMap,
 } from "../types";
 import { PartGlyph } from "./ui";
+import { PartVisual } from "./PartVisual";
 
 export function SummaryPanel({
   selected,
@@ -27,7 +28,7 @@ export function SummaryPanel({
   return (
     <aside className="pc-summary-panel" aria-label="선택한 부품과 예산">
       <div className="pc-summary-header">
-        <span className="pc-eyebrow">MY BUILD</span>
+        <span className="pc-eyebrow">내 PC 구성</span>
         <h2>지금까지 고른 부품</h2>
         <span>
           {Object.keys(selected).length} / {steps.length}개
@@ -38,7 +39,17 @@ export function SummaryPanel({
           const part = selected[category];
           return (
             <li key={category}>
-              <PartGlyph category={category} />
+              {part ? (
+                <PartVisual
+                  category={category}
+                  name={part.name}
+                  imageUrl={part.image_url}
+                  size="compact"
+                  caption={false}
+                />
+              ) : (
+                <PartGlyph category={category} />
+              )}
               <div>
                 <span className="pc-build-category">{CATEGORY_LABELS[category]}</span>
                 {part ? (

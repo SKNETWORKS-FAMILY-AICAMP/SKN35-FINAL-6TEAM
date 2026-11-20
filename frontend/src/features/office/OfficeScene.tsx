@@ -1,15 +1,24 @@
-import { useId, type CSSProperties } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useReducer,
+  useSyncExternalStore,
+  type CSSProperties,
+} from "react";
 import type { Team } from "../../api/client";
 import {
   handoff,
   printOut,
+  runStopped,
   signalKind,
   teamHalted,
   validators,
   type Handoff,
   type SignalKind,
 } from "./officeCues";
-import { TEAMS, type DisplayStatus, type OfficeState } from "./officeState";
+import { deliveryVisualReducer, initialDeliveryVisual } from "./officeDelivery";
+import { TEAM_LABELS, TEAMS, type DisplayStatus, type OfficeState } from "./officeState";
 
 // Original daylight pixel office. All furniture, wood grain and sunlight use this integer grid.
 // New details are drawn on a 3-unit grid (3 SVG units = one art pixel).
@@ -333,7 +342,7 @@ function SignalBubble({ kind }: { kind: SignalKind }) {
 }
 
 /** A folder carried from one team's desk, down the corridor, to the next team's desk. */
-function Envelope({ cue }: { cue: Handoff }) {
+function Envelope({ cue, carried = false }: { cue: Handoff; carried?: boolean }) {
   const from = ROOMS[TEAMS.indexOf(cue.from)];
   const to = ROOMS[TEAMS.indexOf(cue.to)];
   const toX = to.x + DESK_DROP.x;
@@ -348,12 +357,92 @@ function Envelope({ cue }: { cue: Handoff }) {
     "--to-y": `${toY}px`,
   } as CSSProperties;
   return (
-    <g className="office-cue-envelope" style={route} transform={`translate(${toX} ${toY})`}>
-      <path d="M-6 6h18v3h-18Z" fill="#4f5d4a" opacity=".3" />
-      <path d="M-6-9h12v3h-12Z" fill="#fffaf0" />
-      <path d="M-9-6h18v12h-18Z" fill="#e9c37d" />
-      <path d="M-9-6h18v3h-18Z" fill="#c99a4b" />
-      <path d="M-3-3h6v3h-6Z" fill="#8c6a32" />
+    <g className="office-transfer" style={route} data-carried={carried || undefined}>
+      <path
+        className="office-transfer-path"
+        d={`M${from.x + DESK_DROP.x} ${from.y + DESK_DROP.y}V${HALL_Y}H${toX}V${toY}`}
+        fill="none"
+        stroke="#347967"
+        strokeWidth="3"
+        strokeDasharray="6 8"
+      />
+      <g className="office-cue-envelope" transform={`translate(${toX} ${toY})`}>
+        <path d="M-6 6h18v3h-18Z" fill="#4f5d4a" opacity=".3" />
+        <path d="M-6-9h12v3h-12Z" fill="#fffaf0" />
+        <path d="M-9-6h18v12h-18Z" fill="#e9c37d" />
+        <path d="M-9-6h18v3h-18Z" fill="#c99a4b" />
+        <path d="M-3-3h6v3h-6Z" fill="#8c6a32" />
+      </g>
+    </g>
+  );
+}
+
+function subscribeReducedMotion(onChange: () => void) {
+  const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+function reducedMotionSnapshot() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** 실제 인계가 생겼을 때만 서류를 든 직원이 복도를 달립니다. 도착은 업무 완료와 무관합니다. */
+function DeliveryRunner({ cue, onArrived }: { cue: Handoff; onArrived: () => void }) {
+  const index = TEAMS.indexOf(cue.from);
+  const from = ROOMS[index];
+  const to = ROOMS[TEAMS.indexOf(cue.to)];
+  const direction = to.x >= from.x ? 1 : -1;
+  const route = {
+    "--runner-from-x": `${from.x + AT_DESK.x}px`,
+    "--runner-from-y": `${from.y + AT_DESK.y}px`,
+    "--runner-hall-y": `${HALL_Y - 20}px`,
+    "--runner-to-x": `${to.x + AT_DESK.x}px`,
+    "--runner-to-y": `${to.y + AT_DESK.y}px`,
+    "--runner-direction": direction,
+  } as CSSProperties;
+  return (
+    <g
+      className="office-delivery"
+      data-delivery-seq={cue.seq}
+      data-from={cue.from}
+      data-to={cue.to}
+    >
+      <path
+        className="office-delivery-route loop"
+        d={`M${from.x + AT_DESK.x} ${from.y + AT_DESK.y + 33}V${HALL_Y + 13}H${to.x + AT_DESK.x}V${to.y + AT_DESK.y + 33}`}
+        fill="none"
+        stroke={from.accent}
+        strokeWidth="4"
+        strokeDasharray="4 10"
+      />
+      <g
+        className="office-delivery-runner loop"
+        style={route}
+        onAnimationEnd={(event) => {
+          if (event.animationName === "office-run-delivery" && event.target === event.currentTarget)
+            onArrived();
+        }}
+      >
+        <ellipse cx="0" cy="41" rx="23" ry="6" fill="#314e3b" opacity=".15" />
+        <g className="office-delivery-sprite loop">
+          <PixelPerson shirt={from.shirt} hair={from.hair} variant={index} />
+          <path className="office-running-leg-a loop" d="M-11 31h9v12h-12v-5h3Z" fill="#344552" />
+          <path className="office-running-leg-b loop" d="M3 31h9v7h3v5H3Z" fill="#344552" />
+          <g className="office-carried-folder" transform="translate(9 16)">
+            <path d="M0-3h10v3h10v20H0Z" fill="#f0bf72" stroke="#836037" strokeWidth="1" />
+            <path d="M3 2h14v13H3Z" fill="#fff8e3" />
+            <path d="M5 6h10v2H5Zm0 4h7v2H5Z" fill="#a3a78d" />
+          </g>
+        </g>
+        <g className="office-runner-caption" transform="translate(0 -25)">
+          <rect x="-73" y="-10" width="146" height="19" rx="4" fill="#ffffff" stroke="#d9e2cf" />
+          <text textAnchor="middle" y="3" fontSize="10" fill="#3b5646">
+            {TEAM_LABELS[cue.from]} → {TEAM_LABELS[cue.to]}
+          </text>
+        </g>
+        <path className="office-runner-dust loop" d="M-27 35h5v3h-5Zm-9 4h4v3h-4Z" fill="#b6bfa3" />
+      </g>
     </g>
   );
 }
@@ -361,21 +450,47 @@ function Envelope({ cue }: { cue: Handoff }) {
 export function OfficeScene({
   state,
   previewTeam = null,
+  focusTeam = null,
 }: {
   state: OfficeState;
   previewTeam?: Team | null;
+  /** 상세 작업실은 한 방을 보여 주고, 실제 업무 정보는 HTML 모니터에 함께 표시합니다. */
+  focusTeam?: Team | null;
 }) {
   const prefix = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const ref = (name: string) => `#${prefix}-${name}`;
   const crew = validators(state);
-  const pass = handoff(state);
+  const pass = useMemo(() => handoff(state), [state]);
   const printed = printOut(state);
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    reducedMotionSnapshot,
+    () => false,
+  );
+  const deliveryScope = `${state.version}:${state.runEvent?.run_id ?? "waiting"}`;
+  const stopped = runStopped(state);
+  const [delivery, updateDelivery] = useReducer(deliveryVisualReducer, undefined, () =>
+    initialDeliveryVisual(deliveryScope, stopped || reducedMotion ? null : pass),
+  );
+  useEffect(() => {
+    updateDelivery({
+      type: "observe",
+      scope: deliveryScope,
+      cue: pass,
+      stopped,
+      reduced: reducedMotion,
+    });
+  }, [deliveryScope, pass, stopped, reducedMotion]);
+  const currentDelivery =
+    !stopped && !reducedMotion && delivery.scope === deliveryScope ? delivery.current : null;
   // Paint the enlarged room last so its furniture stays above the other rooms.
   // One-off cues live in the separate layer below, whose order never changes, so hovering
   // a room never remounts (and replays) them.
-  const paintedTeams = previewTeam
-    ? [...TEAMS.filter((team) => team !== previewTeam), previewTeam]
-    : TEAMS;
+  const paintedTeams = focusTeam
+    ? [focusTeam]
+    : previewTeam
+      ? [...TEAMS.filter((team) => team !== previewTeam), previewTeam]
+      : TEAMS;
 
   function roomClass(team: Team) {
     const { status } = state.teams[team];
@@ -388,8 +503,12 @@ export function OfficeScene({
 
   return (
     <svg
-      className="office-art"
-      viewBox="0 0 960 600"
+      className={`office-art${focusTeam ? " office-art-focused" : ""}`}
+      viewBox={
+        focusTeam
+          ? `${ROOMS[TEAMS.indexOf(focusTeam)].x} ${ROOMS[TEAMS.indexOf(focusTeam)].y + 52} 436 154`
+          : "0 0 960 600"
+      }
       aria-hidden="true"
       focusable="false"
       shapeRendering="crispEdges"
@@ -662,6 +781,32 @@ export function OfficeScene({
                 <use href={ref("chair")} x="216" y="149" />
                 <use href={ref("desk")} x="147" y="84" />
                 <Screen />
+                {status === "running" && !teamHalted(state, team) && (
+                  <g className="office-work-documents" aria-hidden="true">
+                    <g className="office-working-sheet loop">
+                      <path
+                        d="M270 112h18v24h-18Z"
+                        fill="#fffdf5"
+                        stroke={room.accent}
+                        strokeWidth="1"
+                      />
+                      <path
+                        d="M273 118h12m-12 5h9m-9 5h12"
+                        fill="none"
+                        stroke={room.accent}
+                        strokeWidth="2"
+                      />
+                    </g>
+                    <rect
+                      className="office-monitor-scan loop"
+                      x="188"
+                      y="78"
+                      width="55"
+                      height="2"
+                      fill="#a4f1d1"
+                    />
+                  </g>
+                )}
                 {status === "needs_revision" && (
                   <g className="office-review-pile">
                     <path d="M252 111h21v12h-21Z" fill="#d9c9a3" />
@@ -686,7 +831,11 @@ export function OfficeScene({
                     transform: `translate(${atDesk ? AT_DESK.x : AT_SIDE.x}px, ${atDesk ? AT_DESK.y : AT_SIDE.y}px)`,
                   }}
                 >
-                  <PixelPerson shirt={room.shirt} hair={room.hair} variant={index} />
+                  <g
+                    className={`office-worker-routine${status === "running" && !teamHalted(state, team) ? " is-working" : ""}${!focusTeam && currentDelivery?.from === team ? " is-delivering" : ""} loop`}
+                  >
+                    <PixelPerson shirt={room.shirt} hair={room.hair} variant={index} />
+                  </g>
                 </g>
                 <path d="M154 87h6v6h-6Z" fill={SIGNAL[kind]} />
                 {/* Waiting rooms are slightly lowered; rooms that received work stay at daylight. */}
@@ -712,7 +861,8 @@ export function OfficeScene({
         );
       })}
       <g className="office-cues" data-preview={previewTeam ? "on" : undefined}>
-        {TEAMS.map((team, index) => {
+        {TEAMS.filter((team) => !focusTeam || team === focusTeam).map((team) => {
+          const index = TEAMS.indexOf(team);
           const room = ROOMS[index];
           const { status, log } = state.teams[team];
           const kind = signalKind(state, team);
@@ -767,7 +917,18 @@ export function OfficeScene({
             </g>
           );
         })}
-        {pass && <Envelope key={pass.seq} cue={pass} />}
+        {pass && !focusTeam && (
+          <Envelope key={pass.seq} cue={pass} carried={currentDelivery?.seq === pass.seq} />
+        )}
+        {currentDelivery && !focusTeam && (
+          <DeliveryRunner
+            key={`${deliveryScope}:${currentDelivery.seq}`}
+            cue={currentDelivery}
+            onArrived={() =>
+              updateDelivery({ type: "arrived", scope: deliveryScope, seq: currentDelivery.seq })
+            }
+          />
+        )}
       </g>
     </svg>
   );
