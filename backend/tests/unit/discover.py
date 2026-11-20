@@ -38,9 +38,7 @@ EXCLUDED_DIRECTORIES = {
 }
 TEST_DIRECTORIES = {"tests", "__tests__", "e2e"}
 ENV_NAME_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*$")
-JS_ENV_PATTERN = re.compile(
-    r"\b(?:process\.env|import\.meta\.env)\.(?P<name>[A-Z][A-Z0-9_]*)"
-)
+JS_ENV_PATTERN = re.compile(r"\b(?:process\.env|import\.meta\.env)\.(?P<name>[A-Z][A-Z0-9_]*)")
 API_METHODS = {"delete", "get", "head", "options", "patch", "post", "put"}
 OPENAPI_METADATA_KEYS = {
     "description",
@@ -204,9 +202,7 @@ def python_complexity_hint(node: ast.AST) -> int:
 def python_function_details(
     node: ast.FunctionDef | ast.AsyncFunctionDef,
 ) -> dict[str, Any]:
-    positional = [
-        argument.arg for argument in [*node.args.posonlyargs, *node.args.args]
-    ]
+    positional = [argument.arg for argument in [*node.args.posonlyargs, *node.args.args]]
     keyword_only = [argument.arg for argument in node.args.kwonlyargs]
     called_symbols = sorted(
         {
@@ -251,7 +247,7 @@ def python_class_details(node: ast.ClassDef) -> dict[str, Any]:
             try:
                 literal_value = ast.literal_eval(value)
                 json.dumps(literal_value)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 continue
             literal_values[target.id] = literal_value
 
@@ -261,8 +257,7 @@ def python_class_details(node: ast.ClassDef) -> dict[str, Any]:
         "classFields": sorted(class_fields),
         "enumValues": literal_values if is_enum else {},
         "methodCount": sum(
-            isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
-            for child in node.body
+            isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) for child in node.body
         ),
         "hasDocstring": bool(ast.get_docstring(node)),
         "complexityHint": python_complexity_hint(node),
@@ -320,9 +315,7 @@ class PythonSymbolVisitor(ast.NodeVisitor):
             "candidate": candidate,
             "confidence": confidence,
             "suggestedEngine": "pytest",
-            "strategy": (
-                "constructor-and-public-methods" if kind == "class" else "direct-call"
-            ),
+            "strategy": ("constructor-and-public-methods" if kind == "class" else "direct-call"),
             "requiresBrowser": False,
             "existingTestFiles": all_tests,
             "existingUnitTestFiles": unit_tests,
@@ -412,9 +405,7 @@ REACT_HOOK_PATTERN = re.compile(r"\b(?P<name>use[A-Z][A-Za-z0-9_$]*)\s*\(")
 IMPORT_PATTERN = re.compile(
     r"""(?m)^\s*import(?:\s+type)?(?:.|\n)*?\s+from\s+["'](?P<module>[^"']+)["'];?"""
 )
-SIDE_EFFECT_IMPORT_PATTERN = re.compile(
-    r"""(?m)^\s*import\s+["'](?P<module>[^"']+)["'];?"""
-)
+SIDE_EFFECT_IMPORT_PATTERN = re.compile(r"""(?m)^\s*import\s+["'](?P<module>[^"']+)["'];?""")
 EVENT_HANDLER_PATTERN = re.compile(r"\b(?P<name>on[A-Z][A-Za-z0-9_$]*)\s*=")
 JSX_COMPONENT_PATTERN = re.compile(r"<(?P<name>[A-Z][A-Za-z0-9_$.]*)\b")
 TYPE_SHAPE_PATTERN = re.compile(
@@ -488,9 +479,7 @@ def discover_typescript(
 
     items: list[dict[str, Any]] = []
     seen: set[tuple[str, int]] = set()
-    hooks = sorted(
-        {match.group("name") for match in REACT_HOOK_PATTERN.finditer(content)}
-    )
+    hooks = sorted({match.group("name") for match in REACT_HOOK_PATTERN.finditer(content)})
     event_handlers = sorted(
         {match.group("name") for match in EVENT_HANDLER_PATTERN.finditer(content)}
     )
@@ -506,10 +495,7 @@ def discover_typescript(
     )
     type_shapes = {
         match.group("name"): sorted(
-            {
-                prop.group("name")
-                for prop in PROP_NAME_PATTERN.finditer(match.group("body"))
-            }
+            {prop.group("name") for prop in PROP_NAME_PATTERN.finditer(match.group("body"))}
         )
         for match in TYPE_SHAPE_PATTERN.finditer(content)
     }
@@ -531,9 +517,7 @@ def discover_typescript(
             if file_uses_hooks:
                 strategy = "vitest-component-harness"
                 confidence = "medium"
-                reason = (
-                    "React Hook을 사용하는 컴포넌트로 경량 컴포넌트 하네스가 필요함"
-                )
+                reason = "React Hook을 사용하는 컴포넌트로 경량 컴포넌트 하네스가 필요함"
             else:
                 strategy = "vitest-react-dom-server"
                 confidence = "high"
@@ -631,9 +615,7 @@ def add_environment_variable(
         },
     )
     record["origins"].add(origin)
-    record["declaredInTemplate"] = bool(
-        record["declaredInTemplate"] or declared_in_template
-    )
+    record["declaredInTemplate"] = bool(record["declaredInTemplate"] or declared_in_template)
     if required is True:
         record["required"] = True
     elif required is False and record["required"] is None:
@@ -647,8 +629,7 @@ def settings_prefix(node: ast.ClassDef) -> str:
         if not isinstance(child, ast.Assign):
             continue
         if not any(
-            isinstance(target, ast.Name) and target.id == "model_config"
-            for target in child.targets
+            isinstance(target, ast.Name) and target.id == "model_config" for target in child.targets
         ):
             continue
         if not isinstance(child.value, ast.Call):
@@ -667,7 +648,7 @@ def discover_python_environment(
     source = relative_path(path, project_root)
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=source)
-    except (OSError, UnicodeDecodeError, SyntaxError):
+    except OSError, UnicodeDecodeError, SyntaxError:
         return
 
     for node in ast.walk(tree):
@@ -676,14 +657,11 @@ def discover_python_environment(
         ):
             prefix = settings_prefix(node)
             for child in node.body:
-                if not isinstance(child, ast.AnnAssign) or not isinstance(
-                    child.target, ast.Name
-                ):
+                if not isinstance(child, ast.AnnAssign) or not isinstance(child.target, ast.Name):
                     continue
                 field_name = child.target.id
                 required = child.value is None or (
-                    isinstance(child.value, ast.Constant)
-                    and child.value.value is Ellipsis
+                    isinstance(child.value, ast.Constant) and child.value.value is Ellipsis
                 )
                 add_environment_variable(
                     records,
@@ -728,7 +706,7 @@ def discover_environment_contract(
     if template_path.is_file():
         try:
             lines = template_path.read_text(encoding="utf-8").splitlines()
-        except (OSError, UnicodeDecodeError):
+        except OSError, UnicodeDecodeError:
             lines = []
         for line in lines:
             stripped = line.strip()
@@ -754,7 +732,7 @@ def discover_environment_contract(
             continue
         try:
             content = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
+        except OSError, UnicodeDecodeError:
             continue
         for match in JS_ENV_PATTERN.finditer(content):
             add_environment_variable(
@@ -790,9 +768,7 @@ def function_parameters(
     node: ast.FunctionDef | ast.AsyncFunctionDef,
 ) -> list[dict[str, Any]]:
     positional = [*node.args.posonlyargs, *node.args.args]
-    defaults: list[ast.expr | None] = [None] * (
-        len(positional) - len(node.args.defaults)
-    )
+    defaults: list[ast.expr | None] = [None] * (len(positional) - len(node.args.defaults))
     defaults.extend(node.args.defaults)
     parameters: list[dict[str, Any]] = []
     for argument, default in zip(positional, defaults, strict=True):
@@ -808,9 +784,7 @@ def function_parameters(
                 "required": default is None,
             }
         )
-    for argument, default in zip(
-        node.args.kwonlyargs, node.args.kw_defaults, strict=True
-    ):
+    for argument, default in zip(node.args.kwonlyargs, node.args.kw_defaults, strict=True):
         annotation = ast.unparse(argument.annotation) if argument.annotation else None
         if annotation and ("Depends" in annotation or annotation.endswith("Dep")):
             continue
@@ -841,7 +815,7 @@ def discover_declared_routes(
             continue
         try:
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=source)
-        except (OSError, UnicodeDecodeError, SyntaxError):
+        except OSError, UnicodeDecodeError, SyntaxError:
             continue
 
         prefixes: dict[str, str] = {}
@@ -876,12 +850,8 @@ def discover_declared_routes(
                 if route_path is None:
                     route_path = ast.unparse(decorator.args[0])
                 receiver = ast_path(decorator.func.value)
-                full_path = normalized_route_path(
-                    prefixes.get(receiver, ""), route_path
-                )
-                keywords = {
-                    keyword.arg: keyword.value for keyword in decorator.keywords
-                }
+                full_path = normalized_route_path(prefixes.get(receiver, ""), route_path)
+                keywords = {keyword.arg: keyword.value for keyword in decorator.keywords}
                 key = f"{method.upper()} {full_path}"
                 routes[key] = {
                     "key": key,
@@ -893,13 +863,9 @@ def discover_declared_routes(
                         if "response_model" in keywords
                         else None
                     ),
-                    "returnAnnotation": ast.unparse(node.returns)
-                    if node.returns
-                    else None,
+                    "returnAnnotation": ast.unparse(node.returns) if node.returns else None,
                     "statusCode": (
-                        ast.unparse(keywords["status_code"])
-                        if "status_code" in keywords
-                        else "200"
+                        ast.unparse(keywords["status_code"]) if "status_code" in keywords else "200"
                     ),
                 }
     return [routes[key] for key in sorted(routes)]
@@ -920,9 +886,7 @@ def normalize_openapi(value: Any, parent_key: str | None = None) -> Any:
                 key=lambda item: json.dumps(item, ensure_ascii=False, sort_keys=True),
             )
         if parent_key == "parameters" and all(isinstance(item, dict) for item in items):
-            return sorted(
-                items, key=lambda item: (item.get("in", ""), item.get("name", ""))
-            )
+            return sorted(items, key=lambda item: (item.get("in", ""), item.get("name", "")))
         return items
     return value
 
@@ -959,16 +923,12 @@ def discover_openapi_contract(project_root: Path) -> dict[str, Any]:
             "name": name,
             "contract": normalize_openapi(schema),
         }
-        for name, schema in sorted(
-            document.get("components", {}).get("schemas", {}).items()
-        )
+        for name, schema in sorted(document.get("components", {}).get("schemas", {}).items())
     ]
     return {"operations": operations, "schemas": schemas, "error": None}
 
 
-def discover_api_contract(
-    project_root: Path, production_files: list[Path]
-) -> dict[str, Any]:
+def discover_api_contract(project_root: Path, production_files: list[Path]) -> dict[str, Any]:
     declared_routes = discover_declared_routes(project_root, production_files)
     openapi = discover_openapi_contract(project_root)
     declared_keys = {route["key"] for route in declared_routes}
@@ -985,9 +945,7 @@ def discover_api_contract(
     }
 
 
-def discover_contracts(
-    project_root: Path, production_files: list[Path]
-) -> dict[str, Any]:
+def discover_contracts(project_root: Path, production_files: list[Path]) -> dict[str, Any]:
     return {
         "environment": discover_environment_contract(project_root, production_files),
         "api": discover_api_contract(project_root, production_files),
@@ -999,9 +957,7 @@ def build_inventory(project_root: Path) -> dict[str, Any]:
     all_source_files = sorted(
         path
         for path in project_root.rglob("*")
-        if path.is_file()
-        and path.suffix.lower() in SOURCE_SUFFIXES
-        and not is_excluded(path)
+        if path.is_file() and path.suffix.lower() in SOURCE_SUFFIXES and not is_excluded(path)
     )
     test_documents = load_test_documents(project_root, all_source_files)
     production_files = [path for path in all_source_files if not is_test_file(path)]
@@ -1120,9 +1076,7 @@ def write_baseline(baseline: dict[str, Any], baseline_path: Path) -> None:
 
 def load_baseline(baseline_path: Path, project_root: Path) -> dict[str, Any]:
     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
-    if baseline.get("schemaVersion") not in {1, 2} or not isinstance(
-        baseline.get("items"), list
-    ):
+    if baseline.get("schemaVersion") not in {1, 2} or not isinstance(baseline.get("items"), list):
         raise RuntimeError(f"지원하지 않는 인벤토리 기준 파일입니다: {baseline_path}")
     if baseline.get("projectRoot") != str(project_root):
         raise RuntimeError(
@@ -1145,12 +1099,9 @@ def comparison_descriptor(entry: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def compare_inventory(
-    inventory: dict[str, Any], baseline: dict[str, Any]
-) -> dict[str, Any]:
+def compare_inventory(inventory: dict[str, Any], baseline: dict[str, Any]) -> dict[str, Any]:
     current_by_key = {
-        entry["key"]: entry
-        for entry in (baseline_entry(item) for item in inventory["items"])
+        entry["key"]: entry for entry in (baseline_entry(item) for item in inventory["items"])
     }
     baseline_by_key = {entry["key"]: entry for entry in baseline["items"]}
 
@@ -1193,9 +1144,7 @@ def compare_inventory(
         changed.append(descriptor)
 
     uncovered_added = [
-        entry
-        for entry in added
-        if entry["candidate"] and not entry["hasExistingUnitTestReference"]
+        entry for entry in added if entry["candidate"] and not entry["hasExistingUnitTestReference"]
     ]
     return {
         "status": "compared",
@@ -1229,13 +1178,9 @@ def compare_contract_records(
     removed_keys = sorted(baseline_by_key.keys() - current_by_key.keys())
     shared_keys = sorted(current_by_key.keys() & baseline_by_key.keys())
 
-    added = [
-        {"section": section, "key": key, "current": current_by_key[key]}
-        for key in added_keys
-    ]
+    added = [{"section": section, "key": key, "current": current_by_key[key]} for key in added_keys]
     removed = [
-        {"section": section, "key": key, "before": baseline_by_key[key]}
-        for key in removed_keys
+        {"section": section, "key": key, "before": baseline_by_key[key]} for key in removed_keys
     ]
     changed: list[dict[str, Any]] = []
     for key in shared_keys:
@@ -1390,9 +1335,7 @@ def compare_contracts(
         "summary": {
             "environmentBreaking": environment["summary"]["breaking"],
             "apiBreaking": api["summary"]["breaking"],
-            "totalBreaking": (
-                environment["summary"]["breaking"] + api["summary"]["breaking"]
-            ),
+            "totalBreaking": (environment["summary"]["breaking"] + api["summary"]["breaking"]),
         },
     }
 
@@ -1423,9 +1366,7 @@ def write_inventory(
 
     comparison["baselinePath"] = str(baseline_path)
     inventory["comparison"] = comparison
-    contract_comparison = compare_contracts(
-        inventory["contracts"], baseline["contracts"]
-    )
+    contract_comparison = compare_contracts(inventory["contracts"], baseline["contracts"])
     contract_comparison["status"] = comparison["status"]
     inventory["contractComparison"] = contract_comparison
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1462,9 +1403,7 @@ def main() -> int:
     arguments = parse_arguments()
     project_root = Path(PROJECT_PATH).expanduser().resolve()
     if not project_root.is_dir():
-        raise RuntimeError(
-            f"config.py의 PROJECT_PATH가 올바르지 않습니다: {project_root}"
-        )
+        raise RuntimeError(f"config.py의 PROJECT_PATH가 올바르지 않습니다: {project_root}")
 
     output_path = arguments.output.expanduser().resolve()
     baseline_path = arguments.baseline.expanduser().resolve()
@@ -1479,9 +1418,7 @@ def main() -> int:
     print(f"인벤토리 생성: {output_path}")
     print(
         "소스 파일 {sourceFiles}개, 심볼 {symbols}개, 후보 {candidates}개, "
-        "기존 단위 테스트 참조 {candidatesWithExistingUnitReference}개".format(
-            **summary
-        )
+        "기존 단위 테스트 참조 {candidatesWithExistingUnitReference}개".format(**summary)
     )
     comparison = inventory["comparison"]
     comparison_summary = comparison["summary"]
@@ -1494,8 +1431,9 @@ def main() -> int:
     )
     contract_summary = inventory["contractComparison"]["summary"]
     print(
-        "환경·API 계약: 환경 Breaking {environmentBreaking}개, "
-        "API Breaking {apiBreaking}개".format(**contract_summary)
+        "환경·API 계약: 환경 Breaking {environmentBreaking}개, API Breaking {apiBreaking}개".format(
+            **contract_summary
+        )
     )
     print(f"기준 파일: {comparison['baselinePath']}")
     return 0

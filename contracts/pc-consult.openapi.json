@@ -1,0 +1,1980 @@
+{
+  "components": {
+    "schemas": {
+      "AgentEventOut": {
+        "description": "업무팀 실행 이벤트 한 건. 화면은 seq 순서로만 처리합니다.",
+        "properties": {
+          "artifact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ArtifactRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_id": {
+            "title": "Company Id",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EventError"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metrics"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "requirement_version": {
+            "description": "이 이벤트가 속한 요구사항 버전",
+            "title": "Requirement Version",
+            "type": "integer"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "seq": {
+            "description": "세션 안에서 1부터 빈틈없이 늘어나는 순번",
+            "title": "Seq",
+            "type": "integer"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkStatus"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Team"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null 이면 실행 전체에 대한 이벤트"
+          },
+          "type": {
+            "$ref": "#/components/schemas/EventType"
+          }
+        },
+        "required": [
+          "seq",
+          "session_id",
+          "company_id",
+          "run_id",
+          "requirement_version",
+          "team",
+          "type",
+          "status",
+          "occurred_at",
+          "message"
+        ],
+        "title": "AgentEventOut",
+        "type": "object"
+      },
+      "Alternative": {
+        "properties": {
+          "after": {
+            "$ref": "#/components/schemas/Part"
+          },
+          "before": {
+            "$ref": "#/components/schemas/Part"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationOut"
+          }
+        },
+        "required": [
+          "category",
+          "before",
+          "after",
+          "validation"
+        ],
+        "title": "Alternative",
+        "type": "object"
+      },
+      "ArtifactKind": {
+        "enum": [
+          "requirements",
+          "recommendation",
+          "validation",
+          "quotation",
+          "order"
+        ],
+        "title": "ArtifactKind",
+        "type": "string"
+      },
+      "ArtifactRef": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ArtifactKind"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "ArtifactRef",
+        "type": "object"
+      },
+      "Candidate": {
+        "properties": {
+          "part": {
+            "$ref": "#/components/schemas/Part"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "recommended": {
+            "title": "Recommended",
+            "type": "boolean"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationOut"
+          }
+        },
+        "required": [
+          "part",
+          "validation",
+          "recommended",
+          "reason"
+        ],
+        "title": "Candidate",
+        "type": "object"
+      },
+      "CandidatesIn": {
+        "additionalProperties": false,
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Text"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "selected": {
+            "$ref": "#/components/schemas/Selection"
+          },
+          "survey": {
+            "$ref": "#/components/schemas/Survey"
+          }
+        },
+        "required": [
+          "survey",
+          "selected",
+          "category",
+          "budget"
+        ],
+        "title": "CandidatesIn",
+        "type": "object"
+      },
+      "CandidatesOut": {
+        "properties": {
+          "basis": {
+            "const": "api",
+            "title": "Basis",
+            "type": "string"
+          },
+          "criteria": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Criteria",
+            "type": "array"
+          },
+          "missingColorCount": {
+            "title": "Missingcolorcount",
+            "type": "integer"
+          },
+          "needsReview": {
+            "items": {
+              "$ref": "#/components/schemas/Candidate"
+            },
+            "title": "Needsreview",
+            "type": "array"
+          },
+          "passed": {
+            "items": {
+              "$ref": "#/components/schemas/Candidate"
+            },
+            "title": "Passed",
+            "type": "array"
+          },
+          "rejectedCount": {
+            "title": "Rejectedcount",
+            "type": "integer"
+          },
+          "sortLabel": {
+            "title": "Sortlabel",
+            "type": "string"
+          }
+        },
+        "required": [
+          "passed",
+          "needsReview",
+          "rejectedCount",
+          "missingColorCount",
+          "sortLabel",
+          "criteria",
+          "basis"
+        ],
+        "title": "CandidatesOut",
+        "type": "object"
+      },
+      "Category": {
+        "enum": [
+          "cpu",
+          "motherboard",
+          "ram",
+          "gpu",
+          "storage",
+          "cooler",
+          "psu",
+          "case"
+        ],
+        "type": "string"
+      },
+      "ConfirmIn": {
+        "additionalProperties": false,
+        "properties": {
+          "accept_conditions": {
+            "title": "Accept Conditions",
+            "type": "boolean"
+          },
+          "quote_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Quote Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "quote_id",
+          "accept_conditions"
+        ],
+        "title": "ConfirmIn",
+        "type": "object"
+      },
+      "EventError": {
+        "properties": {
+          "code": {
+            "description": "오류 코드. 예: PRICE_UNCONFIRMED, SERVER_RESTART",
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "retryable": {
+            "title": "Retryable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "retryable"
+        ],
+        "title": "EventError",
+        "type": "object"
+      },
+      "EventType": {
+        "enum": [
+          "requirements.updated",
+          "run.started",
+          "run.completed",
+          "run.failed",
+          "run.needs_input",
+          "run.needs_revision",
+          "run.superseded",
+          "task.started",
+          "task.progress",
+          "task.retrying",
+          "task.completed",
+          "task.failed",
+          "task.needs_input",
+          "order.created"
+        ],
+        "title": "EventType",
+        "type": "string"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthOut": {
+        "properties": {
+          "database": {
+            "title": "Database",
+            "type": "string"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "mode",
+          "database"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "MessageIn": {
+        "additionalProperties": false,
+        "properties": {
+          "selected": {
+            "$ref": "#/components/schemas/Selection"
+          },
+          "survey": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Survey"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "MessageIn",
+        "type": "object"
+      },
+      "MessageOut": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "$ref": "#/components/schemas/PositiveId"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "content",
+          "created_at"
+        ],
+        "title": "MessageOut",
+        "type": "object"
+      },
+      "Money": {
+        "maximum": 1000000000.0,
+        "minimum": 0.0,
+        "type": "integer"
+      },
+      "OwnedPart": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "name": {
+            "$ref": "#/components/schemas/Text"
+          },
+          "part_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PositiveId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "category",
+          "name",
+          "part_id"
+        ],
+        "title": "OwnedPart",
+        "type": "object"
+      },
+      "Part": {
+        "properties": {
+          "brand": {
+            "title": "Brand",
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "current_price": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Price"
+          },
+          "data_status": {
+            "title": "Data Status",
+            "type": "string"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "part_id": {
+            "$ref": "#/components/schemas/PositiveId"
+          },
+          "power_draw_w": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Power Draw W"
+          },
+          "power_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Power Status"
+          },
+          "price_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Basis"
+          },
+          "price_checked_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Checked At"
+          },
+          "price_status": {
+            "title": "Price Status",
+            "type": "string"
+          },
+          "source_key": {
+            "title": "Source Key",
+            "type": "string"
+          },
+          "specs": {
+            "additionalProperties": true,
+            "title": "Specs",
+            "type": "object"
+          }
+        },
+        "required": [
+          "part_id",
+          "source_key",
+          "category",
+          "brand",
+          "name",
+          "specs",
+          "current_price",
+          "currency",
+          "price_status",
+          "data_status",
+          "price_checked_at",
+          "power_draw_w"
+        ],
+        "title": "Part",
+        "type": "object"
+      },
+      "PlanIn": {
+        "additionalProperties": false,
+        "properties": {
+          "survey": {
+            "$ref": "#/components/schemas/Survey"
+          }
+        },
+        "required": [
+          "survey"
+        ],
+        "title": "PlanIn",
+        "type": "object"
+      },
+      "PlanOut": {
+        "properties": {
+          "allocations": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Category"
+            },
+            "title": "Allocations",
+            "type": "object"
+          },
+          "criteria": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Criteria",
+            "type": "array"
+          },
+          "reasons": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Category"
+            },
+            "title": "Reasons",
+            "type": "object"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/Category"
+            },
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "steps",
+          "reasons",
+          "allocations",
+          "criteria"
+        ],
+        "title": "PlanOut",
+        "type": "object"
+      },
+      "PositiveId": {
+        "exclusiveMinimum": 0.0,
+        "maximum": 9007199254740991.0,
+        "type": "integer"
+      },
+      "QuoteIn": {
+        "additionalProperties": false,
+        "properties": {
+          "selected": {
+            "$ref": "#/components/schemas/Selection"
+          },
+          "survey": {
+            "$ref": "#/components/schemas/Survey"
+          },
+          "version": {
+            "$ref": "#/components/schemas/PositiveId"
+          }
+        },
+        "required": [
+          "survey",
+          "selected",
+          "version"
+        ],
+        "title": "QuoteIn",
+        "type": "object"
+      },
+      "QuoteItem": {
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "part_id": {
+            "$ref": "#/components/schemas/PositiveId"
+          },
+          "part_name_snapshot": {
+            "title": "Part Name Snapshot",
+            "type": "string"
+          },
+          "price_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Basis"
+          },
+          "price_checked_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Checked At"
+          },
+          "price_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Status"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "source_key": {
+            "title": "Source Key",
+            "type": "string"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "part_id",
+          "source_key",
+          "category",
+          "part_name_snapshot",
+          "unit_price",
+          "quantity",
+          "price_checked_at"
+        ],
+        "title": "QuoteItem",
+        "type": "object"
+      },
+      "QuoteOut": {
+        "properties": {
+          "consultation_id": {
+            "title": "Consultation Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "currency": {
+            "const": "KRW",
+            "title": "Currency",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "quote_id": {
+            "title": "Quote Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "CONFIRMED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "total_amount": {
+            "title": "Total Amount",
+            "type": "integer"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationOut"
+          },
+          "version": {
+            "$ref": "#/components/schemas/PositiveId"
+          }
+        },
+        "required": [
+          "quote_id",
+          "consultation_id",
+          "version",
+          "status",
+          "currency",
+          "total_amount",
+          "created_at",
+          "items",
+          "validation"
+        ],
+        "title": "QuoteOut",
+        "type": "object"
+      },
+      "RebalanceIn": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Text"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "selected": {
+            "$ref": "#/components/schemas/Selection"
+          },
+          "survey": {
+            "$ref": "#/components/schemas/Survey"
+          }
+        },
+        "required": [
+          "survey",
+          "selected",
+          "category",
+          "budget",
+          "amount"
+        ],
+        "title": "RebalanceIn",
+        "type": "object"
+      },
+      "RebalanceOut": {
+        "properties": {
+          "afterTotal": {
+            "title": "Aftertotal",
+            "type": "integer"
+          },
+          "allocations": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Category"
+            },
+            "title": "Allocations",
+            "type": "object"
+          },
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/Alternative"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "beforeTotal": {
+            "title": "Beforetotal",
+            "type": "integer"
+          },
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "feasible": {
+            "title": "Feasible",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "alternatives",
+          "beforeTotal",
+          "afterTotal",
+          "allocations",
+          "feasible",
+          "explanation"
+        ],
+        "title": "RebalanceOut",
+        "type": "object"
+      },
+      "ReceiptOut": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/QuoteOut"
+          },
+          "storage": {
+            "const": "session",
+            "default": "session",
+            "title": "Storage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "quote",
+          "message"
+        ],
+        "title": "ReceiptOut",
+        "type": "object"
+      },
+      "ReplyOut": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessageOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "sources",
+          "messages"
+        ],
+        "title": "ReplyOut",
+        "type": "object"
+      },
+      "Selection": {
+        "additionalProperties": {
+          "$ref": "#/components/schemas/PositiveId"
+        },
+        "propertyNames": {
+          "$ref": "#/components/schemas/Category"
+        },
+        "type": "object"
+      },
+      "SelectionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "selected": {
+            "$ref": "#/components/schemas/Selection"
+          },
+          "survey": {
+            "$ref": "#/components/schemas/Survey"
+          }
+        },
+        "required": [
+          "survey",
+          "selected"
+        ],
+        "title": "SelectionIn",
+        "type": "object"
+      },
+      "SessionOut": {
+        "properties": {
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id"
+        ],
+        "title": "SessionOut",
+        "type": "object"
+      },
+      "Source": {
+        "properties": {
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "url"
+        ],
+        "title": "Source",
+        "type": "object"
+      },
+      "Survey": {
+        "additionalProperties": false,
+        "properties": {
+          "budget": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000000.0,
+            "title": "Budget",
+            "type": "integer"
+          },
+          "frameRate": {
+            "enum": [
+              "60",
+              "144"
+            ],
+            "title": "Framerate",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "replacement",
+              "new"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "owned": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/OwnedPart"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Category"
+            },
+            "title": "Owned",
+            "type": "object"
+          },
+          "problemNote": {
+            "maxLength": 1500,
+            "title": "Problemnote",
+            "type": "string"
+          },
+          "problems": {
+            "items": {
+              "$ref": "#/components/schemas/Text"
+            },
+            "maxItems": 20,
+            "title": "Problems",
+            "type": "array"
+          },
+          "purposes": {
+            "items": {
+              "enum": [
+                "gaming",
+                "image",
+                "video",
+                "other"
+              ],
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Purposes",
+            "type": "array"
+          },
+          "resolution": {
+            "enum": [
+              "fhd",
+              "qhd",
+              "4k"
+            ],
+            "title": "Resolution",
+            "type": "string"
+          },
+          "workScale": {
+            "enum": [
+              "basic",
+              "large"
+            ],
+            "title": "Workscale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "budget",
+          "purposes",
+          "resolution",
+          "frameRate",
+          "workScale",
+          "problems",
+          "problemNote",
+          "owned"
+        ],
+        "title": "Survey",
+        "type": "object"
+      },
+      "Team": {
+        "description": "업무팀. 제품 설명용 논리 역할이며 서버가 따로 있는 것은 아닙니다.",
+        "enum": [
+          "consultation",
+          "design",
+          "validation",
+          "quotation"
+        ],
+        "title": "Team",
+        "type": "string"
+      },
+      "Text": {
+        "maxLength": 300,
+        "type": "string"
+      },
+      "ValidationCheck": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "CONDITIONAL",
+              "UNKNOWN",
+              "FAIL",
+              "PENDING"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "status",
+          "message"
+        ],
+        "title": "ValidationCheck",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "ValidationOut": {
+        "properties": {
+          "basis": {
+            "const": "api",
+            "title": "Basis",
+            "type": "string"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "citations": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "CONDITIONAL",
+              "UNKNOWN",
+              "FAIL"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "workflow_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Reason"
+          },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "completed",
+                  "needs_input",
+                  "needs_revision"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Status"
+          }
+        },
+        "required": [
+          "status",
+          "checks",
+          "basis"
+        ],
+        "title": "ValidationOut",
+        "type": "object"
+      },
+      "WorkStatus": {
+        "description": "작업·실행 상태. 화면 애니메이션도 이 값만 따릅니다.",
+        "enum": [
+          "pending",
+          "running",
+          "needs_input",
+          "needs_revision",
+          "completed",
+          "failed",
+          "cancelled",
+          "superseded"
+        ],
+        "title": "WorkStatus",
+        "type": "string"
+      }
+    }
+  },
+  "info": {
+    "title": "BUILDWISE PC 상담 API",
+    "version": "0.2.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions": {
+      "post": {
+        "operationId": "create_session_api_pc_consult_sessions_post",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Create Session",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/candidates": {
+      "post": {
+        "operationId": "candidates_api_pc_consult_sessions__session_id__candidates_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidatesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidatesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Candidates",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/events": {
+      "get": {
+        "operationId": "events_api_pc_consult_sessions__session_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AgentEventOut"
+                  },
+                  "title": "Response Events Api Pc Consult Sessions  Session Id  Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Events",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/events/stream": {
+      "get": {
+        "operationId": "stream_api_pc_consult_sessions__session_id__events_stream_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stream",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/messages": {
+      "get": {
+        "operationId": "messages_api_pc_consult_sessions__session_id__messages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MessageOut"
+                  },
+                  "title": "Response Messages Api Pc Consult Sessions  Session Id  Messages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Messages",
+        "tags": [
+          "PC 상담"
+        ]
+      },
+      "post": {
+        "operationId": "send_message_api_pc_consult_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Message",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/parts": {
+      "get": {
+        "operationId": "search_parts_api_pc_consult_sessions__session_id__parts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": true,
+            "schema": {
+              "enum": [
+                "cpu",
+                "motherboard",
+                "ram",
+                "gpu",
+                "storage",
+                "cooler",
+                "psu",
+                "case"
+              ],
+              "title": "Category",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "query",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 150,
+              "title": "Query",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Part"
+                  },
+                  "title": "Response Search Parts Api Pc Consult Sessions  Session Id  Parts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search Parts",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/plan": {
+      "post": {
+        "operationId": "plan_api_pc_consult_sessions__session_id__plan_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Plan",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/quotes": {
+      "post": {
+        "operationId": "create_quote_api_pc_consult_sessions__session_id__quotes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Quote",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/quotes/{version}/confirm": {
+      "post": {
+        "operationId": "confirm_quote_api_pc_consult_sessions__session_id__quotes__version__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "exclusiveMinimum": 0,
+              "title": "Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Quote",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/rebalance": {
+      "post": {
+        "operationId": "rebalance_api_pc_consult_sessions__session_id__rebalance_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RebalanceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RebalanceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rebalance",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/validations": {
+      "post": {
+        "operationId": "validate_api_pc_consult_sessions__session_id__validations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Validate",
+        "tags": [
+          "PC 상담"
+        ]
+      }
+    }
+  }
+}
