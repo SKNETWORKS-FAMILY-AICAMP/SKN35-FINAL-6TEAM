@@ -546,6 +546,133 @@ main {
 }
 
 /* Existing form, recommendation and quotation surfaces. */
+.integrated-note {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: var(--fs-13);
+  line-height: 1.7;
+}
+.shell-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--fs-12);
+}
+.shell-account button,
+.shell-menu-toggle {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--panel);
+  padding: 6px 10px;
+}
+.shell-menu-toggle {
+  display: none;
+}
+.app-shell-business {
+  padding-left: 184px;
+}
+.app-shell-business .app-rail {
+  width: 184px;
+}
+.business-nav {
+  width: 100%;
+  padding: 0 10px;
+}
+.business-nav button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  text-align: left;
+  font-size: var(--fs-13);
+}
+.business-nav button svg {
+  flex-shrink: 0;
+}
+.business-nav button:hover,
+.business-nav button[aria-current] {
+  background: #edf3e7;
+  border-color: #d9e5d1;
+  color: var(--accent);
+}
+.shell-unread {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--bad);
+}
+@media (min-width: 760px) and (max-width: 1199px) {
+  .app-shell-business {
+    padding-left: 80px;
+  }
+  .app-shell-business .app-rail {
+    width: 80px;
+  }
+  .business-nav {
+    padding: 0 4px;
+  }
+  .business-nav button {
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 2px;
+    font-size: var(--fs-12);
+    text-align: center;
+  }
+}
+@media (max-width: 759px) {
+  .app-shell-business {
+    padding-left: 0;
+  }
+  .app-shell-business .app-rail {
+    width: 100%;
+  }
+  .app-shell-business .app-rail.rail-expanded {
+    z-index: 60;
+  }
+  .app-shell-business .seller-demo-controls {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  .shell-menu-toggle {
+    display: block;
+    margin: 10px auto;
+    min-width: 160px;
+  }
+  .business-nav {
+    display: none;
+  }
+  .rail-expanded .business-nav {
+    display: grid;
+    position: absolute;
+    bottom: calc(62px + env(safe-area-inset-bottom));
+    width: 100%;
+    padding: 12px;
+    border-top: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: 0 -8px 24px #20382f18;
+    max-height: 75svh;
+    overflow-y: auto;
+  }
+  .shell-account {
+    order: 4;
+    width: 100%;
+    justify-content: space-between;
+    margin: 8px 0;
+  }
+  .shell-entry .pc-start {
+    margin: 16px 0;
+  }
+}
+
+/* Existing form, recommendation and quotation surfaces. */
 form {
   display: grid;
   gap: 12px;

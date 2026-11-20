@@ -24,6 +24,8 @@ interface Props {
   notes?: TeamNote[];
   /** 오피스 실행 상태. 음성이 대기일 때 콘솔 표시 단계를 고르는 데만 씁니다. */
   officeRunStatus?: DisplayStatus;
+  /** 선택형 설문 등 상담 안에서 작성할 화면. 기존 음성·대화 상태는 유지합니다. */
+  children?: ReactNode;
 }
 
 const PLACEHOLDER = "예: 노트북 추천, 예산 300만 원";
@@ -156,6 +158,7 @@ export function ChatPanel({
   mockDraftAt = null,
   notes = NO_NOTES,
   officeRunStatus,
+  children,
 }: Props) {
   const [text, setText] = useState("");
   const [draftAt, setDraftAt] = useState<string | null>(null);
@@ -325,6 +328,7 @@ export function ChatPanel({
           </p>
         )}
       </div>
+      {children}
       <div className="transcript-conversation">
         <h3 className="transcript-log-heading">대화 기록</h3>
         <div className="transcript-log-wrap">

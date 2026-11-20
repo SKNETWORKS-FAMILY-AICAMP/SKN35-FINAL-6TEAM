@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { api, errorMessage, type Company } from "../api/client";
 import type { ConnectionState } from "../events/eventStream";
 import { ChatPanel } from "../features/chat/ChatPanel";
@@ -8,7 +8,12 @@ import { ConsultationForm } from "../features/consultation/ConsultationForm";
 import { OfficeBoard } from "../features/office/OfficeBoard";
 import { OfficeDemoResults } from "../features/office/OfficeDemoResults";
 import { teamNotesForOffice } from "../features/office/officeNotes";
-import type { DisplayStatus } from "../features/office/officeState";
+import type { DisplayStatus, OfficeState } from "../features/office/officeState";
+import { StartScreen } from "../features/pc-consult/components/StartScreen";
+import { IntegratedWorkspace } from "../features/pc-consult/IntegratedWorkspace";
+import { snapshotSource } from "../features/pc-consult/data/snapshotSource";
+import { SellerWorkspace } from "../features/pc-consult/seller/SellerWorkspace";
+import type { SellerMenu, SellerSession } from "../features/pc-consult/seller/types";
 import { OrderButton } from "../features/orders/OrderButton";
 import { QuotationTable } from "../features/quotations/QuotationTable";
 import { RecommendationList } from "../features/recommendations/RecommendationList";
@@ -17,6 +22,8 @@ import { useConsultation } from "./useConsultation";
 
 const SEARCH = new URLSearchParams(window.location.search);
 const MOCK = SEARCH.has("mock");
+// Explicit opt-in preserves the old server workspace without contacting it during PC demos.
+const LIVE = !MOCK && SEARCH.has("live");
 const MOCK_INTERVAL_MS = mockIntervalFromSearch(window.location.search);
 
 // 개발 서버에서만 여는 상태 견본 화면. 운영 빌드에서는 이 분기와 import 가 통째로 빠집니다.
@@ -47,6 +54,11 @@ function connectionView(status: ShellStatus | null): { label: string; state: str
     const done = status?.runStatus === "completed";
     return { label: `${done ? "시연 끝" : "시연 중"} · 기록 ${records}건`, state: "demo" };
   }
+  if (!LIVE)
+    return {
+      label: `${status?.runStatus === "completed" ? "견적 확정" : status?.runStatus === "running" ? "팀 작업 중" : status?.runStatus === "needs_input" ? "선택을 기다려요" : "시연 준비"} · 기록 ${status?.records ?? 0}건`,
+      state: "demo",
+    };
   if (!status || status.sessionId === null) return { label: "연결 준비 중", state: "connecting" };
   return { label: CONNECTION_LABEL[status.connection], state: status.connection };
 }
@@ -149,6 +161,12 @@ function Shell() {
   const [demoRun, setDemoRun] = useState(0);
   const [activeSection, setActiveSection] = useState(window.location.hash || "#workspace");
   const [status, setStatus] = useState<ShellStatus | null>(null);
+  const [account, setAccount] = useState<"personal" | "business" | null>(null);
+  const [sellerSession, setSellerSession] = useState<SellerSession | null>(null);
+  const [sellerMenu, setSellerMenu] = useState<SellerMenu>("home");
+  const [sellerUnread, setSellerUnread] = useState<SellerMenu[]>([]);
+  const [mobileMenu, setMobileMenu] = useState(false);
+  const business = !MOCK && !LIVE && account === "business" && sellerSession !== null;
 
   useEffect(() => {
     const updateSection = () => setActiveSection(window.location.hash || "#workspace");
@@ -157,7 +175,7 @@ function Shell() {
   }, []);
 
   useEffect(() => {
-    if (MOCK) return;
+    if (!LIVE) return;
     api.GET("/api/companies").then(({ data, error }) => {
       if (data) {
         setCompanies(data);
@@ -169,13 +187,42 @@ function Shell() {
   }, []);
 
   const company = companies.find((c) => c.id === companyId) ?? null;
-  const workspaceKey = `${company?.id ?? "none"}:${demoRun}`;
+  const workspaceKey = `${MOCK ? "mock" : LIVE ? "live" : (account ?? "entry")}:${company?.id ?? "none"}:${demoRun}`;
+  const showOfficeStatus = useCallback(
+    (office: OfficeState) => {
+      setStatus({
+        key: workspaceKey,
+        connection: "open",
+        sessionId: workspaceKey,
+        runStatus: office.runStatus,
+        records: office.lastSeq,
+      });
+    },
+    [workspaceKey],
+  );
+  const showSellerNavigation = useCallback(
+    (info: { unread: SellerMenu[]; office: OfficeState }) => {
+      setSellerUnread(info.unread);
+      showOfficeStatus(info.office);
+    },
+    [showOfficeStatus],
+  );
+  function logout() {
+    setAccount(null);
+    setSellerSession(null);
+    setSellerMenu("home");
+    setSellerUnread([]);
+    setStatus(null);
+    setDemoRun((run) => run + 1);
+    setMobileMenu(false);
+    window.location.hash = "login";
+  }
   // 기업을 바꾸거나 다시 보기를 누른 직후에는 이전 Workspace 의 상태를 보이지 않습니다.
   const connection = connectionView(status?.key === workspaceKey ? status : null);
 
   return (
-    <div className="app-shell">
-      <aside className="app-rail" aria-label="화면 이동">
+    <div className={`app-shell${business ? " app-shell-business" : ""}`}>
+      <aside className={`app-rail${mobileMenu ? " rail-expanded" : ""}`} aria-label="화면 이동">
         <a className="brand" href="#workspace" aria-label="BUILDWISE 사무실로 가기">
           <span className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 28 28" width="28" height="28" shapeRendering="crispEdges">
@@ -184,33 +231,82 @@ function Shell() {
             </svg>
           </span>
         </a>
-        <nav className="workspace-nav" aria-label="화면 바로가기">
-          <a
-            href="#workspace"
-            aria-current={activeSection === "#workspace" ? "location" : undefined}
-          >
-            <NavigationIcon kind="office" />
-            <span>사무실</span>
-          </a>
-          <a
-            href="#conversation"
-            aria-current={activeSection === "#conversation" ? "location" : undefined}
-          >
-            <NavigationIcon kind="voice" />
-            <span>상담</span>
-          </a>
-          <a href="#results" aria-current={activeSection === "#results" ? "location" : undefined}>
-            <NavigationIcon kind="results" />
-            <span>결과</span>
-          </a>
-        </nav>
+        {business ? (
+          <>
+            <button
+              className="shell-menu-toggle"
+              aria-expanded={mobileMenu}
+              onClick={() => setMobileMenu(!mobileMenu)}
+            >
+              ☰ 기업 메뉴
+            </button>
+            <nav className="workspace-nav business-nav" aria-label="기업 메뉴">
+              {(
+                [
+                  ["home", "홈"],
+                  ["customers", "고객 정보"],
+                  ["sales", "판매 통계"],
+                  ["issues", "상담 · 이슈 현황"],
+                  ["documents", "문서 · 정책 관리"],
+                  ["employees", "직원 관리"],
+                  ["office", "2D 오피스"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  type="button"
+                  key={id}
+                  aria-current={sellerMenu === id ? "page" : undefined}
+                  onClick={() => {
+                    setSellerMenu(id);
+                    setMobileMenu(false);
+                  }}
+                >
+                  <NavigationIcon
+                    kind={id === "office" ? "office" : id === "customers" ? "voice" : "results"}
+                  />
+                  <span>{label}</span>
+                  {sellerSession.role !== "admin" &&
+                    ["sales", "documents", "employees"].includes(id) && (
+                      <span aria-label="관리자 전용">🔒</span>
+                    )}
+                  {sellerUnread.includes(id) && (
+                    <span className="shell-unread" aria-label="새 활동" />
+                  )}
+                </button>
+              ))}
+            </nav>
+          </>
+        ) : (
+          <nav className="workspace-nav" aria-label="화면 바로가기">
+            <a
+              href="#workspace"
+              aria-current={activeSection === "#workspace" ? "location" : undefined}
+            >
+              <NavigationIcon kind="office" />
+              <span>사무실</span>
+            </a>
+            <a
+              href="#conversation"
+              aria-current={activeSection === "#conversation" ? "location" : undefined}
+            >
+              <NavigationIcon kind="voice" />
+              <span>상담</span>
+            </a>
+            <a href="#results" aria-current={activeSection === "#results" ? "location" : undefined}>
+              <NavigationIcon kind="results" />
+              <span>{MOCK || LIVE ? "결과" : "PC 상담"}</span>
+            </a>
+          </nav>
+        )}
       </aside>
       <main>
         <header className="top">
           <div className="brand-wordmark">
             <h1>BUILDWISE</h1>
             <span className="header-divider" aria-hidden="true" />
-            <span className="header-context">AI 상담 직원 사무실</span>
+            <span className="header-context">
+              {business ? sellerSession.companyName : "AI 상담 직원 사무실"}
+            </span>
           </div>
           <p
             className="connection"
@@ -232,6 +328,18 @@ function Shell() {
               </svg>
               시연 다시 보기
             </button>
+          )}
+          {!MOCK && !LIVE && account && (
+            <div className="shell-account">
+              <span>
+                {business
+                  ? `${sellerSession.companyName} · ${sellerSession.userName} · ${sellerSession.role === "admin" ? "관리자" : "상담원"}`
+                  : "개인 상담 · 시연"}
+              </span>
+              <button type="button" onClick={logout}>
+                로그아웃
+              </button>
+            </div>
           )}
           <span className="badge" data-testid="test-data-badge">
             <span aria-hidden="true" className="badge-dot" />
@@ -255,13 +363,52 @@ function Shell() {
           )}
         </header>
         {loadError && <p className="error">기업 목록을 불러오지 못했습니다: {loadError}</p>}
-        <Workspace
-          key={workspaceKey}
-          company={company}
-          statusKey={workspaceKey}
-          onStatus={setStatus}
-        />
-        <footer className="workspace-footer">가상 브랜드 · 테스트 데이터</footer>
+        {MOCK || LIVE ? (
+          <Workspace
+            key={workspaceKey}
+            company={company}
+            statusKey={workspaceKey}
+            onStatus={setStatus}
+          />
+        ) : !account ? (
+          <section className="shell-entry pc-app" id="login" aria-label="계정 선택과 시연 로그인">
+            <StartScreen
+              onEnter={() => {
+                setAccount("personal");
+                window.location.hash = "workspace";
+              }}
+              onBusinessEnter={(session) => {
+                setSellerSession(session);
+                setAccount("business");
+                setSellerMenu("home");
+              }}
+            />
+          </section>
+        ) : business ? (
+          <SellerWorkspace
+            session={sellerSession}
+            onLogout={logout}
+            embedded
+            menu={sellerMenu}
+            onNavigate={setSellerMenu}
+            onNavigationState={showSellerNavigation}
+          />
+        ) : (
+          <IntegratedWorkspace
+            key={workspaceKey}
+            source={snapshotSource}
+            sessionId={workspaceKey}
+            intervalMs={MOCK_INTERVAL_MS}
+            onOffice={showOfficeStatus}
+          />
+        )}
+        <footer className="workspace-footer">
+          {MOCK || LIVE
+            ? "가상 브랜드 · 테스트 데이터"
+            : business
+              ? "가상 기업·고객·판매 데이터 · 시연"
+              : "테스트 가격 · 스냅샷 시연 · DB에 기록되지 않습니다"}
+        </footer>
       </main>
     </div>
   );
