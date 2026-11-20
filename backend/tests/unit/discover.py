@@ -16,7 +16,9 @@ from typing import Any
 sys.dont_write_bytecode = True
 
 UNIT_ROOT = Path(__file__).resolve().parent
-COMMON_ROOT = UNIT_ROOT.parent / "common"
+TEST_ROOT = UNIT_ROOT.parent
+COMMON_ROOT = TEST_ROOT / "common"
+sys.path.insert(0, str(TEST_ROOT))
 sys.path.insert(0, str(COMMON_ROOT))
 
 from config import PROJECT_PATH  # noqa: E402
