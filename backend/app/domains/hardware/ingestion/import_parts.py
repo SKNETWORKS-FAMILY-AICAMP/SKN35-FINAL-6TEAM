@@ -22,6 +22,11 @@ from app.domains.hardware.ingestion.common import (
     utc_now,
 )
 from app.domains.hardware.ingestion.docyx import REVISION, prepare_parts, read_snapshot
+from app.domains.hardware.ingestion.fit_specs import (
+    fit_updates,
+    load_fit_reviews,
+    refresh_fit_specs,
+)
 from app.domains.hardware.ingestion.import_compatibility import (
     upsert_compatibility,
     validate_records,
@@ -48,9 +53,13 @@ DROP_OFFERS = (
 
 def upsert_parts(connection, parts, *, power_reviews=None, gpu_estimates=None):
     power_reviews = power_reviews or {}
+    fit_reviews = load_fit_reviews()
     rows = []
     for part in parts:
         specs, power = resolve_catalog_power(part, power_reviews, gpu_estimates)
+        review = fit_reviews.get(specs.get("_provenance", {}).get("source_key"))
+        if review:
+            specs = specs | fit_updates(specs, part["category"], part["model_number"], review)
         rows.append(
             (
                 part["category"],
@@ -278,7 +287,29 @@ def main():
         action="store_true",
         help="부품 ID와 가격을 유지하고 검토 사양과 근거만 갱신",
     )
+    mode.add_argument("--fit-only", action="store_true", help="제조사 조립 사양 대상만 비교·갱신")
     args = parser.parse_args()
+    if args.fit_only:
+        if any(
+            (
+                args.source_dir,
+                args.krw_per_usd,
+                args.fx_date,
+                args.fx_source,
+                args.with_images,
+                args.image_dataset,
+            )
+        ):
+            parser.error("--fit-only는 원본·환율·이미지 옵션과 함께 사용할 수 없습니다.")
+        reviews = load_fit_reviews()
+        with closing(get_connection()) as connection:
+            if args.apply:
+                with import_transaction(connection):
+                    changes = refresh_fit_specs(connection, reviews, apply=True)
+            else:
+                changes = refresh_fit_specs(connection, reviews)
+        print(json.dumps({"reviewed": len(reviews), "changes": changes}, ensure_ascii=False))
+        return
     if args.reset and not args.apply:
         parser.error("--reset에는 --apply가 필요합니다.")
     if args.specs_only and (
