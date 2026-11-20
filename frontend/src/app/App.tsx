@@ -110,11 +110,11 @@ function Shell() {
   }
   // 기업을 바꾸거나 다시 보기를 누른 직후에는 이전 화면의 상태를 보이지 않습니다.
   const shown = status?.key === workspaceKey ? status : null;
-  const connection: { label: string; state: ConnectionState | "demo" | "failed" } =
+  const connection: { label: string; state: ConnectionState | "demo" } =
     business || demo
       ? { label: demoLabel(shown), state: "demo" }
       : live.error
-        ? { label: "연결 실패", state: "failed" }
+        ? { label: "연결 실패", state: "closed" }
         : !live.session
           ? { label: "연결 준비 중", state: "connecting" }
           : { label: CONNECTION_LABEL[live.connection], state: live.connection };
@@ -273,7 +273,13 @@ function Shell() {
           )}
           <span className="badge" data-testid="test-data-badge">
             <span aria-hidden="true" className="badge-dot" />
-            {business ? "가상 기업 데이터" : demo ? "시연 데이터 · DB 미기록" : "부품 DB 연결"}
+            {business
+              ? "가상 기업 데이터"
+              : demo
+                ? "시연 데이터 · DB 미기록"
+                : live.session
+                  ? "부품 DB 연결"
+                  : "상담 서버 연결 전"}
           </span>
           {account === "personal" && demo && (
             <label className="company">
