@@ -34,13 +34,39 @@
 3. 외부 DB, 네트워크, Docker가 필요하면 단위 테스트가 아니라 모듈·시스템·인수 테스트로 분류합니다.
 4. 공통 계약 테스트는 계약을 수정하지 않고 변경 여부만 감지합니다. 의도적인 계약 변경에는 별도의 계약 변경 PR이 필요합니다.
 5. 담당 영역 테스트를 추가한 사람은 대상 코드 경로와 실행 결과를 PR에 기록합니다.
-6. 모든 테스트 결과 XML은 공통 `backend/tests/report/`에 저장합니다.
+6. 모든 테스트 결과 XML과 같은 이름의 Excel(.xlsx)은 공통 `backend/tests/reports/`에 저장합니다.
+
+### Excel 자동 생성
+
+`python -B tests/unit/run.py` 실행 시 BASE와 ALL 각각 XML + Excel 한 쌍을 생성합니다.
+`--test-id` 개별 실행도 동일합니다. 별도 설치나 가상환경 생성은 하지 않습니다.
+일반 `pytest --junitxml=...` 직접 실행은 이 실행기를 거치지 않으므로 Excel을 만들지 않습니다.
+
+Excel은 `요약`, `테스트 상세` 시트로 구성됩니다. 상세 시트에는 테스트 함수·결과·시간·오류와
+검증 대상·검증 기준·기대값·실제값이 표시됩니다. 기본 규약 9건은 실제 비교값을 JUnit properties에
+기록합니다. 다른 테스트는 properties를 기록하지 않았다면 해당 설명 칸이 비어 있습니다.
+이는 검증하지 않은 내용을 추측해서 채우지 않기 위한 것입니다.
+`검증 요소 상세` 시트는 실제 pytest 9건을 상위 그룹으로 두고 내부 비교 요소를 별도 행으로 표시합니다.
+열거형은 요소 수와 위치별 값, 이벤트 스키마는 JSON 경로별 키·값, API Breaking은 경로별 내역으로 나눕니다.
+상위 ID와 하위 ID(예: 4.001)로 연결하며 하위 행은 추가 실행된 단위테스트가 아닙니다.
+API 불일치는 소스의 문자열 상수 prefix 근거와 저장 명세의 해당 경로 존재 여부를 함께 표시합니다.
+진단 보조 코드는 단순한 상수만 해석하며 앱을 import하거나 외부 API에 접속하지 않습니다.
+기본 규약 결과에는 입력/사전조건·비교 방법·검증 제외 범위·테스트 파일/행도 기록합니다.
+Excel의 오류 유형은 JUnit의 failure/error/skipped type을 사용합니다.
+기록되지 않은 추가 정보는 `미기록`으로 표시하며, 실제로 검사하지 않은 내용을 통과로 표시하지 않습니다.
+열거형은 값·개수·순서를 비교하며, 환경/API 호환성은 인벤토리의 Breaking 판정 결과를 검사합니다.
+실서버 접속이나 API 실호출 성공을 뜻하지 않습니다. 상세화해도 테스트 개수는 변하지 않습니다.
+
+실패한 테스트도 XML이 생성되었다면 Excel로 내보내고 실패 종료 코드를 유지합니다.
+Excel 생성이 실패하거나 XML이 갱신되지 않으면 오류를 표시하고 비정상 종료합니다.
+XML 원본은 수정하지 않습니다. 긴 기대값/실제값은 Excel 셀에서 펼쳐 볼 수 있으며,
+Excel 셀 제한(32,767자)을 넘는 값은 잘립니다. 전체 원본은 XML을 확인하세요.
 7. 파일명과 XML 내부 제목은 `../common/REPORT_NAMING.md`의 공통 규약을 사용합니다.
 8. 새 단위 테스트는 구현 후 `catalog.json`에 등록해야 실행 목록에 나타납니다.
 
 ## 코드 후보 수집
 
-`discover.py`는 `config.py`에 설정된 프로젝트에서 단위 테스트 가능한 코드를 최대한 수집해 `inventory.json`으로 만듭니다.
+`discover.py`는 공통 `../config.py`에 설정된 프로젝트에서 단위 테스트 가능한 코드를 최대한 수집해 `inventory.json`으로 만듭니다.
 
 ```powershell
 python "C:\sk-encoa\SKN35-FINAL-6TEAM\jjb\backend\tests\unit\discover.py"
@@ -83,10 +109,10 @@ python "C:\sk-encoa\SKN35-FINAL-6TEAM\jjb\backend\tests\unit\discover.py" --acce
 
 ## 실행
 
-먼저 `config.py`에서 프로젝트 경로를 자신의 환경에 맞게 한 번 설정합니다.
+프로젝트 경로는 모든 테스트 단계가 공유하는 `backend/tests/config.py`에서 관리합니다. 각 사용자는 실행 전에 `PROJECT_PATH`에 자신의 프로젝트 루트 절대 경로를 직접 지정합니다. `__file__`을 이용한 자동 계산은 사용하지 않습니다. 경로는 `backend`나 `tests`가 아닌 저장소 루트를 지정합니다.
 
 ```python
-PROJECT_PATH = Path(__file__).resolve().parents[3]
+PROJECT_PATH = Path(r"C:\sk-encoa\SKN35-FINAL-6TEAM\jjb")
 ```
 
 공통 Python 기준은 `../common/runtime.py`의 `REQUIRED_PYTHON = (3, 14)`를 사용합니다. 이 규칙은 단위·모듈·시스템·인수 테스트에서 함께 사용합니다.
@@ -133,19 +159,20 @@ python .\backend\tests\unit\run.py --test-id unit-base-common-contract-001
 공통 계약 결과는 다음 형식으로 생성됩니다.
 
 ```text
-C:\sk-encoa\SKN35-FINAL-6TEAM\jjb\backend\tests\report\YYMMDD_jjb_unit_BASE_common-contract_001.xml
+C:\sk-encoa\SKN35-FINAL-6TEAM\jjb\backend\tests\reports\YYMMDD_jjb_unit_BASE_common-contract_001.xml
 ```
 
 `catalog.json`에 새 테스트를 추가하면 다음 실행부터 `ALL` XML에 자동으로 포함됩니다. 같은 날짜에 다시 실행하면 BASE와 ALL XML을 최신 결과로 덮어씁니다. `--test-id`를 지정한 경우에만 선택한 항목을 기존 제목 규약의 개별 XML로 생성합니다.
 
 ## 백엔드 테스트 폴더 연동
 
-실제 업무 테스트와 테스트 도구의 기준 위치는 선택한 프로젝트의 `backend/tests/`입니다. 기존 업무 테스트 파일은 그대로 두고 실행 규칙·인벤토리·분류·XML 리포트는 각각 `common/`, `unit/`, `module/`, `system_acceptance/`, `report/`에서 관리합니다. 기본 규약처럼 테스트 도구 자체를 검증하는 파일은 `unit/contracts/`에 둡니다.
+실제 업무 테스트와 테스트 도구의 기준 위치는 선택한 프로젝트의 `backend/tests/`입니다. 기존 업무 테스트 파일은 그대로 두고 실행 규칙·인벤토리·분류·XML 리포트는 각각 `common/`, `unit/`, `module/`, `system_acceptance/`, `reports/`에서 관리합니다. 기본 규약처럼 테스트 도구 자체를 검증하는 파일은 `unit/contracts/`에 둡니다.
 
 `run.py`는 실행 전에 `backend/tests/`의 모든 `test_*.py`와 `*_test.py`를 검사합니다.
 
 - 순수 단위 테스트는 `catalog.json`의 `tests`에 등록합니다.
 - DB·저장소·전체 워크플로처럼 통합 성격인 테스트는 `classifiedElsewhere`에 단계와 이유를 기록합니다.
-- 새 파일이 어느 쪽에도 없으면 미분류 오류를 내고 실행을 중단합니다.
+- 전체 실행(옵션 없이 BASE + ALL 실행)에서는 새 파일이 어느 쪽에도 없으면 미분류 오류를 내고 실행을 중단합니다.
+- `--test-id` 개별 실행에서는 전체 파일 분류 검사를 생략합니다. 선택한 ID·대상 파일·필수 경로·Python·의존성 검사는 유지하므로, 무관한 신규 테스트 파일이 기본 규약 실행을 막지 않습니다.
 
 따라서 앞으로 업무별 단위 테스트를 추가할 때는 `backend/tests/<업무영역>/test_<대상>.py`에 작성하고 `catalog.json`에 독립 XML 정보와 함께 등록합니다.

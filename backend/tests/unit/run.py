@@ -18,15 +18,19 @@ sys.dont_write_bytecode = True
 UNIT_ROOT = Path(__file__).resolve().parent
 TEST_ROOT = UNIT_ROOT.parent
 COMMON_ROOT = TEST_ROOT / "common"
-REPORT_ROOT = TEST_ROOT / "report"
+REPORT_ROOT = TEST_ROOT / "reports"
 
+sys.path.insert(0, str(TEST_ROOT))
 sys.path.insert(0, str(COMMON_ROOT))
 from config import PROJECT_PATH  # noqa: E402
 from discover import write_inventory  # noqa: E402
+from report_excel import export_junit_excel  # noqa: E402
 from reporting import get_repository_branch_name, new_report_identity  # noqa: E402
 from runtime import validate_python_runtime  # noqa: E402
 
-EXACT_DEPENDENCY_PATTERN = re.compile(r"^\s*([A-Za-z0-9_.-]+)(?:\[[^\]]+\])?==([^;\s]+)\s*$")
+EXACT_DEPENDENCY_PATTERN = re.compile(
+    r"^\s*([A-Za-z0-9_.-]+)(?:\[[^\]]+\])?==([^;\s]+)\s*$"
+)
 
 
 def load_catalog() -> dict[str, Any]:
@@ -45,7 +49,9 @@ def validate_backend_test_classification(
 ) -> None:
     backend_tests_root = repository_root / "backend" / "tests"
     if not backend_tests_root.is_dir():
-        raise RuntimeError(f"백엔드 테스트 폴더를 찾을 수 없습니다: {backend_tests_root}")
+        raise RuntimeError(
+            f"백엔드 테스트 폴더를 찾을 수 없습니다: {backend_tests_root}"
+        )
 
     discovered_files = {
         path.relative_to(repository_root).as_posix()
@@ -74,9 +80,12 @@ def validate_backend_test_classification(
                 if path.is_file()
             }
         )
-        unit_files.update(path.relative_to(repository_root).as_posix() for path in harness_files)
+        unit_files.update(
+            path.relative_to(repository_root).as_posix() for path in harness_files
+        )
     other_files = {
-        Path(classification["testPath"]).as_posix() for classification in classified_elsewhere
+        Path(classification["testPath"]).as_posix()
+        for classification in classified_elsewhere
     }
 
     overlapping = sorted(unit_files & other_files)
@@ -100,9 +109,13 @@ def select_definitions(
         return definitions
 
     definitions_by_id = {definition["id"]: definition for definition in definitions}
-    missing_ids = [test_id for test_id in requested_ids if test_id not in definitions_by_id]
+    missing_ids = [
+        test_id for test_id in requested_ids if test_id not in definitions_by_id
+    ]
     if missing_ids:
-        raise RuntimeError(f"단위 테스트 ID를 찾을 수 없습니다: {', '.join(missing_ids)}")
+        raise RuntimeError(
+            f"단위 테스트 ID를 찾을 수 없습니다: {', '.join(missing_ids)}"
+        )
     return [definitions_by_id[test_id] for test_id in requested_ids]
 
 
@@ -110,11 +123,15 @@ def validate_project_paths(repository_root: Path, definition: dict[str, Any]) ->
     for relative_path in definition.get("requiredProjectPaths", []):
         required_path = repository_root / Path(relative_path)
         if not required_path.exists():
-            raise RuntimeError(f"단위 테스트에 필요한 경로를 찾을 수 없습니다: {required_path}")
+            raise RuntimeError(
+                f"단위 테스트에 필요한 경로를 찾을 수 없습니다: {required_path}"
+            )
 
 
 def validate_installed_dependencies(backend_project: Path) -> None:
-    project_config = tomllib.loads((backend_project / "pyproject.toml").read_text(encoding="utf-8"))
+    project_config = tomllib.loads(
+        (backend_project / "pyproject.toml").read_text(encoding="utf-8")
+    )
     dependency_specs = list(project_config["project"].get("dependencies", []))
     dependency_specs.extend(project_config.get("dependency-groups", {}).get("dev", []))
 
@@ -173,7 +190,9 @@ def run_test(
     definition: dict[str, Any],
     runtime_environment: dict[str, str],
 ) -> int:
-    test_target = resolve_test_target(repository_root=repository_root, definition=definition)
+    test_target = resolve_test_target(
+        repository_root=repository_root, definition=definition
+    )
 
     report_identity = new_report_identity(
         test_type="unit",
@@ -209,9 +228,34 @@ def run_test(
         python_path_entries.append(existing_python_path)
     environment["PYTHONPATH"] = os.pathsep.join(python_path_entries)
 
-    completed = subprocess.run(command, cwd=repository_root, env=environment, check=False)
+    return execute_with_reports(command, repository_root, environment, report_path)
+
+
+def execute_with_reports(
+    command: list[str],
+    repository_root: Path,
+    environment: dict[str, str],
+    report_path: Path,
+) -> int:
+    """pytest 결과와 Excel 생성 성공을 각각 확인합니다."""
+    before = report_path.stat() if report_path.exists() else None
+    completed = subprocess.run(
+        command, cwd=repository_root, env=environment, check=False
+    )
     result = "PASS" if completed.returncode == 0 else "FAIL"
     print(f"{result}: {report_path}")
+    try:
+        after = report_path.stat()
+        if before and (before.st_mtime_ns, before.st_size) == (
+            after.st_mtime_ns,
+            after.st_size,
+        ):
+            raise RuntimeError("이번 실행에서 XML이 갱신되지 않았습니다.")
+        excel_path = export_junit_excel(report_path)
+        print(f"EXCEL: {excel_path}")
+    except (OSError, ValueError, RuntimeError) as error:
+        print(f"EXCEL ERROR: {error}", file=sys.stderr)
+        return completed.returncode or 2
     return completed.returncode
 
 
@@ -264,10 +308,7 @@ def run_all_unit_tests(
         python_path_entries.append(existing_python_path)
     environment["PYTHONPATH"] = os.pathsep.join(python_path_entries)
 
-    completed = subprocess.run(command, cwd=repository_root, env=environment, check=False)
-    result = "PASS" if completed.returncode == 0 else "FAIL"
-    print(f"{result}: {report_path}")
-    return completed.returncode
+    return execute_with_reports(command, repository_root, environment, report_path)
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -294,7 +335,9 @@ def main() -> int:
 
     backend_project = repository_root / "backend"
     if not (backend_project / "pyproject.toml").is_file():
-        raise RuntimeError(f"백엔드 프로젝트 설정을 찾을 수 없습니다: {backend_project}")
+        raise RuntimeError(
+            f"백엔드 프로젝트 설정을 찾을 수 없습니다: {backend_project}"
+        )
 
     inventory = write_inventory(repository_root)
     inventory_summary = inventory["summary"]
@@ -321,11 +364,12 @@ def main() -> int:
 
     catalog = load_catalog()
     definitions = catalog["tests"]
-    validate_backend_test_classification(
-        repository_root,
-        definitions,
-        catalog.get("classifiedElsewhere", []),
-    )
+    if not arguments.test_id:
+        validate_backend_test_classification(
+            repository_root,
+            definitions,
+            catalog.get("classifiedElsewhere", []),
+        )
     branch_name = get_repository_branch_name(repository_root)
     REPORT_ROOT.mkdir(parents=True, exist_ok=True)
 
@@ -348,7 +392,9 @@ def main() -> int:
                 failed_tests.append(definition["id"])
     else:
         base_definitions = [
-            definition for definition in definitions if definition["requirementId"] == "BASE"
+            definition
+            for definition in definitions
+            if definition["requirementId"] == "BASE"
         ]
         if len(base_definitions) != 1:
             raise RuntimeError(
