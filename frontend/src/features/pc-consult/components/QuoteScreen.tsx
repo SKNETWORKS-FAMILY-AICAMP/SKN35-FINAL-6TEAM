@@ -8,18 +8,29 @@ import {
   type SaveReceipt,
 } from "../types";
 import { Modal, StatusBadge, ValidationDetails } from "./ui";
+import { PartVisual, type ProductVisualMap } from "./PartVisual";
 
 interface Props {
   quotes: Quote[];
   budget: number;
   pending: boolean;
   error: string | null;
+  products?: ProductVisualMap;
   onEdit: (category: Category, color: string, note: string) => void;
   onConfirm: () => void;
   onSaved: () => void;
 }
 
-export function QuoteScreen({ quotes, budget, pending, error, onEdit, onConfirm, onSaved }: Props) {
+export function QuoteScreen({
+  quotes,
+  budget,
+  pending,
+  error,
+  products = {},
+  onEdit,
+  onConfirm,
+  onSaved,
+}: Props) {
   const latest = quotes.at(-1)!;
   const [viewVersion, setViewVersion] = useState(latest.version);
   const [editing, setEditing] = useState<Category | null>(null);
@@ -39,9 +50,9 @@ export function QuoteScreen({ quotes, budget, pending, error, onEdit, onConfirm,
     <section className="pc-quote-screen">
       <div className="pc-section-heading">
         <div>
-          <p className="pc-eyebrow">YOUR QUOTATION</p>
+          <p className="pc-eyebrow">선택한 구성의 견적</p>
           <h1>이 구성이 어떠세요?</h1>
-          <p className="pc-muted">견적팀이 고른 부품을 한 장에 정리했습니다.</p>
+          <p className="pc-muted">선택한 부품과 확인할 내용을 한눈에 살펴보세요.</p>
         </div>
         <span className="pc-version">견적 v{quote.version}</span>
       </div>
@@ -50,7 +61,11 @@ export function QuoteScreen({ quotes, budget, pending, error, onEdit, onConfirm,
         <span
           className={`pc-status ${quote.status === "CONFIRMED" ? "pc-status-pass" : "pc-status-pending"}`}
         >
-          {quote.status === "CONFIRMED" ? "승인 완료" : "승인 대기"}
+          {quote.status === "CONFIRMED"
+            ? "승인 완료"
+            : quote.handoff?.required
+              ? "담당자 확인 대기"
+              : "승인 대기"}
         </span>
         <span className="pc-demo-label">간이 판단</span>
       </div>
@@ -60,6 +75,18 @@ export function QuoteScreen({ quotes, budget, pending, error, onEdit, onConfirm,
         </p>
       )}
       <div className="pc-quote-table-wrap">
+        <div className="pc-quote-document-head">
+          <div>
+            <p className="pc-eyebrow">견적 · 주문팀</p>
+            <h2>고객님을 위한 PC 견적서</h2>
+            <span className="pc-muted">선택한 {quote.items.length}개 부품을 담았습니다.</span>
+          </div>
+          <div className="pc-quote-document-amount">
+            <span>최종 구성 금액</span>
+            <strong>{won(quote.total_amount)}</strong>
+            <small>테스트 가격 · 견적 v{quote.version}</small>
+          </div>
+        </div>
         <table className="pc-quote-table">
           <caption className="pc-sr-only">견적 v{quote.version} 부품과 가격</caption>
           <thead>
@@ -73,34 +100,71 @@ export function QuoteScreen({ quotes, budget, pending, error, onEdit, onConfirm,
             </tr>
           </thead>
           <tbody>
-            {quote.items.map((item) => (
-              <tr key={item.source_key}>
-                <td data-label="분류">{CATEGORY_LABELS[item.category]}</td>
-                <td data-label="부품">{item.part_name_snapshot}</td>
-                <td data-label="가격">
-                  <strong>{won(item.unit_price)}</strong>
-                  <small>테스트 가격</small>
-                </td>
-                <td>
-                  {isLatest && (
-                    <button
-                      className="pc-button pc-secondary pc-small"
-                      disabled={pending}
-                      onClick={() => {
-                        setEditing(item.category);
-                        setColor("");
-                        setNote("");
-                      }}
-                      aria-label={`${CATEGORY_LABELS[item.category]} 변경 요청`}
-                    >
-                      변경 요청
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {quote.items.map((item) => {
+              const review = quote.reviewItems?.find(
+                (entry) => entry.source_key === item.source_key,
+              );
+              return (
+                <tr key={item.source_key}>
+                  <td data-label="분류">{CATEGORY_LABELS[item.category]}</td>
+                  <td data-label="부품">
+                    <div className="pc-quote-product">
+                      <PartVisual
+                        category={item.category}
+                        name={item.part_name_snapshot}
+                        imageUrl={products[item.source_key]?.image_url}
+                        size="thumbnail"
+                      />
+                      <div className="pc-quote-product-copy">
+                        <small className="pc-quote-category">
+                          {!products[item.source_key]?.brand ||
+                          /^(unknown|unconfirmed|unverified)$/i.test(
+                            products[item.source_key].brand,
+                          )
+                            ? "브랜드 미확인"
+                            : products[item.source_key].brand}
+                        </small>
+                        <strong>{item.part_name_snapshot}</strong>
+                        <small>수량 {item.quantity}개</small>
+                        {review && (
+                          <div className="pc-quote-item-review" data-testid="pc-quote-item-review">
+                            <span className="pc-status pc-status-unknown">확인 필요</span>
+                            <span>{review.reasons.join(" · ")}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td data-label="가격">
+                    <strong>{won(item.unit_price)}</strong>
+                    <small>테스트 가격</small>
+                  </td>
+                  <td>
+                    {isLatest && (
+                      <button
+                        className="pc-button pc-secondary pc-small"
+                        disabled={pending}
+                        onClick={() => {
+                          setEditing(item.category);
+                          setColor("");
+                          setNote("");
+                        }}
+                        aria-label={`${CATEGORY_LABELS[item.category]} 변경 요청`}
+                      >
+                        변경 요청
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+        {quote.items.some((item) => !products[item.source_key]?.image_url) && (
+          <p className="pc-quote-photo-notice">
+            제품 사진이 등록되지 않은 부품은 분류별 예시 그림으로 표시합니다.
+          </p>
+        )}
         <div className="pc-quote-total">
           <span>
             총 {quote.items.length}개 부품 <small>· 테스트 가격</small>
@@ -110,6 +174,17 @@ export function QuoteScreen({ quotes, budget, pending, error, onEdit, onConfirm,
       </div>
       {quote.total_amount > budget && (
         <p className="pc-error">전체 예산보다 {won(quote.total_amount - budget)} 초과했습니다.</p>
+      )}
+      {quote.handoff?.required && (
+        <div className="pc-warning" id="pc-quote-handoff" role="status">
+          <strong>담당자가 확인해야 하는 견적입니다.</strong>
+          <p>기업의 정책에 따라 확인을 마치기 전에는 견적을 확정할 수 없습니다.</p>
+          <ul>
+            {quote.handoff.reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </div>
       )}
       <section className="pc-panel pc-quote-checks">
         <div className="pc-section-heading">
@@ -163,7 +238,8 @@ export function QuoteScreen({ quotes, budget, pending, error, onEdit, onConfirm,
           <button
             className="pc-button pc-primary"
             onClick={() => setConfirming(true)}
-            disabled={pending || quote.validation.status === "FAIL"}
+            disabled={pending || quote.validation.status === "FAIL" || quote.handoff?.required}
+            aria-describedby={quote.handoff?.required ? "pc-quote-handoff" : undefined}
           >
             {pending ? "견적을 저장하고 있습니다…" : "이 견적으로 확정"}
           </button>
@@ -230,10 +306,12 @@ export function QuoteScreen({ quotes, budget, pending, error, onEdit, onConfirm,
             <button
               className="pc-button pc-primary"
               onClick={() => {
+                if (pending || latest.validation.status === "FAIL" || latest.handoff?.required)
+                  return;
                 setConfirming(false);
                 onConfirm();
               }}
-              disabled={pending}
+              disabled={pending || latest.validation.status === "FAIL" || latest.handoff?.required}
             >
               확인하고 시연 저장
             </button>
@@ -247,11 +325,13 @@ export function QuoteScreen({ quotes, budget, pending, error, onEdit, onConfirm,
 export function SavedScreen({
   receipt,
   mode,
+  products = {},
   onQuote,
   onPayment,
 }: {
   receipt: SaveReceipt;
   mode: ConsultMode;
+  products?: ProductVisualMap;
   onQuote: () => void;
   onPayment: () => void;
 }) {
@@ -260,9 +340,20 @@ export function SavedScreen({
       <div className="pc-success-mark" aria-hidden="true">
         ✓
       </div>
-      <p className="pc-eyebrow">CONFIRMED · V{receipt.quote.version}</p>
+      <p className="pc-eyebrow">승인 완료 · 견적 v{receipt.quote.version}</p>
       <h1>선택하신 견적을 저장했어요.</h1>
       <p>{receipt.message}</p>
+      <div className="pc-success-parts" aria-label="저장한 구성의 부품 그림">
+        {receipt.quote.items.map((item) => (
+          <PartVisual
+            key={item.source_key}
+            category={item.category}
+            name={item.part_name_snapshot}
+            imageUrl={products[item.source_key]?.image_url}
+            size="compact"
+          />
+        ))}
+      </div>
       <div className="pc-success-summary">
         <span>{receipt.quote.items.length}개 부품</span>
         <strong>{won(receipt.quote.total_amount)}</strong>
@@ -287,10 +378,18 @@ export function SavedScreen({
   );
 }
 
-export function PaymentScreen({ receipt, onQuote }: { receipt: SaveReceipt; onQuote: () => void }) {
+export function PaymentScreen({
+  receipt,
+  products = {},
+  onQuote,
+}: {
+  receipt: SaveReceipt;
+  products?: ProductVisualMap;
+  onQuote: () => void;
+}) {
   return (
     <section className="pc-payment">
-      <p className="pc-eyebrow">NEXT STEP</p>
+      <p className="pc-eyebrow">다음 단계 안내</p>
       <h1>결제 연동을 준비하고 있어요.</h1>
       <p className="pc-muted">
         저장한 견적을 확인해 주세요. 현재 실제 주문이나 결제는 진행되지 않습니다.
@@ -300,7 +399,16 @@ export function PaymentScreen({ receipt, onQuote }: { receipt: SaveReceipt; onQu
         <ul className="pc-order-list">
           {receipt.quote.items.map((item) => (
             <li key={item.source_key}>
-              <span>{item.part_name_snapshot}</span>
+              <div className="pc-order-product">
+                <PartVisual
+                  category={item.category}
+                  name={item.part_name_snapshot}
+                  imageUrl={products[item.source_key]?.image_url}
+                  size="compact"
+                  caption={false}
+                />
+                <span>{item.part_name_snapshot}</span>
+              </div>
               <strong>{won(item.unit_price)}</strong>
             </li>
           ))}

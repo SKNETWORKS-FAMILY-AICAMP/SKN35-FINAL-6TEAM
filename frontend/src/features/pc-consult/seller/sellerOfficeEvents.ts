@@ -1,42 +1,96 @@
-/**
- * 가상 판매자 시연에서 실제 수신한 이벤트를 기존 오피스 표시 형식으로 연결합니다.
- * 서버 이벤트를 발행하거나 저장하지 않습니다. 상담 요약은 설계·분석팀, 클레임 분류는
- * 검증팀의 시연 업무로 표시하며 PC 부품 설계·호환성 판정·견적 완료를 만들지 않습니다.
- */
+/** Local demo receipts only: existing AgentEvent contract, no server publication or fake quote. */
 import type { AgentEvent, WorkStatus } from "../../../api/client";
 import { initialOfficeState, officeReducer, type OfficeState } from "../../office/officeState";
 import type { SellerEvent } from "./sellerState";
 import type { SellerState } from "./types";
 
-export function sellerOfficeEvent(
+export interface SellerOfficeTransition {
+  office: OfficeState;
+  events: AgentEvent[];
+}
+
+/** Keep the event journal even when a concurrent issue must not replace the active desk. */
+export function sellerOfficeTransition(
   office: OfficeState,
   event: SellerEvent,
   before: SellerState,
   after: SellerState,
   occurredAt: string,
-): OfficeState {
-  if (event.type === "RESET") return initialOfficeState();
-  // 권한 검사나 오래된 타이머 때문에 거절된 이벤트는 그림에도 반영하지 않습니다.
-  if (before.office === after.office) return office;
-  let next = office;
+  lastSeq = office.lastSeq,
+): SellerOfficeTransition {
+  if (event.type === "RESET") return { office: initialOfficeState(), events: [] };
+  const changed =
+    before.office !== after.office ||
+    before.feed !== after.feed ||
+    before.uploadProgress !== after.uploadProgress ||
+    before.alerts !== after.alerts;
+  // A denial toast and an ignored stale callback cannot produce an accepted work receipt.
+  if (!changed) return { office, events: [] };
+
   const context = after.office;
-  const sessionId = context.issueId
+  let sessionId = context.issueId
     ? `seller-demo-issue:${context.issueId}`
     : `seller-demo-consultation:${context.consultationId}`;
+  switch (event.type) {
+    case "POLICY_SAVED":
+      sessionId = `seller-demo-policy:${event.version}`;
+      break;
+    case "SAVE_POLICY":
+      sessionId = "seller-demo-policy:legacy";
+      break;
+    case "UPLOAD_STARTED":
+    case "UPLOAD_PROGRESS":
+    case "UPLOAD_COMPLETED":
+      sessionId = "seller-demo-document:upload";
+      break;
+    case "ABUSE_DETECTED":
+    case "IGNORE_ALERT":
+      sessionId = `seller-demo-alert:${event.id}`;
+      break;
+    case "SET_BLOCK":
+      sessionId = `seller-demo-customer:${event.customerId}`;
+      break;
+    case "SALE_COMPLETED":
+      sessionId = `seller-demo-sale:${event.id}`;
+      break;
+    case "APPROVE_EMPLOYEE":
+    case "SET_EMPLOYEE_ROLE":
+    case "SET_EMPLOYEE_STATUS":
+      sessionId = `seller-demo-employee:${event.id}`;
+      break;
+    case "ASSIGN_ISSUE":
+    case "COMPLETE_ISSUE":
+    case "CLAIM_CLASSIFIED":
+      sessionId = `seller-demo-issue:${event.id}`;
+      break;
+    case "PREVIEW_HANDOFF":
+      sessionId = `seller-demo-preview:${event.input.id}`;
+      break;
+  }
+  const preserveDesk =
+    before.office === after.office &&
+    (event.type === "ASSIGN_ISSUE" ||
+      event.type === "COMPLETE_ISSUE" ||
+      event.type === "CLAIM_CLASSIFIED" ||
+      event.type === "PREVIEW_HANDOFF");
   const fresh =
-    event.type === "CONSULT_STARTED" ||
-    event.type === "CLAIM_RECEIVED" ||
-    office.version === 0 ||
-    (event.type === "ASSIGN_ISSUE" && office.runEvent?.session_id !== sessionId);
+    !preserveDesk &&
+    (event.type === "CONSULT_STARTED" ||
+      event.type === "CLAIM_RECEIVED" ||
+      event.type === "PREVIEW_HANDOFF" ||
+      office.version === 0 ||
+      (event.type === "ASSIGN_ISSUE" && office.runEvent?.session_id !== sessionId));
   const version = fresh ? office.version + 1 : office.version;
+  let next = office;
+  const events: AgentEvent[] = [];
   function append(
     type: AgentEvent["type"],
     status: WorkStatus,
     message: string,
     team: AgentEvent["team"] = "consultation",
   ) {
-    next = officeReducer(next, {
-      seq: next.lastSeq + 1,
+    const receipt: AgentEvent = {
+      seq: lastSeq + events.length + 1,
       session_id: sessionId,
       company_id: 0,
       run_id: `seller-demo-run:${sessionId}`,
@@ -45,11 +99,18 @@ export function sellerOfficeEvent(
       type,
       status,
       occurred_at: occurredAt,
-      message: `${message} (시연)`,
+      message: message.endsWith("(시연)") ? message : `${message} (시연)`,
       error: null,
       artifact: null,
       metrics: null,
-    });
+    };
+    events.push(receipt);
+    next = officeReducer(next, receipt);
+  }
+  function completedReceipt(message: string, team: AgentEvent["team"] = "design") {
+    // The synchronous mutation has succeeded. Its pair must not consume another task.
+    append("task.started", "running", "수신한 업무 결과를 기록하고 있습니다.", team);
+    append("task.completed", "completed", message, team);
   }
   switch (event.type) {
     case "CONSULT_STARTED":
@@ -83,16 +144,28 @@ export function sellerOfficeEvent(
       append("run.needs_input", "needs_input", "처리함에서 담당자를 배정해 주세요.", null);
       break;
     case "ASSIGN_ISSUE":
+      if (
+        !preserveDesk &&
+        before.office.phase === "classifying" &&
+        before.office.issueId === event.id &&
+        next.teams.validation.activeTasks > 0
+      ) {
+        append(
+          "task.failed",
+          "cancelled",
+          "담당자 배정으로 자동 분류를 중단했습니다.",
+          "validation",
+        );
+      }
       append("run.started", "running", "담당자가 이슈를 처리하고 있습니다.", null);
       append(
-        next.teams.consultation.activeTasks ? "task.progress" : "task.started",
+        next.teams.consultation.activeTasks && !preserveDesk ? "task.progress" : "task.started",
         "running",
         `${event.assignee} 담당자가 이슈를 확인하고 있습니다.`,
       );
       break;
     case "COMPLETE_ISSUE":
       append("task.completed", "completed", "담당자가 이슈 처리를 완료했습니다.");
-      // 이슈 처리 완료는 PC 설계·검증·견적의 전체 완료를 뜻하지 않습니다.
       append(
         "run.needs_input",
         "needs_input",
@@ -100,6 +173,85 @@ export function sellerOfficeEvent(
         null,
       );
       break;
+    case "PREVIEW_HANDOFF":
+      append(
+        "run.started",
+        "running",
+        event.input.dataOrigin === "browser-selection"
+          ? "고객이 경고를 확인하고 선택한 제품의 정보 보강 요청을 접수했습니다."
+          : "고객 미리보기의 인계 기록을 접수했습니다.",
+        null,
+      );
+      append("task.completed", "completed", "고객 대화와 인계 사유를 전달했습니다.");
+      append("task.started", "running", "인계 사유와 팀 검토 기록을 정리하고 있습니다.", "design");
+      append(
+        "task.completed",
+        "completed",
+        event.input.dataOrigin === "browser-selection"
+          ? `상품 정보 보강 필요: ${event.input.reasons.join(" · ")}`
+          : "인계 사유·대화·팀 검토 기록을 인계함에 보관했습니다.",
+        "design",
+      );
+      append("run.needs_input", "needs_input", "인계함에서 담당자를 배정해 주세요.", null);
+      break;
+    case "POLICY_SAVED":
+      completedReceipt(`저장된 기업 정책 v${event.version}을 설계팀이 반영했습니다.`);
+      break;
+    case "SAVE_POLICY":
+      completedReceipt("배송비와 할인 정책의 시연 저장을 확인했습니다.");
+      break;
+    case "UPLOAD_STARTED":
+      append("task.started", "running", "상담 자료를 등록하고 있습니다.", "design");
+      break;
+    case "UPLOAD_PROGRESS":
+      append("task.progress", "running", `상담 자료 등록 ${after.uploadProgress}%`, "design");
+      break;
+    case "UPLOAD_COMPLETED": {
+      const pendingUpload = next.teams.design.log.filter((entry) => entry.session_id === sessionId);
+      const message = `${event.title} 문서가 상담 자료에 반영되었습니다.`;
+      if (
+        pendingUpload.some((entry) => entry.type === "task.started") &&
+        pendingUpload.at(-1)?.type !== "task.completed"
+      ) {
+        append("task.completed", "completed", message, "design");
+      } else {
+        // Another consultation may have replaced the displayed version while upload was pending.
+        completedReceipt(message);
+      }
+      break;
+    }
+    case "ABUSE_DETECTED":
+      completedReceipt("*** 표현 감지 알림을 고객 관리에 기록했습니다.", "validation");
+      break;
+    case "IGNORE_ALERT":
+      completedReceipt("담당자가 알림을 확인하고 무시 처리했습니다.", "validation");
+      break;
+    case "SALE_COMPLETED":
+      // Sale receipt is not completion of a PC consultation or a new quote run.
+      append("order.created", "completed", "판매 1건을 판매 현황에 반영했습니다.", null);
+      break;
+    case "SET_BLOCK":
+      completedReceipt(
+        event.blocked ? "관리자가 고객을 차단했습니다." : "관리자가 고객 차단을 해제했습니다.",
+        "validation",
+      );
+      break;
+    case "APPROVE_EMPLOYEE":
+    case "SET_EMPLOYEE_ROLE":
+    case "SET_EMPLOYEE_STATUS":
+      completedReceipt(after.feed[0].text);
+      break;
   }
-  return next;
+  return { office: preserveDesk ? office : next, events };
+}
+
+/** Backward-compatible projection used by the existing OfficeScene contract tests. */
+export function sellerOfficeEvent(
+  office: OfficeState,
+  event: SellerEvent,
+  before: SellerState,
+  after: SellerState,
+  occurredAt: string,
+): OfficeState {
+  return sellerOfficeTransition(office, event, before, after, occurredAt).office;
 }

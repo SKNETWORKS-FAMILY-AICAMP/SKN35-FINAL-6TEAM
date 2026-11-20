@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { DEMO_SCRIPT, initialSellerState } from "./mockData";
-import { sellerReducer } from "./sellerState";
+import { DEMO_SCRIPT } from "./mockData";
+import { reviewSelectionStore, useReviewSelections } from "../reviewSelectionStore";
+import { reviewSelectionHandoff } from "./reviewSelectionHandoff";
 import type { SellerEvent } from "./sellerState";
-import type { DemoAction, SellerMenu, SellerSession } from "./types";
-import { initialOfficeState } from "../../office/officeState";
-import { sellerOfficeEvent } from "./sellerOfficeEvents";
+import type { DemoAction, PreviewHandoffInput, SellerMenu, SellerSession } from "./types";
+import {
+  initialSellerRuntime,
+  selectSellerOperations,
+  sellerRuntimeReducer,
+  type SellerRuntime,
+} from "./operations";
 
 export interface DemoContext {
   prefix: string;
@@ -88,28 +93,12 @@ export function scheduleDemoScenario(
 }
 
 export function useSellerDemo(session: SellerSession) {
-  const [{ state, office }, dispatchEvent] = useReducer(
-    (
-      current: {
-        state: ReturnType<typeof initialSellerState>;
-        office: ReturnType<typeof initialOfficeState>;
-      },
-      received: { event: SellerEvent; occurredAt: string },
-    ) => {
-      const next = sellerReducer(current.state, received.event, session.role);
-      return {
-        state: next,
-        office: sellerOfficeEvent(
-          current.office,
-          received.event,
-          current.state,
-          next,
-          received.occurredAt,
-        ),
-      };
-    },
+  const reviewSelections = useReviewSelections(session.companyCode);
+  const [{ state, office, events, performance }, dispatchEvent] = useReducer(
+    (current: SellerRuntime, received: { event: SellerEvent; occurredAt: string }) =>
+      sellerRuntimeReducer(current, received.event, session.role, received.occurredAt),
     session.companyCode,
-    (companyCode) => ({ state: initialSellerState(companyCode), office: initialOfficeState() }),
+    initialSellerRuntime,
   );
   const rawDispatch = useCallback((event: SellerEvent) => {
     dispatchEvent({ event, occurredAt: new Date().toISOString() });
@@ -139,6 +128,14 @@ export function useSellerDemo(session: SellerSession) {
     return cancelAll;
   }, [session.companyCode, session.role, cancelAll, rawDispatch]);
   useEffect(() => {
+    reviewSelections.forEach((selection) =>
+      rawDispatch({
+        type: "PREVIEW_HANDOFF",
+        input: reviewSelectionHandoff(selection),
+      }),
+    );
+  }, [reviewSelections, session.role, rawDispatch]);
+  useEffect(() => {
     if (!state.toast) return;
     const timer = setTimeout(
       () => rawDispatch({ type: "CLEAR_TOAST", toastId: state.toastId }),
@@ -149,7 +146,10 @@ export function useSellerDemo(session: SellerSession) {
 
   const dispatch = useCallback(
     (event: SellerEvent) => {
-      if (event.type === "RESET") cancelAll();
+      if (event.type === "RESET") {
+        cancelAll();
+        reviewSelectionStore.dispatch({ type: "RESET_COMPANY", companyCode: event.companyCode });
+      }
       rawDispatch(event);
     },
     [cancelAll, rawDispatch],
@@ -158,6 +158,7 @@ export function useSellerDemo(session: SellerSession) {
   function runDemo(action: DemoAction) {
     if (action === "reset") {
       cancelAll();
+      reviewSelectionStore.dispatch({ type: "RESET_COMPANY", companyCode: session.companyCode });
       rawDispatch({ type: "RESET", companyCode: session.companyCode });
       rawDispatch({ type: "TOAST", message: "시연 데이터를 초기 상태로 되돌렸습니다." });
       return;
@@ -240,11 +241,18 @@ export function useSellerDemo(session: SellerSession) {
   return {
     state,
     office,
+    events,
+    operations: selectSellerOperations(events),
+    performance,
+    reviewSelections,
     dispatch,
     runDemo,
     canManage: session.role === "admin",
     navigate: (menu: SellerMenu) => dispatch({ type: "NAVIGATE", menu }),
     uploadDocument,
+    recordPolicySaved: (version: number) => dispatch({ type: "POLICY_SAVED", version }),
+    receivePreviewHandoff: (input: PreviewHandoffInput) =>
+      dispatch({ type: "PREVIEW_HANDOFF", input }),
     savePolicy: (shippingFee: number, discount: number) =>
       dispatch({ type: "SAVE_POLICY", shippingFee, discount }),
   };

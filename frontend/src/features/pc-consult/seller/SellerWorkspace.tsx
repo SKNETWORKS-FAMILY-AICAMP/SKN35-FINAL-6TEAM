@@ -1,117 +1,39 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OfficeState } from "../../office/officeState";
+import type { AgentEvent } from "../../../api/client";
+import { selectSellerOperations } from "./operations";
 import {
   CustomersPanel,
   DocumentsPanel,
   EmployeesPanel,
-  HomePanel,
   IssuesPanel,
-  OfficePanel,
   SalesPanel,
 } from "./SellerPanels";
 import { useSellerDemo } from "./useSellerDemo";
 import type { DemoAction, SellerMenu, SellerSession } from "./types";
+import { ManagementHome, FeedbackPanel, AiTeamsPanel } from "./ManagementPanels";
+import { SELLER_MENUS, SellerMenuIcon, normalizeSellerMenu } from "./SellerNavigation";
+import { DEFAULT_COMPANY_POLICIES, type CompanyPolicy } from "../data/companyPolicy";
+import { createCompanySource } from "../data/snapshotSource";
+import type { CatalogSummary } from "../types";
+import { CatalogPanel, type CatalogTab } from "./CatalogPanel";
+import { CustomerPreview, type PreviewOutcome } from "./CustomerPreview";
+import { PresentationBar } from "./PresentationBar";
+import { Modal } from "../components/ui";
+import { StartScreen } from "../components/StartScreen";
 import "./seller.css";
+import "./management.css";
+import "./b2b.css";
 
-const MENUS: { id: SellerMenu; label: string; admin?: boolean; icon: ReactNode }[] = [
-  {
-    id: "home",
-    label: "홈",
-    icon: (
-      <>
-        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z" />
-      </>
-    ),
-  },
-  {
-    id: "customers",
-    label: "고객 정보",
-    icon: (
-      <>
-        <circle cx="9" cy="8" r="3" />
-        <path d="M3 20v-3a6 6 0 0 1 12 0v3m1-15a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 5v1" />
-      </>
-    ),
-  },
-  {
-    id: "sales",
-    label: "판매 통계",
-    admin: true,
-    icon: (
-      <>
-        <path d="M4 3v17h17M8 15v-5m5 5V6m5 9v-8" />
-      </>
-    ),
-  },
-  {
-    id: "issues",
-    label: "상담 · 이슈 현황",
-    icon: (
-      <>
-        <path d="M4 4h16v12H9l-5 4Z" />
-        <path d="M8 8h8m-8 4h5" />
-      </>
-    ),
-  },
-  {
-    id: "documents",
-    label: "문서 · 정책 관리",
-    admin: true,
-    icon: (
-      <>
-        <path d="M5 3h9l5 5v13H5Z" />
-        <path d="M14 3v6h5M8 13h8m-8 4h5" />
-      </>
-    ),
-  },
-  {
-    id: "employees",
-    label: "직원 관리",
-    admin: true,
-    icon: (
-      <>
-        <rect x="3" y="5" width="18" height="16" rx="2" />
-        <path d="M8 5V3h8v2m-13 7h18M10 10h4v4h-4Z" />
-      </>
-    ),
-  },
-  {
-    id: "office",
-    label: "2D 오피스",
-    icon: (
-      <>
-        <path d="M3 20h18M5 20V4h9v16m0-12h5v12M8 8h3m-3 4h3m-3 4h3m5-4h1m-1 4h1" />
-      </>
-    ),
-  },
+const DEMO_ACTIONS: { id: DemoAction; label: string }[] = [
+  { id: "consult", label: "새 상담 들어옴" },
+  { id: "handoff", label: "상담 끝 → 전달" },
+  { id: "claim", label: "클레임 발생" },
+  { id: "abuse", label: "욕설 감지" },
+  { id: "sale", label: "판매 발생" },
+  { id: "auto", label: "전체 시나리오 자동 재생" },
+  { id: "reset", label: "처음으로" },
 ];
-const DEMO_ACTIONS: { id: DemoAction; label: string; icon: string }[] = [
-  { id: "consult", label: "새 상담 들어옴", icon: "+" },
-  { id: "handoff", label: "상담 끝 → 전달", icon: "→" },
-  { id: "claim", label: "클레임 발생", icon: "!" },
-  { id: "abuse", label: "욕설 감지", icon: "◇" },
-  { id: "sale", label: "판매 발생", icon: "₩" },
-  { id: "auto", label: "전체 시나리오 자동 재생", icon: "▷" },
-  { id: "reset", label: "처음으로", icon: "↺" },
-];
-
-function LockIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      aria-hidden="true"
-    >
-      <rect x="4" y="9" width="12" height="9" rx="2" />
-      <path d="M6 9V6a4 4 0 0 1 8 0v3" />
-    </svg>
-  );
-}
-
 export interface SellerNavigationState {
   unread: SellerMenu[];
   canManage: boolean;
@@ -125,6 +47,8 @@ export function SellerWorkspace({
   menu,
   onNavigate,
   onNavigationState,
+  policies: providedPolicies,
+  onPolicyChange,
 }: {
   session: SellerSession;
   onLogout: () => void;
@@ -132,217 +56,425 @@ export function SellerWorkspace({
   menu?: SellerMenu;
   onNavigate?: (menu: SellerMenu) => void;
   onNavigationState?: (info: SellerNavigationState) => void;
+  policies?: Record<string, CompanyPolicy>;
+  onPolicyChange?: (policy: CompanyPolicy) => void;
 }) {
   const demo = useSellerDemo(session);
   const { state, office, runDemo, canManage, dispatch } = demo;
-  const navigate = useCallback(
-    (next: SellerMenu) => {
-      dispatch({ type: "NAVIGATE", menu: next });
-      if (canManage || !MENUS.find((item) => item.id === next)?.admin) onNavigate?.(next);
-    },
-    [canManage, dispatch, onNavigate],
-  );
-  const controller = { ...demo, navigate };
+  const [localPolicies, setLocalPolicies] = useState(DEFAULT_COMPANY_POLICIES);
+  const policies = providedPolicies ?? localPolicies;
+  const policy = policies[session.companyCode] ?? policies["BW-1001"];
+  const source = useMemo(() => createCompanySource(policy), [policy]);
+  const [catalog, setCatalog] = useState<CatalogSummary | null>(null);
+  const [catalogError, setCatalogError] = useState("");
+  const [catalogTab, setCatalogTab] = useState<CatalogTab>("connection");
   const [demoOpen, setDemoOpen] = useState(false);
-  const [mobileNav, setMobileNav] = useState(false);
   const [issueId, setIssueId] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [customerSection, setCustomerSection] = useState<"customers" | "abuse">("customers");
+  const [previewVisited, setPreviewVisited] = useState(false);
+  const [resetCount, setResetCount] = useState(0);
+  const [previewOffice, setPreviewOffice] = useState<OfficeState | null>(null);
+  const [previewEvents, setPreviewEvents] = useState<AgentEvent[]>([]);
+  const [outcomes, setOutcomes] = useState<PreviewOutcome[]>([]);
+  const [query, setQuery] = useState("");
+  const [signup, setSignup] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
-  const lastMenu = useRef(state.menu);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const shownMenu = normalizeSellerMenu(state.menu);
+  const navigate = useCallback(
+    (next: SellerMenu, tab?: CatalogTab) => {
+      if (next === "documents") setCatalogTab("documents");
+      else if (tab) setCatalogTab(tab);
+      const target = normalizeSellerMenu(next);
+      dispatch({ type: "NAVIGATE", menu: target });
+      if (!canManage && SELLER_MENUS.find((item) => item.id === target)?.admin) {
+        onNavigate?.(normalizeSellerMenu(state.menu));
+        return;
+      }
+      if (target === "preview") setPreviewVisited(true);
+      onNavigate?.(target);
+      setQuery("");
+    },
+    [canManage, dispatch, onNavigate, state.menu],
+  );
+  const controller = {
+    ...demo,
+    navigate,
+    dispatch: (event: Parameters<typeof demo.dispatch>[0]) => {
+      if (!["NAVIGATE", "TOAST", "CLEAR_TOAST"].includes(event.type)) setPreviewOffice(null);
+      demo.dispatch(event);
+    },
+    uploadDocument: (id: string) => {
+      setPreviewOffice(null);
+      demo.uploadDocument(id);
+    },
+    state: { ...state, discount: policy.maxDiscountPercent },
+    savePolicy: (shippingFee: number, discount: number) => {
+      demo.savePolicy(shippingFee, discount);
+      savePolicy({ ...policy, maxDiscountPercent: discount, version: policy.version + 1 });
+    },
+  };
   useEffect(() => {
-    if (!menu || menu === state.menu) return;
-    dispatch({ type: "NAVIGATE", menu });
-    if (!canManage && MENUS.find((item) => item.id === menu)?.admin) onNavigate?.(state.menu);
-  }, [menu, state.menu, canManage, dispatch, onNavigate]);
+    let cancelled = false;
+    setCatalog(null);
+    setCatalogError("");
+    source
+      .getCatalogSummary?.()
+      .then((value) => {
+        if (!cancelled) setCatalog(value);
+      })
+      .catch(() => {
+        if (!cancelled)
+          setCatalogError(
+            "상품 연결 정보를 불러오지 못했습니다. 상품·정책 연결에서 다시 시도해 주세요.",
+          );
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [source]);
   useEffect(() => {
-    onNavigationState?.({ unread: state.unread, canManage, office });
-  }, [state.unread, canManage, office, onNavigationState]);
+    if (menu && normalizeSellerMenu(menu) !== shownMenu) navigate(menu);
+  }, [menu, shownMenu, navigate]);
   useEffect(() => {
-    if (embedded && lastMenu.current !== state.menu)
-      mainRef.current?.scrollIntoView({ block: "start" });
+    onNavigationState?.({ unread: state.unread, canManage, office: previewOffice ?? office });
+  }, [state.unread, canManage, previewOffice, office, onNavigationState]);
+  useEffect(() => {
     mainRef.current?.focus({ preventScroll: true });
-    if (!embedded) window.scrollTo({ top: 0, behavior: "instant" });
-    lastMenu.current = state.menu;
-  }, [state.menu, embedded]);
-  const active = MENUS.find((menu) => menu.id === state.menu)!;
+  }, [shownMenu]);
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", shortcut);
+    return () => window.removeEventListener("keydown", shortcut);
+  }, []);
+  const receiveOutcome = useCallback((value: PreviewOutcome) => {
+    setOutcomes((old) =>
+      JSON.stringify(old.at(-1)) === JSON.stringify(value) ? old : [...old.slice(-19), value],
+    );
+  }, []);
+  const receivePreviewOffice = useCallback((next: OfficeState) => {
+    setPreviewOffice(next);
+    const records = [
+      ...Object.values(next.teams).flatMap((team) => team.log),
+      ...(next.runEvent ? [next.runEvent] : []),
+    ];
+    setPreviewEvents((current) => {
+      const merged = new Map(current.map((event) => [`${event.session_id}:${event.seq}`, event]));
+      for (const event of records) merged.set(`${event.session_id}:${event.seq}`, event);
+      return [...merged.values()]
+        .sort((a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at) || a.seq - b.seq)
+        .slice(-300);
+    });
+  }, []);
+  function savePolicy(next: CompanyPolicy) {
+    if (!canManage) return;
+    if (onPolicyChange) onPolicyChange(next);
+    else setLocalPolicies((old) => ({ ...old, [next.companyCode]: next }));
+    demo.recordPolicySaved(next.version);
+    setPreviewOffice(null);
+  }
   const props = { controller, session };
-  const Content = embedded ? "section" : "main";
+  const active = SELLER_MENUS.find((item) => item.id === shownMenu);
+  const matches = query.trim().toLowerCase();
+  const customers = matches
+    ? state.customers
+        .filter((item) => `${item.id} ${item.name}`.toLowerCase().includes(matches))
+        .slice(0, 4)
+    : [];
+  const consultations = matches
+    ? state.consultations
+        .filter((item) =>
+          `${item.id} ${item.customerId} ${item.summary?.request ?? ""}`
+            .toLowerCase()
+            .includes(matches),
+        )
+        .slice(0, 4)
+    : [];
+  const issues = matches
+    ? state.issues
+        .filter((item) =>
+          `${item.id} ${item.customerId} ${item.title}`.toLowerCase().includes(matches),
+        )
+        .slice(0, 4)
+    : [];
   return (
-    <div className={`seller-app${embedded ? " seller-embedded" : ""}`}>
+    <div className={`seller-app b2b-app${embedded ? " seller-embedded" : ""}`}>
       <a className="seller-skip" href="#seller-main">
         본문으로 건너뛰기
       </a>
       {!embedded && (
-        <aside className={`seller-sidebar${mobileNav ? " seller-nav-open" : ""}`}>
-          <a className="seller-brand" href="?pc-consult=1" aria-label="빌드와이즈 시작 화면">
-            <span className="seller-brand-symbol">
-              B<span>↗</span>
-            </span>
-            <span>
-              BUILDWISE<small>판매자 워크스페이스</small>
-            </span>
-          </a>
-          <div className="seller-company-card">
-            <span>{session.companyName.slice(0, 1)}</span>
-            <div>
-              <strong>{session.companyName}</strong>
-              <small>기업용 시연 공간</small>
-            </div>
-            <i aria-hidden="true">⌄</i>
-          </div>
-          <p className="seller-nav-label">워크스페이스</p>
-          <nav aria-label="판매자 메뉴">
-            {MENUS.map((menu) => {
-              const locked = Boolean(menu.admin && !canManage);
-              return (
-                <button
-                  type="button"
-                  key={menu.id}
-                  className={`seller-nav-item${state.menu === menu.id ? " seller-active" : ""}${locked ? " seller-locked" : ""}`}
-                  aria-current={state.menu === menu.id ? "page" : undefined}
-                  aria-label={`${menu.label}${locked ? " · 관리자 전용" : ""}`}
-                  onClick={() => {
-                    navigate(menu.id);
-                    setMobileNav(false);
-                  }}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    {menu.icon}
-                  </svg>
-                  <span>{menu.label}</span>
-                  {locked ? (
-                    <LockIcon />
-                  ) : state.unread.includes(menu.id) ? (
-                    <span className="seller-unread" aria-label="새로운 활동" />
-                  ) : null}
-                </button>
-              );
-            })}
+        <aside className="seller-sidebar">
+          <strong className="seller-brand">BUILDWISE</strong>
+          <p>{session.companyName} · AI 상담팀 관리실</p>
+          <nav aria-label="기업 메뉴">
+            {SELLER_MENUS.map((item) => (
+              <button
+                key={item.id}
+                className="seller-nav-item"
+                aria-current={shownMenu === item.id ? "page" : undefined}
+                onClick={() => navigate(item.id)}
+              >
+                <SellerMenuIcon menu={item.id} />
+                <span>{item.label}</span>
+                {item.admin && !canManage && <span>🔒</span>}
+              </button>
+            ))}
           </nav>
-          <div className="seller-sidebar-bottom">
-            <div className="seller-demo-seal">
-              <span aria-hidden="true">✦</span>
-              <strong>지금은 시연 중이에요.</strong>
-              <p>모든 고객과 판매 정보는 가상 데이터예요. 새로고침하면 초기화됩니다.</p>
-            </div>
-            <span className="seller-sidebar-copyright">BUILDWISE · 함께 일하는 AI</span>
-          </div>
+          <button className="seller-button seller-secondary" onClick={onLogout}>
+            로그아웃
+          </button>
         </aside>
       )}
       <div className="seller-workspace">
-        {!embedded && (
-          <header className="seller-topbar">
-            <div className="seller-breadcrumb">
-              <button
-                className="seller-mobile-menu"
-                aria-label="메뉴 열기"
-                aria-expanded={mobileNav}
-                onClick={() => setMobileNav(!mobileNav)}
-              >
-                ☰
-              </button>
-              <span>{session.companyName}</span>
-              <span aria-hidden="true">/</span>
-              <strong>{active.label}</strong>
-            </div>
-            <div className="seller-topbar-right">
-              <span className="seller-live-tag">
-                <i />
-                시연 모드
-              </span>
-              <div className="seller-user">
-                <span className="seller-avatar seller-avatar-small">
-                  {session.userName.slice(0, 1)}
-                </span>
-                <span>
-                  <strong>{session.userName}</strong>
-                  <small>{session.role === "admin" ? "관리자" : "상담원"}</small>
-                </span>
+        <div className="b2b-toolbar">
+          <div className="b2b-search">
+            <label>
+              <span className="sr-only">고객과 상담 검색</span>
+              <input
+                ref={searchRef}
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="고객 · 상담 · 인계 검색"
+              />
+              <kbd>Ctrl K</kbd>
+            </label>
+            {matches && (
+              <div className="b2b-search-results" aria-label="검색 결과">
+                {customers.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setCustomerId(item.id);
+                      navigate("customers");
+                    }}
+                  >
+                    고객 · {item.name} <small>{item.id}</small>
+                  </button>
+                ))}
+                {consultations.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setCustomerId(item.customerId);
+                      navigate("customers");
+                    }}
+                  >
+                    상담 · {item.id}
+                    <small>{item.summary?.request ?? "상담 기록"}</small>
+                  </button>
+                ))}
+                {issues.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setIssueId(item.id);
+                      navigate("issues");
+                    }}
+                  >
+                    인계 · {item.title}
+                    <small>{item.id}</small>
+                  </button>
+                ))}
+                {!customers.length && !issues.length && !consultations.length && (
+                  <p>검색 결과가 없습니다.</p>
+                )}
               </div>
-              <button className="seller-logout" onClick={onLogout}>
-                로그아웃
-              </button>
+            )}
+          </div>
+          <button className="seller-button seller-secondary" onClick={() => navigate("issues")}>
+            인계 알림{" "}
+            <span className="seller-count">
+              {state.issues.filter((item) => item.stage !== "done").length}
+            </span>
+          </button>
+          <button
+            className="seller-button seller-secondary"
+            aria-expanded={demoOpen}
+            onClick={() => setDemoOpen(!demoOpen)}
+          >
+            시연 제어 {demoOpen ? "접기" : "열기"}
+          </button>
+          {canManage && (
+            <PresentationBar
+              key={resetCount}
+              onNavigate={navigate}
+              outcomes={outcomes}
+              onSignup={() => setSignup(true)}
+            />
+          )}
+        </div>
+        {demoOpen && (
+          <aside className="b2b-demo-panel" aria-label="시연 제어">
+            <div>
+              <strong>가상 이벤트 재생</strong>
+              <p>어느 메뉴에서 실행해도 사무실과 운영 현황에 함께 반영됩니다.</p>
             </div>
-          </header>
+            <div className="b2b-actions">
+              {DEMO_ACTIONS.map((action) => (
+                <button
+                  key={action.id}
+                  className="seller-button seller-secondary"
+                  disabled={state.scenarioRunning && action.id !== "reset"}
+                  onClick={() => {
+                    setPreviewOffice(null);
+                    runDemo(action.id);
+                    if (action.id === "reset") {
+                      setPreviewVisited(false);
+                      setResetCount((value) => value + 1);
+                      setPreviewEvents([]);
+                      setOutcomes([]);
+                      setIssueId(null);
+                      setCustomerId(null);
+                      setCustomerSection("customers");
+                      if (canManage) {
+                        const initial = DEFAULT_COMPANY_POLICIES[session.companyCode];
+                        if (onPolicyChange) onPolicyChange(initial);
+                        else
+                          setLocalPolicies((current) => ({
+                            ...current,
+                            [session.companyCode]: initial,
+                          }));
+                      }
+                    }
+                  }}
+                >
+                  {action.id === "auto" && state.scenarioRunning
+                    ? "전체 시나리오 재생 중…"
+                    : action.label}
+                </button>
+              ))}
+            </div>
+          </aside>
         )}
-        <Content
+        <section
           id="seller-main"
           className="seller-main"
-          key={state.menu}
           tabIndex={-1}
           ref={mainRef}
+          aria-label={active?.label}
         >
-          {state.menu === "home" && <HomePanel {...props} />}
-          {state.menu === "customers" && <CustomersPanel {...props} />}
-          {state.menu === "sales" && <SalesPanel {...props} />}
-          {state.menu === "issues" && <IssuesPanel {...props} initialIssueId={issueId} />}
-          {state.menu === "documents" && <DocumentsPanel {...props} />}
-          {state.menu === "employees" && <EmployeesPanel {...props} />}
-          {state.menu === "office" && (
-            <OfficePanel
-              {...props}
+          {catalogError && <p className="seller-warning">{catalogError}</p>}
+          {shownMenu === "home" && (
+            <ManagementHome
+              controller={{
+                ...controller,
+                office: previewOffice ?? office,
+                operations: previewOffice
+                  ? selectSellerOperations(previewEvents).map((event, index) => ({
+                      ...event,
+                      id: index,
+                      menu: "preview" as const,
+                    }))
+                  : controller.operations,
+              }}
+              session={session}
+              catalog={catalog}
+              onNavigate={navigate}
               onOpenIssue={(id) => {
                 setIssueId(id);
                 navigate("issues");
               }}
+              onOpenAbuse={() => {
+                setCustomerId(null);
+                setCustomerSection("abuse");
+                navigate("customers");
+              }}
             />
           )}
+          {shownMenu === "customers" && (
+            <CustomersPanel
+              key={`${customerId ?? "all"}:${customerSection}`}
+              {...props}
+              initialCustomerId={customerId}
+              initialSection={customerSection}
+            />
+          )}
+          {shownMenu === "sales" && <SalesPanel {...props} />}
+          {shownMenu === "issues" && (
+            <IssuesPanel key={issueId ?? "all"} {...props} initialIssueId={issueId} />
+          )}
+          {shownMenu === "feedback" && (
+            <FeedbackPanel
+              reviewSelections={demo.reviewSelections}
+              onNavigate={(next) => navigate(next, next === "catalog" ? "policy" : undefined)}
+            />
+          )}
+          {shownMenu === "catalog" && (
+            <CatalogPanel
+              sourceForCompany={createCompanySource}
+              key={`${session.companyCode}:${catalogTab}`}
+              source={source}
+              policy={policy}
+              policies={policies}
+              onSave={savePolicy}
+              onPreview={() => navigate("preview")}
+              initialTab={catalogTab}
+              documents={<DocumentsPanel {...props} />}
+            />
+          )}
+          {shownMenu === "teams" && (
+            <>
+              <AiTeamsPanel
+                office={previewOffice ?? office}
+                events={previewOffice ? previewEvents : demo.events}
+              />
+              {canManage ? (
+                <EmployeesPanel {...props} />
+              ) : (
+                <p className="seller-card">
+                  사람 직원의 승인과 권한 변경은 관리자에게 요청해 주세요.
+                </p>
+              )}
+            </>
+          )}
+          {(previewVisited || shownMenu === "preview") && (
+            <div hidden={shownMenu !== "preview"}>
+              <CustomerPreview
+                sourceForCompany={createCompanySource}
+                key={`${session.companyCode}:${resetCount}`}
+                policy={policy}
+                onOffice={receivePreviewOffice}
+                onHandoff={(input) => {
+                  setPreviewOffice(null);
+                  demo.receivePreviewHandoff(input);
+                }}
+                onOutcome={receiveOutcome}
+              />
+            </div>
+          )}
           <footer className="seller-footer">
-            <span>모든 수치는 가상 데이터입니다.</span>
-            <span>실제 인증 · DB 저장 · 외부 결제 연결 없음</span>
+            <span>
+              운영 수치는 가상입니다. 경고 확인 후 선택한 이력은 ‘실제 시연’으로 구분합니다.
+            </span>
+            <span>고객 추천은 스냅샷 부품과 적용된 기업 정책을 사용합니다.</span>
           </footer>
-        </Content>
+        </section>
       </div>
-      <aside
-        className={`seller-demo-controls${demoOpen ? " seller-demo-expanded" : ""}`}
-        aria-label="시연 제어"
-      >
-        <button
-          className="seller-demo-toggle"
-          onClick={() => setDemoOpen(!demoOpen)}
-          aria-expanded={demoOpen}
-        >
-          <span>
-            <span aria-hidden="true">▷</span> 시연 제어
-          </span>
-          <span>{demoOpen ? "접기 −" : "펼치기 +"}</span>
-        </button>
-        {demoOpen && (
-          <div className="seller-demo-buttons">
-            <p>어느 화면에서든 같은 시연 상태에 반영돼요.</p>
-            {DEMO_ACTIONS.map((action) => (
-              <button
-                key={action.id}
-                className={
-                  action.id === "auto"
-                    ? "seller-demo-auto"
-                    : action.id === "reset"
-                      ? "seller-demo-reset"
-                      : ""
-                }
-                disabled={state.scenarioRunning && action.id !== "reset"}
-                onClick={() => runDemo(action.id)}
-              >
-                <span aria-hidden="true">{action.icon}</span>
-                {action.id === "auto" && state.scenarioRunning
-                  ? "전체 시나리오 재생 중…"
-                  : action.label}
-              </button>
-            ))}
-            <small>처음으로를 누르면 시연 상태가 초기화돼요.</small>
+      {signup && (
+        <Modal title="기업 가입 시연" onClose={() => setSignup(false)}>
+          <div className="pc-app">
+            <StartScreen
+              onEnter={() => setSignup(false)}
+              onBusinessEnter={() => {
+                setSignup(false);
+                dispatch({
+                  type: "TOAST",
+                  message: "가입 절차를 확인했습니다. 현재 기업의 발표를 이어갑니다.",
+                });
+              }}
+            />
           </div>
-        )}
-      </aside>
+        </Modal>
+      )}
       {state.toast && (
         <div className="seller-toast" key={state.toastId} role="status">
-          <span aria-hidden="true">✓</span>
           <p>{state.toast}</p>
           <button
             aria-label="알림 닫기"

@@ -9,13 +9,153 @@ import {
   type Category,
   type CompatibilityRecord,
   type ConsultPlan,
+  type HandoffDecision,
   type Part,
+  type PartReview,
   type Purpose,
   type SelectionMap,
   type Survey,
   type ValidationCheck,
   type ValidationResult,
 } from "../types";
+import type { CompanyPolicy } from "./companyPolicy";
+
+/** Company choices are demonstration rules too; the backend must enforce them later. */
+export function validateCompanyPolicy(policy: CompanyPolicy): void {
+  if (
+    !policy.companyCode.trim() ||
+    !policy.companyName.trim() ||
+    !Number.isInteger(policy.version) ||
+    policy.version < 1 ||
+    !["price", "brand"].includes(policy.sort) ||
+    !Number.isFinite(policy.maxDiscountPercent) ||
+    policy.maxDiscountPercent < 0 ||
+    policy.maxDiscountPercent > 100 ||
+    !Number.isFinite(policy.autoQuoteLimit) ||
+    policy.autoQuoteLimit < 0
+  )
+    throw new Error("기업 정책의 이름·버전·할인 한도·자동 견적 한도를 확인해 주세요.");
+}
+
+export function partAllowedByPolicy(part: Part, policy?: CompanyPolicy): boolean {
+  const brands = policy?.allowedBrands?.[part.category];
+  return !brands || brands.includes(part.brand);
+}
+
+export function companyPolicyLabel(policy: CompanyPolicy): string {
+  return `${policy.companyName} · 정책 v${policy.version} · 할인 한도 ${policy.maxDiscountPercent}% · 자동 견적 한도 ${won(policy.autoQuoteLimit)}`;
+}
+
+export function policyHandoff(
+  policy: CompanyPolicy,
+  input: {
+    validation?: ValidationResult;
+    total: number;
+    requestedDiscountPercent?: number;
+  },
+): HandoffDecision {
+  const discount = input.requestedDiscountPercent ?? 0;
+  if (!Number.isFinite(discount) || discount < 0 || discount > 100)
+    throw new Error("요청 할인율을 0~100% 사이의 숫자로 입력해 주세요.");
+  const reasons: string[] = [];
+  if (discount > policy.maxDiscountPercent)
+    reasons.push(`요청 할인 ${discount}%가 기업 한도 ${policy.maxDiscountPercent}%를 넘습니다.`);
+  if (input.total > policy.autoQuoteLimit)
+    reasons.push(
+      `예상 금액 ${won(input.total)}이 자동 견적 한도 ${won(policy.autoQuoteLimit)}를 넘습니다.`,
+    );
+  const checks = input.validation?.checks ?? [];
+  if (
+    policy.handoffUnknown &&
+    (input.validation?.status === "UNKNOWN" || checks.some((check) => check.status === "UNKNOWN"))
+  )
+    reasons.push("호환성을 확인할 수 없는 항목은 담당자 확인이 필요합니다.");
+  if (
+    policy.handoffConditional &&
+    (input.validation?.status === "CONDITIONAL" ||
+      checks.some((check) => check.status === "CONDITIONAL"))
+  )
+    reasons.push("조건부 호환 항목은 담당자 확인이 필요합니다.");
+  return { required: reasons.length > 0, reasons };
+}
+
+/** Apply only to employee responses. Customer text and source evidence stay untouched. */
+export function applyResponsePolicy(text: string, policy: CompanyPolicy): string {
+  return policy.forbiddenPhrases
+    .map((phrase) => phrase.trim())
+    .filter(Boolean)
+    .reduce((response, phrase) => response.split(phrase).join("담당자 확인 후 안내"), text);
+}
+
+/** Same survey for both tenants; every owned part is resolved from the loaded snapshot. */
+export function demoSurveyFromParts(parts: Part[], evidence: EvidenceIndex): Survey {
+  const survey: Survey = {
+    mode: "replacement",
+    budget: 500000,
+    purposes: ["other"],
+    resolution: "fhd",
+    frameRate: "60",
+    workScale: "basic",
+    problems: ["multitasking"],
+    problemNote: "기업별 후보와 판매 정책을 비교하는 동일한 시연 설문입니다.",
+    owned: {},
+  };
+  const boards = parts
+    .filter((part) => part.category === "motherboard")
+    .sort(
+      (a, b) =>
+        Number(b.source_key === "mb-asus-tuf-gaming-b850-plus-wifi") -
+          Number(a.source_key === "mb-asus-tuf-gaming-b850-plus-wifi") ||
+        a.source_key.localeCompare(b.source_key),
+    );
+  const psu = parts.find(
+    (part) => part.category === "psu" && (numberSpec(part, "wattage_w") ?? 0) >= 650,
+  );
+  if (psu) {
+    for (const board of boards) {
+      const owned = {
+        motherboard: { category: "motherboard" as const, name: board.name, part: board },
+        psu: { category: "psu" as const, name: psu.name, part: psu },
+      };
+      const current = { ...survey, owned };
+      const candidates = filterCandidates(
+        parts,
+        {
+          survey: current,
+          category: "ram",
+          selected: {},
+          budget: survey.budget,
+        },
+        evidence,
+      );
+      const recommended = candidates.passed[0]?.part;
+      if (!recommended) continue;
+      const candidateKeys = new Set(
+        candidates.passed.map((candidate) => candidate.part.source_key),
+      );
+      const compatibleOwned = parts.filter(
+        (part) =>
+          part.category === "ram" &&
+          part.source_key !== recommended.source_key &&
+          validateConfiguration(current, { ram: part }, evidence, "ram").status === "PASS",
+      );
+      // Prefer a real 8 GB kit below the 16 GB demo target; never invent the old PC's specs.
+      const ram =
+        compatibleOwned.find((part) => numberSpec(part, "capacity_gb") === 8) ??
+        compatibleOwned.find(
+          (part) => (numberSpec(part, "capacity_gb") ?? Infinity) < DEMO_RULES.ramGb.basic,
+        ) ??
+        compatibleOwned.find((part) => !candidateKeys.has(part.source_key)) ??
+        compatibleOwned[0];
+      if (ram)
+        return {
+          ...current,
+          owned: { ...owned, ram: { category: "ram", name: ram.name, part: ram } },
+        };
+    }
+  }
+  return { ...survey, mode: "new", budget: 3000000, problems: [], owned: {} };
+}
 
 /** Presentation-only demonstration rules. Replace this module with backend results later.
  * Values are explicit UX scenarios, not measured performance or manufacturer guarantees. */
@@ -331,7 +471,14 @@ export function validateConfiguration(
     const clearance = numberSpec(config.case, "max_gpu_length_mm"),
       length = numberSpec(config.gpu, "length_mm");
     if (clearance === undefined || length === undefined)
-      add("CASE_GPU", "UNKNOWN", "케이스의 GPU 허용 길이 또는 GPU 길이 정보가 없습니다.");
+      add(
+        "CASE_GPU",
+        "UNKNOWN",
+        `${[
+          ...(clearance === undefined ? ["케이스의 GPU 허용 길이"] : []),
+          ...(length === undefined ? ["GPU 길이"] : []),
+        ].join(" · ")} 정보가 없습니다.`,
+      );
     else
       add(
         "CASE_GPU",
@@ -343,7 +490,14 @@ export function validateConfiguration(
     const sockets = config.cooler!.specs.sockets,
       socket = stringSpec(config.cpu, "socket");
     if (!Array.isArray(sockets) || !socket)
-      add("COOLER_SOCKET", "UNKNOWN", "쿨러 지원 소켓 또는 CPU 소켓 정보가 없습니다.");
+      add(
+        "COOLER_SOCKET",
+        "UNKNOWN",
+        `${[
+          ...(!Array.isArray(sockets) ? ["쿨러 지원 소켓"] : []),
+          ...(!socket ? ["CPU 소켓"] : []),
+        ].join(" · ")} 정보가 없습니다.`,
+      );
     else
       add(
         "COOLER_SOCKET",
@@ -408,9 +562,31 @@ export function validateConfiguration(
   return { status, checks, basis: "demo" };
 }
 
+/** Backend replacement point: retain missing evidence per product on a quote. */
+export function configurationReviews(
+  survey: Survey,
+  selected: SelectionMap,
+  evidence: EvidenceIndex,
+): PartReview[] {
+  return Object.values(selected).flatMap((part) => {
+    const validation = validateConfiguration(survey, selected, evidence, part.category);
+    const reasons = [
+      ...new Set(
+        validation.checks
+          .filter((check) => check.status === "UNKNOWN")
+          .map((check) => check.message),
+      ),
+    ];
+    return reasons.length
+      ? [{ source_key: part.source_key, category: part.category, reasons }]
+      : [];
+  });
+}
+
 export function eligibleParts(
   parts: Part[],
   request: CandidateRequest,
+  policy?: CompanyPolicy,
 ): { parts: Part[]; missingColorCount: number } {
   if (
     !Number.isFinite(request.survey.budget) ||
@@ -427,7 +603,10 @@ export function eligibleParts(
   let missingColorCount = 0;
   const eligible = parts.filter((part) => {
     if (
+      !partAllowedByPolicy(part, policy) ||
       part.category !== request.category ||
+      (request.survey.mode === "replacement" &&
+        part.source_key === request.survey.owned[request.category]?.part?.source_key) ||
       part.current_price === null ||
       !Number.isFinite(part.current_price) ||
       part.current_price > budget
@@ -486,16 +665,37 @@ export function finishCandidates(
   candidates: Candidate[],
   request: CandidateRequest,
   missingColorCount: number,
+  policy?: CompanyPolicy,
 ): CandidateResult {
   const passed = candidates.filter((candidate) =>
     ["PASS", "CONDITIONAL"].includes(candidate.validation.status),
   );
-  const needsReview = candidates.filter((candidate) => candidate.validation.status === "UNKNOWN");
+  // Missing evidence is never a recommendation, including under a brand-first company policy.
+  const needsReview = candidates
+    .filter((candidate) => candidate.validation.status === "UNKNOWN")
+    .map((candidate) => ({ ...candidate, recommended: false, reason: "" }))
+    .sort(
+      (a, b) => price(a.part) - price(b.part) || a.part.source_key.localeCompare(b.part.source_key),
+    );
+  if (policy) {
+    const rank = (part: Part) => {
+      const index = policy.preferredBrands.indexOf(part.brand);
+      return index < 0 ? policy.preferredBrands.length : index;
+    };
+    const compare = (a: Candidate, b: Candidate) =>
+      (policy.sort === "brand" ? rank(a.part) - rank(b.part) : 0) ||
+      price(a.part) - price(b.part) ||
+      a.part.source_key.localeCompare(b.part.source_key);
+    passed.sort(compare);
+  }
   if (passed.length)
     passed[0] = {
       ...passed[0],
       recommended: true,
-      reason: "통과한 후보 중 가장 저렴합니다. 조건부 항목은 조건을 확인해 주세요.",
+      reason:
+        policy?.sort === "brand"
+          ? "검증 통과 후보에 기업의 선호 브랜드 순서와 가격 낮은 순을 적용했습니다."
+          : "통과한 후보 중 가장 저렴합니다. 조건부 항목은 조건을 확인해 주세요.",
     };
   return {
     passed,
@@ -503,29 +703,50 @@ export function finishCandidates(
     rejectedCount: candidates.filter((candidate) => candidate.validation.status === "FAIL").length,
     missingColorCount,
     sortLabel:
-      request.survey.mode === "new"
-        ? "추천 기준: 가격 낮은 순 (판매량 데이터 준비 중)"
-        : "추천 기준: 가격 낮은 순",
+      policy?.sort === "brand"
+        ? `추천 기준: 선호 브랜드 순 (${policy.preferredBrands.join(" → ") || "지정 없음"}), 같은 우선순위는 가격 낮은 순 (판매량 데이터 준비 중)`
+        : request.survey.mode === "new"
+          ? "추천 기준: 가격 낮은 순 (판매량 데이터 준비 중)"
+          : "추천 기준: 가격 낮은 순",
     criteria: [
       ...performanceCriteria(request.survey),
       `이 부품 예산: ${won(request.budget)}`,
+      ...(request.survey.mode === "replacement" && request.survey.owned[request.category]?.part
+        ? ["이미 보유한 동일 제품은 교체 후보에서 제외합니다."]
+        : []),
       ...(request.note?.trim()
         ? [`추가 요청: ${request.note} · 자유 입력 조건은 자동 판정하지 않습니다.`]
         : []),
     ],
     basis: "demo",
+    ...(policy
+      ? {
+          policyLabel: companyPolicyLabel(policy),
+          handoff: policyHandoff(policy, {
+            validation: (passed[0] ?? needsReview[0])?.validation,
+            total:
+              Object.values(request.selected)
+                .filter((part) => part.category !== request.category)
+                .reduce((sum, part) => sum + price(part), 0) +
+              ((passed[0] ?? needsReview[0])?.part.current_price ?? 0),
+            requestedDiscountPercent: request.requestedDiscountPercent,
+          }),
+        }
+      : {}),
   };
 }
 export function filterCandidates(
   parts: Part[],
   request: CandidateRequest,
   evidence: EvidenceIndex,
+  policy?: CompanyPolicy,
 ): CandidateResult {
-  const eligible = eligibleParts(parts, request);
+  const eligible = eligibleParts(parts, request, policy);
   return finishCandidates(
     eligible.parts.map((part) => candidateFor(part, request, evidence)),
     request,
     eligible.missingColorCount,
+    policy,
   );
 }
 
@@ -534,6 +755,7 @@ export function proposeRebalance(
   evidence: EvidenceIndex,
   request: CandidateRequest,
   amount: number,
+  policy?: CompanyPolicy,
 ): BudgetProposal {
   if (!Number.isFinite(amount) || amount <= 0)
     throw new Error("배정 금액을 0원보다 큰 숫자로 입력해 주세요.");
@@ -560,7 +782,7 @@ export function proposeRebalance(
       budget: Math.max(0, price(before) - 1),
       selected,
     };
-    const result = filterCandidates(parts, replacementRequest, evidence);
+    const result = filterCandidates(parts, replacementRequest, evidence, policy);
     const candidate = result.passed[0];
     if (!candidate) continue;
     selected[before.category] = candidate.part;

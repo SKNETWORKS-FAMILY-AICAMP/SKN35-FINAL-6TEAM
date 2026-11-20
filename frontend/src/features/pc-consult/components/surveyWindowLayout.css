@@ -1,0 +1,157 @@
+/* Inline consultations retain their existing flow; only the window scrolls its form fields. */
+.pc-form-fields,
+.pc-review-body {
+  display: contents;
+}
+.integrated-workspace .pc-consult-window .pc-window-content > .pc-app,
+.integrated-workspace .pc-consult-window .pc-main,
+.integrated-workspace .pc-consult-window .pc-single,
+.integrated-workspace .pc-consult-window .pc-content,
+.integrated-workspace .pc-consult-window .pc-survey,
+.integrated-workspace .pc-consult-window .pc-review,
+.integrated-workspace .pc-consult-window .pc-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.integrated-workspace .pc-consult-window .pc-journey {
+  display: none;
+}
+.integrated-workspace .pc-consult-window .pc-survey > .pc-page-heading {
+  flex-shrink: 0;
+  padding: 22px 26px 16px;
+  margin: 0;
+  border-bottom: 0;
+  background: var(--panel);
+}
+.integrated-workspace .pc-consult-window .pc-page-heading .pc-eyebrow {
+  display: none;
+}
+.integrated-workspace .pc-consult-window .pc-page-heading h1 {
+  font-size: 24px;
+  margin: 0;
+}
+.integrated-workspace .pc-consult-window .pc-page-heading .pc-muted {
+  margin-top: 6px;
+}
+.integrated-workspace .pc-consult-window .pc-form {
+  gap: 0;
+}
+.integrated-workspace .pc-consult-window .pc-form-fields,
+.integrated-workspace .pc-consult-window .pc-review-body {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  padding: 0 26px 22px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-padding-block: 20px;
+  background: var(--panel);
+}
+.integrated-workspace .pc-consult-window .pc-form-fields > .pc-section {
+  padding: 18px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+.integrated-workspace .pc-consult-window .pc-form-fields > .pc-section:last-child {
+  border-bottom: 0;
+}
+.integrated-workspace .pc-consult-window .pc-choice-grid,
+.integrated-workspace .pc-consult-window .pc-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.integrated-workspace .pc-consult-window .pc-actions {
+  flex-shrink: 0;
+  justify-content: space-between;
+  margin: 0;
+  padding: 16px 26px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 -6px 18px color-mix(in srgb, var(--text) 3%, transparent);
+}
+.integrated-workspace .pc-consult-window .pc-review-body {
+  padding-top: 24px;
+}
+.integrated-workspace .pc-consult-window .pc-review-body > .pc-section {
+  background: var(--surface-soft);
+  padding: 20px;
+  border: 0;
+  border-radius: 16px;
+}
+.integrated-workspace .pc-consult-window .pc-review-body > .pc-notice {
+  margin-top: 16px;
+}
+.integrated-workspace .pc-consult-window .pc-section-number {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+}
+.integrated-workspace .pc-consult-window .pc-choice {
+  padding: 13px 15px;
+  border-color: transparent;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+.integrated-workspace .pc-consult-window .pc-choice:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.integrated-workspace .pc-consult-window .pc-budget-input input {
+  border-color: transparent;
+  background: var(--surface-soft);
+  border-radius: 12px;
+  padding-block: 12px;
+}
+.integrated-workspace .pc-consult-window .pc-field input:focus,
+.integrated-workspace .pc-consult-window .pc-field select:focus,
+.integrated-workspace .pc-consult-window .pc-field textarea:focus {
+  border-color: var(--accent);
+}
+.integrated-workspace .pc-consult-window .pc-owned {
+  border-radius: 12px;
+}
+.integrated-workspace .pc-consult-window .pc-owned[open] {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: var(--surface-soft);
+}
+@media (max-width: 600px) {
+  .integrated-workspace .pc-consult-window .pc-survey > .pc-page-heading {
+    padding: 14px 16px;
+  }
+  .integrated-workspace .pc-consult-window .pc-page-heading h1 {
+    font-size: 20px;
+  }
+  .integrated-workspace .pc-consult-window .pc-page-heading .pc-muted {
+    font-size: 12px;
+  }
+  .integrated-workspace .pc-consult-window .pc-form-fields,
+  .integrated-workspace .pc-consult-window .pc-review-body {
+    padding-inline: 16px;
+  }
+  .integrated-workspace .pc-consult-window .pc-choice-grid,
+  .integrated-workspace .pc-consult-window .pc-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .integrated-workspace .pc-consult-window .pc-actions {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  .integrated-workspace .pc-consult-window .pc-actions .pc-button {
+    min-height: 44px;
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+}

@@ -12,7 +12,7 @@ import process from "node:process";
 
 const baseURL = new URL(process.env.PC_CONSULT_URL ?? "http://localhost:5173/");
 baseURL.search = "?pace=300";
-const output = new URL("./office/", import.meta.url);
+const output = new URL("../../../../test-results/pc-consult/office/", import.meta.url);
 const businessOnly = process.env.OFFICE_BUSINESS_ONLY === "1";
 const widths = (process.env.OFFICE_VIEWPORTS ?? "1440,1024,360").split(",").map(Number);
 if (!widths.length || widths.some((value) => ![1440, 1024, 360].includes(value)))

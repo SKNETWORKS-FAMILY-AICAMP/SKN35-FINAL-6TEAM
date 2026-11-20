@@ -1,6 +1,6 @@
 .seller-app .seller-visual-dashboard,
 .seller-app .seller-visual-office {
-  color: var(--seller-text, #203c36);
+  color: var(--text);
   min-width: 0;
 }
 .seller-app .seller-visual-dashboard *,
@@ -22,88 +22,100 @@
 }
 .seller-app .seller-visual-dashboard-head p,
 .seller-app .seller-visual-card-heading p {
-  color: var(--seller-muted, #788882);
+  color: var(--muted);
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
 }
 .seller-app .seller-visual-eyebrow {
-  color: var(--seller-accent, #138878);
-  font-size: 11px;
+  color: var(--seller-accent);
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.025em;
 }
 .seller-app .seller-visual-period {
   display: flex;
   flex-shrink: 0;
-  border: 1px solid #dfe8e3;
-  background: #fff;
-  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--surface-soft);
+  border-radius: 12px;
   padding: 4px;
   gap: 3px;
 }
 .seller-app .seller-visual-period button {
-  min-height: 32px;
+  min-height: 36px;
   min-width: 46px;
   padding: 6px 12px;
   border: 0;
   background: transparent;
-  color: #7d8983;
-  border-radius: 7px;
+  color: var(--muted);
+  border-radius: 9px;
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   transition:
     background 0.25s,
     color 0.25s;
 }
 .seller-app .seller-visual-period button[aria-pressed="true"] {
-  background: #e2f3ed;
-  color: #087767;
+  background: var(--panel);
+  color: var(--accent);
   font-weight: 700;
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--text) 6%, transparent);
 }
 .seller-app .seller-visual-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 0;
+  margin-bottom: 28px;
+  padding: 24px 0;
+  border-block: 1px solid var(--line);
 }
 .seller-app .seller-visual-metrics > div {
-  background: #fff;
-  border: 1px solid #e1e9e4;
-  padding: 20px 22px;
-  border-radius: 15px;
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--line);
+  padding: 4px 24px;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+.seller-app .seller-visual-metrics > div:first-child {
+  padding-left: 0;
+}
+.seller-app .seller-visual-metrics > div:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
 .seller-app .seller-visual-metrics > div > span {
-  color: #74877d;
-  font-size: 12px;
+  color: var(--muted);
+  font-size: 13px;
 }
 .seller-app .seller-visual-metrics strong {
-  font-size: clamp(20px, 2.4vw, 30px);
+  font-size: clamp(24px, 2.7vw, 36px);
   line-height: 1.2;
   letter-spacing: -0.04em;
   overflow-wrap: anywhere;
   font-variant-numeric: tabular-nums;
 }
 .seller-app .seller-visual-metrics small {
-  color: #91a198;
-  font-size: 10px;
+  color: var(--muted);
+  font-size: 12px;
   font-weight: 400;
 }
 .seller-app .seller-visual-charts-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 18px;
+  gap: 24px;
   align-items: start;
 }
 .seller-app .seller-visual-chart-card {
-  background: #fff;
-  border: 1px solid #e1e9e4;
-  border-radius: 16px;
-  padding: 23px;
+  background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--line) 55%, var(--panel));
+  border-radius: 20px;
+  padding: 26px;
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--text) 2%, transparent);
   min-width: 0;
 }
 .seller-app .seller-visual-card-heading {
@@ -114,7 +126,7 @@
   margin-bottom: 19px;
 }
 .seller-app .seller-visual-card-heading h3 {
-  font-size: 14px;
+  font-size: 16px;
   margin: 0 0 5px;
   letter-spacing: -0.02em;
 }
@@ -122,10 +134,10 @@
   display: inline-flex;
   align-items: center;
   padding: 5px 9px;
-  background: #f0f6f2;
-  color: #6a897a;
-  border-radius: 20px;
-  font-size: 10px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  border-radius: 8px;
+  font-size: 11px;
   white-space: nowrap;
 }
 .seller-app .seller-visual-trend {
@@ -135,20 +147,20 @@
   animation: seller-visual-appear 0.45s ease;
 }
 .seller-app .seller-visual-gridline {
-  stroke: #edf1ee;
+  stroke: var(--line);
   stroke-dasharray: 3 5;
 }
 .seller-app .seller-visual-svg-note {
-  font-size: 9px;
-  fill: #a0aca4;
+  font-size: 10px;
+  fill: var(--muted);
 }
 .seller-app .seller-visual-svg-label {
   font-size: 11px;
-  fill: #8a9b91;
+  fill: var(--muted);
 }
 .seller-app .seller-visual-trend-line {
   fill: none;
-  stroke: var(--seller-accent, #138878);
+  stroke: var(--seller-accent);
   stroke-width: 3;
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -158,15 +170,15 @@
   transition: all 0.45s ease;
 }
 .seller-app .seller-visual-trend-dot {
-  fill: #fff;
-  stroke: var(--seller-accent, #138878);
+  fill: var(--panel);
+  stroke: var(--seller-accent);
   stroke-width: 2;
   animation: seller-visual-appear 0.45s ease;
 }
 .seller-app .seller-visual-footnote {
-  color: #92a095;
-  font-size: 10px;
-  line-height: 1.5;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
   margin: 12px 0 0;
 }
 .seller-app .seller-visual-donut-layout {
@@ -181,7 +193,7 @@
 }
 .seller-app .seller-visual-donut-track {
   fill: none;
-  stroke: #eff4f0;
+  stroke: var(--surface-soft);
   stroke-width: 24;
 }
 .seller-app .seller-visual-donut-piece {
@@ -192,12 +204,12 @@
 }
 .seller-app .seller-visual-donut-caption {
   font-size: 11px;
-  fill: #90a095;
+  fill: var(--muted);
 }
 .seller-app .seller-visual-donut-total {
   font-size: 25px;
   font-weight: 700;
-  fill: #244439;
+  fill: var(--text);
 }
 .seller-app .seller-visual-category-legend {
   display: flex;
@@ -213,34 +225,34 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 10px;
-  color: #7e8e84;
+  font-size: 12px;
+  color: var(--muted);
 }
 .seller-app .seller-visual-category-legend li > span:nth-child(2) {
   flex: 1;
   overflow-wrap: anywhere;
 }
 .seller-app .seller-visual-category-legend strong {
-  color: #335244;
-  font-size: 11px;
+  color: var(--text);
+  font-size: 12px;
 }
 .seller-app .seller-visual-color-0 {
-  --slice: #188b79;
+  --slice: var(--accent);
 }
 .seller-app .seller-visual-color-1 {
-  --slice: #68b8a0;
+  --slice: var(--team-quotation);
 }
 .seller-app .seller-visual-color-2 {
-  --slice: #a1cdb1;
+  --slice: var(--team-validation);
 }
 .seller-app .seller-visual-color-3 {
-  --slice: #d6c48d;
+  --slice: var(--team-consultation);
 }
 .seller-app .seller-visual-color-4 {
-  --slice: #9fafa0;
+  --slice: var(--team-design);
 }
 .seller-app .seller-visual-color-5 {
-  --slice: #d4e5d7;
+  --slice: color-mix(in srgb, var(--accent) 28%, var(--panel));
 }
 .seller-app .seller-visual-swatch {
   width: 7px;
@@ -262,12 +274,12 @@
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 18px;
-  font-size: 10px;
-  color: #8d9d93;
+  font-size: 12px;
+  color: var(--muted);
 }
 .seller-app .seller-visual-legend > span:last-child:not(.seller-visual-key) {
   margin-left: auto;
-  font-size: 9px;
+  font-size: 11px;
 }
 .seller-app .seller-visual-key {
   display: inline-flex;
@@ -279,10 +291,10 @@
   width: 7px;
   height: 7px;
   border-radius: 2px;
-  background: #188b79;
+  background: var(--accent);
 }
 .seller-app .seller-visual-key--demand:before {
-  background: #c7e5d8;
+  background: color-mix(in srgb, var(--accent) 25%, var(--panel));
 }
 .seller-app .seller-visual-ranked-row {
   display: flex;
@@ -303,15 +315,15 @@
   display: grid;
   place-items: center;
   border-radius: 6px;
-  background: #f2f6f3;
-  color: #8d9a92;
+  background: var(--surface-soft);
+  color: var(--muted);
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
 }
 .seller-app .seller-visual-ranked-row:first-of-type .seller-visual-rank {
-  background: #dff1e9;
-  color: #0c8270;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .seller-app .seller-visual-ranked-main {
   min-width: 0;
@@ -321,7 +333,7 @@
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 11px;
+  font-size: 12px;
   margin-bottom: 8px;
 }
 .seller-app .seller-visual-row-heading > span {
@@ -330,15 +342,15 @@
   text-overflow: ellipsis;
 }
 .seller-app .seller-visual-row-heading strong {
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
-  color: #416151;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
 }
 .seller-app .seller-visual-bar-track {
   position: relative;
   height: 8px;
-  background: #f3f7f4;
+  background: var(--surface-soft);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -351,10 +363,10 @@
   transition: width 0.6s ease;
 }
 .seller-app .seller-visual-bar--demand {
-  background: #c7e5d8;
+  background: color-mix(in srgb, var(--accent) 25%, var(--panel));
 }
 .seller-app .seller-visual-bar--sales {
-  background: #188b79;
+  background: var(--accent);
   height: 4px;
   top: 2px;
 }
@@ -1066,16 +1078,16 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .seller-app .seller-visual-metrics {
-    gap: 8px;
+    gap: 0;
   }
   .seller-app .seller-visual-metrics > div {
     padding: 14px 12px;
   }
   .seller-app .seller-visual-metrics strong {
-    font-size: 20px;
+    font-size: 24px;
   }
   .seller-app .seller-visual-metrics > div > span {
-    font-size: 10px;
+    font-size: 12px;
   }
   .seller-app .seller-visual-dashboard-head {
     align-items: flex-start;
@@ -1120,6 +1132,12 @@
     grid-template-columns: 1fr auto;
     align-items: center;
     gap: 7px;
+    padding: 16px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .seller-app .seller-visual-metrics > div:last-child {
+    border-bottom: 0;
   }
   .seller-app .seller-visual-metrics > div > small {
     grid-column: 1/-1;

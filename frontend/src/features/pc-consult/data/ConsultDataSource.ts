@@ -2,6 +2,7 @@ import type {
   BudgetProposal,
   CandidateRequest,
   CandidateResult,
+  CatalogSummary,
   Category,
   ConfirmPayload,
   ConsultPlan,
@@ -16,6 +17,8 @@ import type {
 
 export interface ConsultDataSource {
   initialize(): Promise<void>;
+  getCatalogSummary?(): Promise<CatalogSummary>;
+  getDemoSurvey?(): Promise<Survey>;
   searchParts(category: Category, query: string): Promise<Part[]>;
   planConsultation(survey: Survey): Promise<ConsultPlan>;
   getCandidates(
@@ -29,6 +32,7 @@ export interface ConsultDataSource {
     version: number;
     survey: Survey;
     selected: SelectionMap;
+    requestedDiscountPercent?: number;
   }): Promise<Quote>;
   confirmQuote(payload: ConfirmPayload): Promise<SaveReceipt>;
 }

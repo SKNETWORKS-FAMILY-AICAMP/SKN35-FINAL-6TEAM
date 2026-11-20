@@ -1,5 +1,6 @@
 import { DEMO_DATE, DEMO_SCRIPT, DEMO_TIME, initialSellerState } from "./mockData";
-import type { SellerMenu, SellerRole, SellerState } from "./types";
+import type { PreviewHandoffInput, SellerMenu, SellerRole, SellerState } from "./types";
+import { mergeBrowserHandoff } from "./reviewSelectionHandoff";
 
 export type SellerEvent =
   | { type: "NAVIGATE"; menu: SellerMenu }
@@ -27,9 +28,11 @@ export type SellerEvent =
   | { type: "UPLOAD_STARTED" }
   | { type: "UPLOAD_PROGRESS"; progress: number }
   | { type: "UPLOAD_COMPLETED"; id: string; title: string; kind: string }
+  | { type: "POLICY_SAVED"; version: number }
+  | { type: "PREVIEW_HANDOFF"; input: PreviewHandoffInput }
   | { type: "SAVE_POLICY"; shippingFee: number; discount: number };
 
-const protectedMenus = new Set<SellerMenu>(["sales", "documents", "employees"]);
+const protectedMenus = new Set<SellerMenu>(["sales", "documents", "employees", "catalog"]);
 const protectedEvents = new Set<SellerEvent["type"]>([
   "SET_BLOCK",
   "APPROVE_EMPLOYEE",
@@ -39,6 +42,7 @@ const protectedEvents = new Set<SellerEvent["type"]>([
   "UPLOAD_PROGRESS",
   "UPLOAD_COMPLETED",
   "SAVE_POLICY",
+  "POLICY_SAVED",
 ]);
 
 function toast(state: SellerState, message: string): SellerState {
@@ -106,6 +110,91 @@ export function sellerReducer(
       return { ...state, scenarioRunning: true };
     case "SCENARIO_FINISHED":
       return { ...state, scenarioRunning: false };
+    case "POLICY_SAVED":
+      if (!Number.isInteger(event.version) || event.version <= state.policyVersion) return state;
+      return activity(
+        state,
+        { policyVersion: event.version },
+        `저장된 기업 정책 v${event.version}의 반영을 확인했습니다. (시연)`,
+        ["catalog", "home"],
+      );
+    case "PREVIEW_HANDOFF": {
+      const input = event.input;
+      if (input.dataOrigin) {
+        if (!input.id.trim() || !input.reasons.some((reason) => reason.trim())) return state;
+        const existing = state.issues.find((entry) => entry.consultationId === input.id);
+        const issue = mergeBrowserHandoff(existing, input);
+        if (!issue) return state;
+        return activity(
+          state,
+          {
+            issues: existing
+              ? state.issues.map((entry) => (entry === existing ? issue : entry))
+              : [issue, ...state.issues],
+            office: preserveConsultationOffice
+              ? state.office
+              : {
+                  ...state.office,
+                  phase: "classified",
+                  consultationId: input.id,
+                  customerId: issue.customerId,
+                  issueId: issue.id,
+                  bubble:
+                    "실제 브라우저 시연의 확인 불가 선택을 접수했습니다. 담당자 확인이 필요합니다.",
+                },
+          },
+          issue.reviewSelections?.length
+            ? `상품 정보 보강 요청에 실제 선택 이력 ${issue.reviewSelections.length}건을 기록했습니다. (실제 시연)`
+            : "실제 고객 미리보기의 대화와 인계 사유를 접수했습니다. (실제 시연)",
+          ["issues", "feedback", "home"],
+        );
+      }
+      const customer = state.customers.find((entry) => !entry.blocked);
+      if (
+        !customer ||
+        !input.id.trim() ||
+        !input.reasons.some((reason) => reason.trim()) ||
+        state.issues.some((entry) => entry.consultationId === input.id)
+      )
+        return state;
+      return activity(
+        state,
+        {
+          todayConsultations: state.todayConsultations + 1,
+          completedConsultations: state.completedConsultations + 1,
+          issues: [
+            {
+              id: `preview-handoff:${input.id}`,
+              customerId: customer.id,
+              kind: "이슈",
+              title: "고객 미리보기 상담 인계",
+              stage: "received",
+              assignee: "미배정",
+              summary: input.reasons.join(" · "),
+              suggestion: "고객의 요청과 팀 검토 기록을 확인하고 담당자를 배정해 주세요.",
+              consultationId: input.id,
+              reasons: [...input.reasons],
+              lines: input.messages.map((line) => ({ ...line })),
+              teamNotes: input.teamNotes.map((note) => ({ ...note })),
+            },
+            ...state.issues,
+          ],
+          office: preserveConsultationOffice
+            ? state.office
+            : {
+                ...state.office,
+                phase: "classified",
+                consultationId: input.id,
+                customerId: customer.id,
+                issueId: `preview-handoff:${input.id}`,
+                bubble:
+                  "미리보기 상담의 인계 사유와 대화 기록을 접수했습니다. 담당자 배정을 기다립니다.",
+              },
+        },
+        "고객 미리보기의 상담 기록과 인계 사유가 인계함에 도착했습니다. (시연)",
+        ["issues", "home"],
+      );
+    }
     case "CONSULT_STARTED": {
       const customer = state.customers.find(
         (entry) => entry.id === event.customerId && !entry.blocked,
@@ -356,7 +445,7 @@ export function sellerReducer(
         ? toast(state, "관리자에게 요청했습니다. (시연)")
         : state;
     case "IGNORE_ALERT":
-      if (!state.alerts.some((entry) => entry.id === event.id)) return state;
+      if (!state.alerts.some((entry) => entry.id === event.id && !entry.ignored)) return state;
       return toast(
         {
           ...state,

@@ -1,3 +1,4 @@
+/* TailAdmin (MIT) sidebar grouping adapted within the existing shell; pc-consult/THIRD_PARTY_NOTICES.md. */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { api, errorMessage, type Company } from "../api/client";
 import type { ConnectionState } from "../events/eventStream";
@@ -11,7 +12,16 @@ import { teamNotesForOffice } from "../features/office/officeNotes";
 import type { DisplayStatus, OfficeState } from "../features/office/officeState";
 import { StartScreen } from "../features/pc-consult/components/StartScreen";
 import { IntegratedWorkspace } from "../features/pc-consult/IntegratedWorkspace";
-import { snapshotSource } from "../features/pc-consult/data/snapshotSource";
+import { createCompanySource } from "../features/pc-consult/data/snapshotSource";
+import {
+  DEFAULT_COMPANY_POLICIES,
+  type CompanyPolicy,
+} from "../features/pc-consult/data/companyPolicy";
+import {
+  SELLER_MENUS,
+  SellerMenuIcon,
+  normalizeSellerMenu,
+} from "../features/pc-consult/seller/SellerNavigation";
 import { SellerWorkspace } from "../features/pc-consult/seller/SellerWorkspace";
 import type { SellerMenu, SellerSession } from "../features/pc-consult/seller/types";
 import { OrderButton } from "../features/orders/OrderButton";
@@ -166,6 +176,13 @@ function Shell() {
   const [sellerMenu, setSellerMenu] = useState<SellerMenu>("home");
   const [sellerUnread, setSellerUnread] = useState<SellerMenu[]>([]);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [policies, setPolicies] = useState(DEFAULT_COMPANY_POLICIES);
+  const [personalCompany, setPersonalCompany] = useState("BW-1001");
+  const personalPolicy = policies[personalCompany];
+  const personalSource = useMemo(() => createCompanySource(personalPolicy), [personalPolicy]);
+  const saveCompanyPolicy = useCallback((policy: CompanyPolicy) => {
+    setPolicies((current) => ({ ...current, [policy.companyCode]: policy }));
+  }, []);
   const business = !MOCK && !LIVE && account === "business" && sellerSession !== null;
 
   useEffect(() => {
@@ -187,7 +204,7 @@ function Shell() {
   }, []);
 
   const company = companies.find((c) => c.id === companyId) ?? null;
-  const workspaceKey = `${MOCK ? "mock" : LIVE ? "live" : (account ?? "entry")}:${company?.id ?? "none"}:${demoRun}`;
+  const workspaceKey = `${MOCK ? "mock" : LIVE ? "live" : (account ?? "entry")}:${company?.id ?? personalCompany}:${demoRun}`;
   const showOfficeStatus = useCallback(
     (office: OfficeState) => {
       setStatus({
@@ -220,8 +237,33 @@ function Shell() {
   // 기업을 바꾸거나 다시 보기를 누른 직후에는 이전 Workspace 의 상태를 보이지 않습니다.
   const connection = connectionView(status?.key === workspaceKey ? status : null);
 
+  // The entry is a single login surface. Workspace navigation appears only after entry.
+  if (!MOCK && !LIVE && !account) {
+    return (
+      <main className="entry-shell">
+        <section className="shell-entry pc-app" id="login" aria-label="계정 선택과 시연 로그인">
+          <StartScreen
+            onEnter={() => {
+              setAccount("personal");
+              window.location.hash = "workspace";
+            }}
+            onBusinessEnter={(session) => {
+              setSellerSession(session);
+              setPersonalCompany(session.companyCode);
+              setAccount("business");
+              setSellerMenu("home");
+              window.location.hash = "workspace";
+            }}
+          />
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <div className={`app-shell${business ? " app-shell-business" : ""}`}>
+    <div
+      className={`app-shell${business ? " app-shell-business" : !MOCK && !LIVE && account === "personal" ? " app-shell-personal" : ""}`}
+    >
       <aside className={`app-rail${mobileMenu ? " rail-expanded" : ""}`} aria-label="화면 이동">
         <a className="brand" href="#workspace" aria-label="BUILDWISE 사무실로 가기">
           <span className="brand-mark" aria-hidden="true">
@@ -230,6 +272,7 @@ function Shell() {
               <path d="M16 16h4v4h4v4h-8Z" fill="#c5dcae" />
             </svg>
           </span>
+          {business && <span className="rail-wordmark">BUILDWISE</span>}
         </a>
         {business ? (
           <>
@@ -241,39 +284,43 @@ function Shell() {
               ☰ 기업 메뉴
             </button>
             <nav className="workspace-nav business-nav" aria-label="기업 메뉴">
-              {(
-                [
-                  ["home", "홈"],
-                  ["customers", "고객 정보"],
-                  ["sales", "판매 통계"],
-                  ["issues", "상담 · 이슈 현황"],
-                  ["documents", "문서 · 정책 관리"],
-                  ["employees", "직원 관리"],
-                  ["office", "2D 오피스"],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  type="button"
-                  key={id}
-                  aria-current={sellerMenu === id ? "page" : undefined}
-                  onClick={() => {
-                    setSellerMenu(id);
-                    setMobileMenu(false);
-                  }}
-                >
-                  <NavigationIcon
-                    kind={id === "office" ? "office" : id === "customers" ? "voice" : "results"}
-                  />
-                  <span>{label}</span>
-                  {sellerSession.role !== "admin" &&
-                    ["sales", "documents", "employees"].includes(id) && (
+              <div className="shell-company-card">
+                <span>{sellerSession.companyName.slice(0, 1)}</span>
+                <strong>
+                  {sellerSession.companyName}
+                  <small>AI 상담팀 관리실</small>
+                </strong>
+              </div>
+              {SELLER_MENUS.map(({ id, label, admin, group }, index) => (
+                <div className="shell-nav-entry" key={id}>
+                  {(index === 0 || SELLER_MENUS[index - 1].group !== group) && (
+                    <p className="shell-nav-group">{group}</p>
+                  )}
+                  <button
+                    type="button"
+                    aria-current={sellerMenu === id ? "page" : undefined}
+                    aria-label={`${label}${admin && sellerSession.role !== "admin" ? " · 관리자 전용" : ""}`}
+                    onClick={() => {
+                      setSellerMenu(id);
+                      setMobileMenu(false);
+                    }}
+                  >
+                    <SellerMenuIcon menu={id} />
+                    <span>{label}</span>
+                    {sellerSession.role !== "admin" && admin && (
                       <span aria-label="관리자 전용">🔒</span>
                     )}
-                  {sellerUnread.includes(id) && (
-                    <span className="shell-unread" aria-label="새 활동" />
-                  )}
-                </button>
+                    {sellerUnread.some((item) => normalizeSellerMenu(item) === id) && (
+                      <span className="shell-unread" aria-label="새 활동" />
+                    )}
+                  </button>
+                </div>
               ))}
+              <div className="shell-rail-note">
+                상품 DB와 판매 정책을 연결하면
+                <br />
+                우리 회사의 AI 상담팀이 됩니다.<small>가상 기업 · 시연 공간</small>
+              </div>
             </nav>
           </>
         ) : (
@@ -305,7 +352,9 @@ function Shell() {
             <h1>BUILDWISE</h1>
             <span className="header-divider" aria-hidden="true" />
             <span className="header-context">
-              {business ? sellerSession.companyName : "AI 상담 직원 사무실"}
+              {business
+                ? SELLER_MENUS.find((item) => item.id === normalizeSellerMenu(sellerMenu))?.label
+                : "AI 상담 직원 사무실"}
             </span>
           </div>
           <p
@@ -331,11 +380,22 @@ function Shell() {
           )}
           {!MOCK && !LIVE && account && (
             <div className="shell-account">
-              <span>
-                {business
-                  ? `${sellerSession.companyName} · ${sellerSession.userName} · ${sellerSession.role === "admin" ? "관리자" : "상담원"}`
-                  : "개인 상담 · 시연"}
-              </span>
+              {business ? (
+                <span className="shell-user">
+                  <i className="shell-user-avatar" aria-hidden="true">
+                    {sellerSession.userName.slice(0, 1)}
+                  </i>
+                  <span>
+                    <strong>{sellerSession.userName}</strong>
+                    <small>
+                      {sellerSession.companyName} ·{" "}
+                      {sellerSession.role === "admin" ? "관리자" : "상담원"}
+                    </small>
+                  </span>
+                </span>
+              ) : (
+                <span>개인 상담 · 시연</span>
+              )}
               <button type="button" onClick={logout}>
                 로그아웃
               </button>
@@ -345,6 +405,22 @@ function Shell() {
             <span aria-hidden="true" className="badge-dot" />
             {MOCK ? "테스트 데이터 · 시연" : "테스트 데이터"}
           </span>
+          {!MOCK && !LIVE && account === "personal" && (
+            <label className="company">
+              <span title="기업을 바꾸면 새 상담을 시작합니다.">상담 기업</span>
+              <select
+                aria-label="상담 기업"
+                value={personalCompany}
+                onChange={(event) => setPersonalCompany(event.target.value)}
+              >
+                {Object.values(policies).map((policy) => (
+                  <option key={policy.companyCode} value={policy.companyCode}>
+                    {policy.companyName} · 정책 {policy.version}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           {companies.length > 0 && (
             <label className="company">
               <span className="company-label">시연용 기업 선택(로그인 아님)</span>
@@ -370,20 +446,6 @@ function Shell() {
             statusKey={workspaceKey}
             onStatus={setStatus}
           />
-        ) : !account ? (
-          <section className="shell-entry pc-app" id="login" aria-label="계정 선택과 시연 로그인">
-            <StartScreen
-              onEnter={() => {
-                setAccount("personal");
-                window.location.hash = "workspace";
-              }}
-              onBusinessEnter={(session) => {
-                setSellerSession(session);
-                setAccount("business");
-                setSellerMenu("home");
-              }}
-            />
-          </section>
         ) : business ? (
           <SellerWorkspace
             session={sellerSession}
@@ -392,11 +454,14 @@ function Shell() {
             menu={sellerMenu}
             onNavigate={setSellerMenu}
             onNavigationState={showSellerNavigation}
+            policies={policies}
+            onPolicyChange={saveCompanyPolicy}
           />
         ) : (
           <IntegratedWorkspace
             key={workspaceKey}
-            source={snapshotSource}
+            source={personalSource}
+            policy={personalPolicy}
             sessionId={workspaceKey}
             intervalMs={MOCK_INTERVAL_MS}
             onOffice={showOfficeStatus}

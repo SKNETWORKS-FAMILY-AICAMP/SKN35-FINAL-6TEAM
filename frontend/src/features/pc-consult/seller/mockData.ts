@@ -1,3 +1,4 @@
+import type { AgentEvent } from "../../../api/client";
 import type { Customer, SellerState } from "./types";
 
 /** Entirely synthetic seller-workspace demonstration data. No real customers, sales, or accounts. */
@@ -7,6 +8,115 @@ export const DEMO_COMPANIES = [
 ] as const;
 export const DEMO_DATE = "2026-11-18";
 export const DEMO_TIME = "14:30";
+/** Synthetic daily cohort; completed = automatically resolved + handed off. */
+export const B2B_METRICS = {
+  label: "오늘 · 가상 성과 집계",
+  consultations: 10,
+  completed: 4,
+  automaticallyResolved: 2,
+  handedOff: 2,
+  quoted: 3,
+  averageResponseSeconds: 18,
+} as const;
+
+/** Initial synthetic receipts describe data already loaded, never an unfinished consultation. */
+export function initialSellerEvents(companyCode: string, state: SellerState): AgentEvent[] {
+  const jobs = [
+    {
+      team: "design" as const,
+      message: `가상 상담 자료 ${state.documents.length}건을 준비했습니다.`,
+    },
+    {
+      team: "consultation" as const,
+      message: `가상 고객 기록 ${state.customers.length}건을 준비했습니다.`,
+    },
+  ];
+  return jobs.flatMap((job, index) =>
+    [false, true].map((completed, step) => ({
+      seq: index * 2 + step + 1,
+      session_id: `seller-demo-seed:${companyCode}`,
+      company_id: 0,
+      run_id: `seller-demo-seed:${companyCode}`,
+      requirement_version: 1,
+      team: job.team,
+      type: completed ? ("task.completed" as const) : ("task.started" as const),
+      status: completed ? ("completed" as const) : ("running" as const),
+      occurred_at: `${DEMO_DATE}T${DEMO_TIME}:00+09:00`,
+      message: `${completed ? job.message : "시연 기록을 불러오고 있습니다."} (가상 초기 기록 · 시연)`,
+      error: null,
+      artifact: null,
+      metrics: null,
+    })),
+  );
+}
+
+/** Synthetic customer feedback only. These are not observations from actual customers. */
+export const FEEDBACK_DEMO = {
+  intents: [
+    { label: "새 PC 구성", value: 20 },
+    { label: "부품 교체", value: 16 },
+    { label: "배송·AS 문의", value: 8 },
+    { label: "할인 한도 문의", value: 6 },
+  ],
+  conditions: [
+    { label: "예산 우선", value: 22 },
+    { label: "작업 성능", value: 18 },
+    { label: "색상·크기", value: 10 },
+  ],
+  complaints: [
+    { label: "배송 안내 부족", value: 6 },
+    { label: "호환성 정보 부족", value: 4 },
+    { label: "AS 기준 확인", value: 3 },
+  ],
+  dropoffs: [
+    { label: "예산 입력", value: 5 },
+    { label: "후보 비교", value: 4 },
+    { label: "견적 확인", value: 3 },
+  ],
+  handoffs: [
+    { label: "정책 확인 필요", value: 4 },
+    { label: "부품 정보 부족", value: 4 },
+    { label: "고객 직접 요청", value: 2 },
+  ],
+  actions: [
+    {
+      id: "demo-feedback-discount",
+      kind: "요청" as const,
+      topic: "할인 한도 안내",
+      message: "가상 고객 피드백: 적용 가능한 할인 한도와 담당자 확인 기준을 알고 싶어요.",
+      count: 6,
+      action: "catalog" as const,
+      actionLabel: "할인 정책 한도 검토",
+    },
+    {
+      id: "demo-feedback-shipping",
+      kind: "불만" as const,
+      topic: "배송 안내",
+      message: "가상 고객 피드백: 출고 예정일을 상담에서 먼저 확인하고 싶어요.",
+      count: 6,
+      action: "documents" as const,
+      actionLabel: "배송 정책 확인",
+    },
+    {
+      id: "demo-feedback-compatibility",
+      kind: "요청" as const,
+      topic: "부품 호환성 정보",
+      message: "가상 고객 피드백: 지원 소켓과 케이스 크기 정보를 더 보고 싶어요.",
+      count: 4,
+      action: "documents" as const,
+      actionLabel: "상품 정보 보강 요청",
+    },
+    {
+      id: "demo-feedback-service",
+      kind: "요청" as const,
+      topic: "AS 안내",
+      message: "가상 고객 피드백: 교환과 AS 조건을 한곳에서 확인하고 싶어요.",
+      count: 3,
+      action: "documents" as const,
+      actionLabel: "AS 정책 확인",
+    },
+  ],
+};
 export const DEMO_SCRIPT = {
   bubbles: [
     "안녕하세요. 영상 편집용 PC를 찾고 있어요.",
@@ -262,5 +372,6 @@ export function initialSellerState(companyCode = DEMO_COMPANIES[0].code as strin
     toastId: 0,
     uploadProgress: null,
     scenarioRunning: false,
+    policyVersion: 0,
   };
 }

@@ -165,7 +165,30 @@ function copyQuote(quote: Quote): Quote {
       ...quote.validation,
       checks: quote.validation.checks.map((check) => ({ ...check })),
     },
+    ...(quote.reviewItems
+      ? { reviewItems: quote.reviewItems.map((item) => ({ ...item, reasons: [...item.reasons] })) }
+      : {}),
   };
+}
+
+/** Keep acknowledged unknowns on this exact quote version, including after saving. */
+function quoteWithSelectionReviews(state: ConsultState, quote: Quote): Quote {
+  const reviewItems = quote.items.flatMap((item) => {
+    const supplied = quote.reviewItems?.find((review) => review.source_key === item.source_key);
+    const selected = state.selected[item.category];
+    const validation = state.validations[item.category];
+    const selectedReasons =
+      selected?.source_key === item.source_key && validation?.status === "UNKNOWN"
+        ? validation.checks
+            .filter((check) => check.status === "UNKNOWN")
+            .map((check) => check.message)
+        : [];
+    const reasons = [...new Set([...(supplied?.reasons ?? []), ...selectedReasons])];
+    return reasons.length
+      ? [{ source_key: item.source_key, category: item.category, reasons }]
+      : [];
+  });
+  return copyQuote({ ...quote, ...(reviewItems.length ? { reviewItems } : {}) });
 }
 
 function quoteMatchesSelection(state: ConsultState, quote: Quote): boolean {
@@ -392,7 +415,7 @@ export function consultReducer(state: ConsultState, event: ConsultEvent): Consul
       return {
         ...withoutRequest(state),
         screen: "quote",
-        quotes: [...state.quotes, copyQuote(event.quote)],
+        quotes: [...state.quotes, quoteWithSelectionReviews(state, event.quote)],
         editingCategory: null,
         editBackup: null,
         conditions: { color: "", note: "" },
@@ -462,7 +485,10 @@ export function consultReducer(state: ConsultState, event: ConsultEvent): Consul
         !quoteMatchesSelection(state, event.receipt.quote)
       )
         return state;
-      const savedQuote = copyQuote(event.receipt.quote);
+      const savedQuote = copyQuote({
+        ...event.receipt.quote,
+        ...(quote.reviewItems ? { reviewItems: quote.reviewItems } : {}),
+      });
       return {
         ...withoutRequest(state),
         screen: "saved",

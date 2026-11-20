@@ -11,7 +11,7 @@ import console from "node:console";
 import process from "node:process";
 
 const baseURL = process.env.PC_CONSULT_URL ?? "http://127.0.0.1:5173/?pc-consult=1";
-const output = new URL("./screenshots/seller/", import.meta.url);
+const output = new URL("../../../../test-results/pc-consult/seller/", import.meta.url);
 const report = { checkedAt: new Date().toISOString(), baseURL, viewports: [], errors: [] };
 const browser = await chromium.launch({ headless: true });
 let page;
@@ -370,7 +370,7 @@ try {
   process.exitCode = 1;
 } finally {
   await writeFile(
-    new URL("./seller-report.json", import.meta.url),
+    new URL("seller-report.json", output),
     `${JSON.stringify(report, null, 2)}\n`,
     "utf8",
   );

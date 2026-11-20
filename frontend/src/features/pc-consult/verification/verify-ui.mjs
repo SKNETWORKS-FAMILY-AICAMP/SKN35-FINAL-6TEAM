@@ -10,7 +10,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath, URL } from "node:url";
 
 const baseURL = process.env.PC_CONSULT_URL ?? "http://localhost:5173/?pc-consult=1";
-const output = new URL("./screenshots/", import.meta.url);
+const output = new URL("../../../../test-results/pc-consult/ui/", import.meta.url);
 const report = { baseURL, checkedAt: new Date().toISOString(), viewports: [], errors: [] };
 const browser = await chromium.launch({ headless: true });
 let currentPage;
@@ -308,7 +308,7 @@ try {
   process.exitCode = 1;
 } finally {
   await writeFile(
-    new URL("./ui-report.json", import.meta.url),
+    new URL("ui-report.json", output),
     `${JSON.stringify(report, null, 2)}\n`,
     "utf8",
   );

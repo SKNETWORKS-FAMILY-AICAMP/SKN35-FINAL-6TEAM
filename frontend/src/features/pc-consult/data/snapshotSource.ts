@@ -1,6 +1,7 @@
 import {
   CATEGORIES,
   type Category,
+  type CatalogSummary,
   type CompatibilityRecord,
   type ConfirmPayload,
   type Part,
@@ -8,15 +9,22 @@ import {
   type SaveReceipt,
 } from "../types";
 import type { ConsultDataSource } from "./ConsultDataSource";
+import type { CompanyPolicy } from "./companyPolicy";
 import {
   DEMO_RULES,
   candidateFor,
+  companyPolicyLabel,
+  configurationReviews,
+  demoSurveyFromParts,
   eligibleParts,
   finishCandidates,
   indexEvidence,
   planConsultation,
+  partAllowedByPolicy,
+  policyHandoff,
   proposeRebalance,
   validateConfiguration,
+  validateCompanyPolicy,
 } from "./demoRules";
 
 type Fetcher = typeof fetch;
@@ -24,17 +32,29 @@ interface Snapshot {
   parts: Part[];
   records: CompatibilityRecord[];
   evidence: ReturnType<typeof indexEvidence>;
+  priceDate: string | null;
+  generatedAt: string | null;
 }
 const clone = <T>(value: T): T => structuredClone(value);
 const keyFor = (consultationId: string, version: number) => `${consultationId}/${version}`;
 const yieldForPaint = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
-/** Lazy, in-memory adapter. Static snapshots are never bundled or written back. */
-export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): ConsultDataSource {
+interface QuoteStore {
+  quotes: Map<string, Quote>;
+  latestVersion: Map<string, number>;
+  receipts: Map<string, SaveReceipt>;
+  discounts: Map<string, number>;
+}
+const createQuoteStore = (): QuoteStore => ({
+  quotes: new Map(),
+  latestVersion: new Map(),
+  receipts: new Map(),
+  discounts: new Map(),
+});
+
+/** Shared read cache contains only the immutable catalog, never tenant quote records. */
+function createSnapshotReader(fetcher: Fetcher) {
   let loading: Promise<Snapshot> | undefined;
-  const quotes = new Map<string, Quote>();
-  const latestVersion = new Map<string, number>();
-  const receipts = new Map<string, SaveReceipt>();
   async function readSnapshot(): Promise<Snapshot> {
     if (!loading) {
       loading = (async () => {
@@ -58,7 +78,14 @@ export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): Consu
           )
         )
           throw new Error("부품 스냅샷에 필수 정보가 없습니다.");
-        return { parts, records, evidence: indexEvidence(records) };
+        return {
+          parts,
+          records,
+          evidence: indexEvidence(records),
+          priceDate: typeof partsData.meta?.fx_date === "string" ? partsData.meta.fx_date : null,
+          generatedAt:
+            typeof partsData.meta?.generated_at === "string" ? partsData.meta.generated_at : null,
+        };
       })().catch((error: unknown) => {
         loading = undefined;
         throw error;
@@ -66,10 +93,40 @@ export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): Consu
     }
     return loading;
   }
+  return readSnapshot;
+}
+
+function createSource(
+  readSnapshot: ReturnType<typeof createSnapshotReader>,
+  store: QuoteStore,
+  policy?: CompanyPolicy,
+): ConsultDataSource {
+  const { quotes, latestVersion, receipts, discounts } = store;
 
   const source: ConsultDataSource = {
     async initialize() {
       await readSnapshot();
+    },
+    async getCatalogSummary(): Promise<CatalogSummary> {
+      const snapshot = await readSnapshot();
+      const scoped = snapshot.parts.filter((part) => partAllowedByPolicy(part, policy));
+      const categoryCounts = Object.fromEntries(
+        CATEGORIES.map((category) => [category, 0]),
+      ) as Record<Category, number>;
+      for (const part of scoped) categoryCounts[part.category]++;
+      return {
+        categoryCounts,
+        totalParts: snapshot.parts.length,
+        scopedParts: scoped.length,
+        compatibilityCount: snapshot.records.length,
+        priceDate: snapshot.priceDate,
+        generatedAt: snapshot.generatedAt,
+        brands: [...new Set(scoped.map((part) => part.brand))].sort(),
+      };
+    },
+    async getDemoSurvey() {
+      const { parts, evidence } = await readSnapshot();
+      return clone(demoSurveyFromParts(parts, evidence));
     },
     async searchParts(category, query) {
       const { parts } = await readSnapshot();
@@ -100,7 +157,7 @@ export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): Consu
       const { parts, evidence } = await readSnapshot();
       onProgress?.({ phase: "design", completed: 0, total: 0 });
       await yieldForPaint();
-      const eligible = eligibleParts(parts, request);
+      const eligible = eligibleParts(parts, request, policy);
       const candidates: ReturnType<typeof candidateFor>[] = [];
       onProgress?.({ phase: "validation", completed: 0, total: eligible.parts.length });
       for (let offset = 0; offset < eligible.parts.length; offset += DEMO_RULES.chunkSize) {
@@ -113,7 +170,7 @@ export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): Consu
         });
         await yieldForPaint();
       }
-      const result = finishCandidates(candidates, request, eligible.missingColorCount);
+      const result = finishCandidates(candidates, request, eligible.missingColorCount, policy);
       onProgress?.({
         phase: "ready",
         completed: eligible.parts.length,
@@ -127,7 +184,7 @@ export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): Consu
     },
     async rebalance(request, amount) {
       const { parts, evidence } = await readSnapshot();
-      return clone(proposeRebalance(parts, evidence, request, amount));
+      return clone(proposeRebalance(parts, evidence, request, amount, policy));
     },
     async createQuote(input) {
       const { parts, evidence } = await readSnapshot();
@@ -142,6 +199,8 @@ export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): Consu
         const part = known.get(input.selected[category]!.source_key);
         if (!part || part.category !== category || part.current_price === null)
           throw new Error("부품 또는 가격 정보를 확인할 수 없습니다.");
+        if (!partAllowedByPolicy(part, policy))
+          throw new Error("현재 기업의 취급 범위에 없는 부품입니다. 후보를 다시 선택해 주세요.");
         selected[category] = part;
       }
       const validation = validateConfiguration(input.survey, selected, evidence);
@@ -167,17 +226,32 @@ export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): Consu
         created_at: new Date().toISOString(),
         items: clone(items),
         validation: clone(validation),
+        reviewItems: configurationReviews(input.survey, selected, evidence),
+        ...(policy
+          ? {
+              policyLabel: companyPolicyLabel(policy),
+              handoff: policyHandoff(policy, {
+                validation,
+                total: items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0),
+                requestedDiscountPercent: input.requestedDiscountPercent,
+              }),
+            }
+          : {}),
       };
       const key = keyFor(input.consultationId, input.version);
       const existing = quotes.get(key);
       if (existing) {
-        if (JSON.stringify(existing.items) !== JSON.stringify(quote.items))
+        if (
+          JSON.stringify(existing.items) !== JSON.stringify(quote.items) ||
+          (discounts.get(key) ?? 0) !== (input.requestedDiscountPercent ?? 0)
+        )
           throw new Error("이미 만든 견적 버전입니다. 새 버전으로 만들어 주세요.");
         return clone(existing);
       }
       if (input.version <= (latestVersion.get(input.consultationId) ?? 0))
         throw new Error("이전 견적을 덮어쓸 수 없습니다. 새 버전으로 만들어 주세요.");
       quotes.set(key, clone(quote));
+      discounts.set(key, input.requestedDiscountPercent ?? 0);
       latestVersion.set(input.consultationId, input.version);
       return clone(quote);
     },
@@ -198,6 +272,26 @@ export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): Consu
       if (receipt) return clone(receipt);
       if (header.version !== latestVersion.get(header.consultation_id))
         throw new Error("새 견적이 있어 이전 버전을 승인할 수 없습니다.");
+      if (policy) {
+        const decision = policyHandoff(policy, {
+          validation: original.validation,
+          total: original.total_amount,
+          requestedDiscountPercent: discounts.get(key),
+        });
+        if (decision.required)
+          throw new Error(
+            `담당자 확인이 필요해 자동 확정할 수 없습니다. ${decision.reasons.join(" ")}`,
+          );
+        const { parts } = await readSnapshot();
+        const known = new Map(parts.map((part) => [part.source_key, part]));
+        if (
+          original.items.some((item) => {
+            const part = known.get(item.source_key);
+            return !part || !partAllowedByPolicy(part, policy);
+          })
+        )
+          throw new Error("기업 취급 범위가 변경되었습니다. 새 견적을 만들어 주세요.");
+      }
       const confirmed: Quote = { ...clone(original), status: "CONFIRMED" };
       const saved: SaveReceipt = {
         quote: confirmed,
@@ -212,4 +306,44 @@ export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): Consu
   return source;
 }
 
-export const snapshotSource = createSnapshotSource();
+/** Existing standalone adapter keeps its own cache and original policy-free behavior. */
+export function createSnapshotSource(fetcher: Fetcher = globalThis.fetch): ConsultDataSource {
+  return createSource(createSnapshotReader(fetcher), createQuoteStore());
+}
+
+const companyRuntimes = new WeakMap<
+  Fetcher,
+  {
+    read: ReturnType<typeof createSnapshotReader>;
+    stores: Map<string, QuoteStore>;
+  }
+>();
+
+function sharedRuntime(fetcher: Fetcher) {
+  let runtime = companyRuntimes.get(fetcher);
+  if (!runtime) {
+    runtime = { read: createSnapshotReader(fetcher), stores: new Map() };
+    companyRuntimes.set(fetcher, runtime);
+  }
+  return runtime;
+}
+
+/** Optional fetcher is for isolated tests; all normal company sources share the lazy reader. */
+export function createCompanySource(
+  policy: CompanyPolicy,
+  fetcher: Fetcher = globalThis.fetch,
+): ConsultDataSource {
+  validateCompanyPolicy(policy);
+  const runtime = sharedRuntime(fetcher);
+  let store = runtime.stores.get(policy.companyCode);
+  if (!store) {
+    store = createQuoteStore();
+    runtime.stores.set(policy.companyCode, store);
+  }
+  return createSource(runtime.read, store, clone(policy));
+}
+
+export const snapshotSource = createSource(
+  sharedRuntime(globalThis.fetch).read,
+  createQuoteStore(),
+);

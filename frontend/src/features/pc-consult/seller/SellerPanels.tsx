@@ -3,6 +3,8 @@ import { Modal } from "../components/ui";
 import { won } from "../types";
 import { SalesDashboard, SalesTopChart } from "./SellerVisuals";
 import { OfficeBoard } from "../../office/OfficeBoard";
+import { TEAM_LABELS } from "../../office/officeState";
+import { issueTimeline } from "./operations";
 import type { Customer, SellerIssue, SellerQuote, SellerSession } from "./types";
 import type { useSellerDemo } from "./useSellerDemo";
 
@@ -428,14 +430,24 @@ function CustomerDetail({
   );
 }
 
-export function CustomersPanel({ controller }: PanelProps) {
+export function CustomersPanel({
+  controller,
+  initialCustomerId,
+  initialSection = "customers",
+}: PanelProps & { initialCustomerId?: string | null; initialSection?: "customers" | "abuse" }) {
   const { state, dispatch, canManage } = controller;
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<(typeof KIND_LABELS)[number]>("전체");
   const [status, setStatus] = useState("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [section, setSection] = useState<"customers" | "abuse">("customers");
+  const [selectedId, setSelectedId] = useState<string | null>(initialCustomerId ?? null);
+  const [section, setSection] = useState<"customers" | "abuse">(initialSection);
   const [blockOnOpen, setBlockOnOpen] = useState(false);
+  useEffect(() => {
+    if (initialCustomerId) {
+      setSelectedId(initialCustomerId);
+      setBlockOnOpen(false);
+    }
+  }, [initialCustomerId]);
   const selected = state.customers.find((customer) => customer.id === selectedId);
   const filtered = state.customers.filter(
     (customer) =>
@@ -718,22 +730,30 @@ function IssueDetail({
   const [assignee, setAssignee] = useState(
     employees.some((employee) => employee.name === issue.assignee) ? issue.assignee : "",
   );
+  const timeline = issueTimeline(issue);
   return (
-    <Modal title="이슈 상세" onClose={onClose}>
-      <div className="seller-issue-detail">
+    <Modal title="사람 인계 상세" onClose={onClose}>
+      <div
+        className="seller-issue-detail"
+        data-testid={issue.reviewSelections?.length ? "review-selection-handoff-detail" : undefined}
+      >
         <div className="seller-badge-row">
           <span className="seller-label seller-label-amber">{issue.kind}</span>
+          {issue.dataOrigin && <span className="seller-label seller-label-amber">실제 시연</span>}
           <span className="seller-soft-label">
             {STAGES.find((stage) => stage.value === issue.stage)?.label}
           </span>
         </div>
         <h3>{issue.title}</h3>
         <p className="seller-subtle">
-          {state.customers.find((customer) => customer.id === issue.customerId)?.name} · {issue.id}
+          {issue.dataOrigin
+            ? "브라우저 상담 시연"
+            : state.customers.find((customer) => customer.id === issue.customerId)?.name}{" "}
+          · {issue.id}
         </p>
         <dl>
           <div>
-            <dt>문의 내용</dt>
+            <dt>상담 요약</dt>
             <dd>{issue.summary}</dd>
           </div>
           <div>
@@ -745,6 +765,46 @@ function IssueDetail({
             <dd>{issue.assignee || "배정 전"}</dd>
           </div>
         </dl>
+        <section className="seller-summary-list">
+          <h3>사람의 확인이 필요한 이유</h3>
+          <ul>
+            {(issue.reasons?.length ? issue.reasons : [issue.summary]).map((reason, index) => (
+              <li key={`${index}-${reason}`}>{reason}</li>
+            ))}
+          </ul>
+          {!!issue.reviewSelections?.length && (
+            <p className="seller-subtle">
+              실제 선택 이력 {issue.reviewSelections.length}건입니다. 경고 확인은 호환성 통과나 검증
+              완료를 뜻하지 않습니다.
+            </p>
+          )}
+        </section>
+        <section className="seller-chat-history">
+          <h3>고객 대화 · 팀 검토 기록</h3>
+          <p className="seller-subtle">
+            기록 시각순입니다. 시각이 없는 항목은 뒤에 수신 순서대로 표시합니다.
+          </p>
+          {timeline.length ? (
+            timeline.map((entry) => (
+              <article
+                className={`seller-chat seller-chat-${entry.speaker === "고객" ? "customer" : "agent"}`}
+                key={entry.index}
+              >
+                <small>
+                  {entry.kind} ·{" "}
+                  {TEAM_LABELS[entry.speaker as keyof typeof TEAM_LABELS] ?? entry.speaker}
+                  {" · "}
+                  {Number.isNaN(entry.timestamp)
+                    ? "시각 미제공"
+                    : new Date(entry.timestamp).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}
+                </small>
+                <p>{entry.text}</p>
+              </article>
+            ))
+          ) : (
+            <p className="seller-empty">이 인계에는 대화와 팀 검토 기록이 첨부되지 않았습니다.</p>
+          )}
+        </section>
         {issue.stage !== "done" && (
           <>
             <label className="seller-field">
@@ -782,7 +842,7 @@ function IssueDetail({
           </>
         )}
         {issue.stage === "done" && (
-          <p className="seller-success-message">처리가 완료된 이슈입니다.</p>
+          <p className="seller-success-message">담당자가 처리를 완료한 인계입니다.</p>
         )}
       </div>
     </Modal>
@@ -795,18 +855,25 @@ export function IssuesPanel({
 }: PanelProps & { initialIssueId?: string | null }) {
   const { state } = controller;
   const [selectedId, setSelectedId] = useState<string | null>(initialIssueId ?? null);
+  useEffect(() => {
+    if (initialIssueId) setSelectedId(initialIssueId);
+  }, [initialIssueId]);
   const selected = state.issues.find((issue) => issue.id === selectedId);
   return (
     <>
       <div className="seller-page-heading">
         <div>
-          <span className="seller-eyebrow">작은 문제도 놓치지 않도록</span>
-          <h1>이슈 / 클레임 / 오류</h1>
-          <p>접수부터 해결까지, 진행 상황을 한곳에서 관리하세요.</p>
+          <span className="seller-eyebrow">AI가 멈추고 사람에게 연결한 요청</span>
+          <h1>사람 인계함</h1>
+          <p>인계 이유와 고객 대화, 팀 검토 기록을 확인하고 이어서 처리하세요.</p>
         </div>
-        <span className="seller-soft-label">총 {state.issues.length}건</span>
+        <span className="seller-soft-label">
+          가상 {state.issues.filter((issue) => !issue.dataOrigin).length}건 · 실제 시연{" "}
+          {state.issues.filter((issue) => issue.dataOrigin).length}건
+        </span>
       </div>
       <div className="seller-card seller-issue-counters">
+        <span className="seller-soft-label">가상 상담 수치</span>
         <div className="seller-consult-counters">
           <div>
             <span className="seller-dot seller-dot-teal" />
@@ -840,6 +907,10 @@ export function IssuesPanel({
                 {issues.map((issue) => (
                   <button
                     className="seller-issue-card"
+                    data-testid={
+                      issue.reviewSelections?.length ? "review-selection-handoff" : undefined
+                    }
+                    data-consultation-id={issue.consultationId}
                     key={issue.id}
                     onClick={() => setSelectedId(issue.id)}
                   >
@@ -848,9 +919,15 @@ export function IssuesPanel({
                     >
                       {issue.kind}
                     </span>
+                    {issue.dataOrigin && (
+                      <span className="seller-label seller-label-amber">실제 시연</span>
+                    )}
                     <strong>{issue.title}</strong>
                     <span className="seller-subtle">
-                      {state.customers.find((customer) => customer.id === issue.customerId)?.name}
+                      {issue.dataOrigin
+                        ? "브라우저 상담 시연"
+                        : state.customers.find((customer) => customer.id === issue.customerId)
+                            ?.name}
                     </span>
                     <span className="seller-issue-card-footer">
                       <span>{issue.assignee || "담당자 미지정"}</span>
@@ -859,7 +936,7 @@ export function IssuesPanel({
                   </button>
                 ))}
                 {issues.length === 0 && (
-                  <div className="seller-kanban-empty">이 단계의 이슈가 없습니다.</div>
+                  <div className="seller-kanban-empty">이 단계의 인계가 없습니다.</div>
                 )}
               </div>
             </section>
@@ -894,9 +971,9 @@ export function DocumentsPanel({ controller }: PanelProps) {
       shippingFee < 0 ||
       !Number.isFinite(discountRate) ||
       discountRate < 0 ||
-      discountRate > 100
+      discountRate > 30
     ) {
-      setPolicyError("배송비는 0원 이상, 할인율은 0~100%로 입력해 주세요.");
+      setPolicyError("배송비는 0원 이상, 할인 한도는 0~30%로 입력해 주세요.");
       return;
     }
     setPolicyError("");
@@ -966,8 +1043,8 @@ export function DocumentsPanel({ controller }: PanelProps) {
         <section className="seller-card">
           <div className="seller-card-heading">
             <div>
-              <h2>판매 정책</h2>
-              <p>가상 상담에 사용할 기본 정책입니다.</p>
+              <h2>배송 설정과 할인 한도</h2>
+              <p>할인 한도는 판매 정책과 같은 값을 사용합니다.</p>
             </div>
           </div>
           <form className="seller-form" onSubmit={submit}>
@@ -987,7 +1064,7 @@ export function DocumentsPanel({ controller }: PanelProps) {
               </div>
             </label>
             <label>
-              기본 할인율
+              할인 자동 응대 한도
               <div className="seller-unit-input">
                 <input
                   inputMode="decimal"
@@ -1005,7 +1082,8 @@ export function DocumentsPanel({ controller }: PanelProps) {
               </p>
             )}
             <p className="seller-demo-note">
-              변경 사항은 현재 시연 화면에만 반영돼요. 실제 견적이나 DB는 변경되지 않습니다.
+              할인 한도는 다음 상담의 사람 인계 판단에 반영됩니다. 배송비는 가상 설정이며 테스트
+              부품 단가와 DB를 바꾸지 않습니다.
             </p>
             <button className="seller-button seller-primary" disabled={!canManage}>
               정책 저장 · 시연

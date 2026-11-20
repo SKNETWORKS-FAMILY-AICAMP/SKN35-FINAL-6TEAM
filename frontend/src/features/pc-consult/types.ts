@@ -90,6 +90,20 @@ export interface CandidateRequest {
   budget: number;
   color?: string;
   note?: string;
+  requestedDiscountPercent?: number;
+}
+export interface HandoffDecision {
+  required: boolean;
+  reasons: string[];
+}
+export interface CatalogSummary {
+  categoryCounts: Record<Category, number>;
+  totalParts: number;
+  compatibilityCount: number;
+  priceDate: string | null;
+  generatedAt: string | null;
+  brands: string[];
+  scopedParts: number;
 }
 export interface CandidateResult {
   passed: Candidate[];
@@ -99,6 +113,8 @@ export interface CandidateResult {
   sortLabel: string;
   criteria: string[];
   basis: "demo" | "api";
+  handoff?: HandoffDecision;
+  policyLabel?: string;
 }
 export interface ConsultPlan {
   steps: Category[];
@@ -119,6 +135,12 @@ export interface QuoteItem {
   quantity: number;
   price_checked_at: string | null;
 }
+/** Local quote review metadata; it does not alter the shared quote_items contract. */
+export interface PartReview {
+  source_key: string;
+  category: Category;
+  reasons: string[];
+}
 export interface Quote {
   consultation_id: string;
   version: number;
@@ -128,6 +150,9 @@ export interface Quote {
   created_at: string;
   items: QuoteItem[];
   validation: ValidationResult;
+  reviewItems?: PartReview[];
+  handoff?: HandoffDecision;
+  policyLabel?: string;
 }
 export interface ConfirmPayload {
   quotes: {

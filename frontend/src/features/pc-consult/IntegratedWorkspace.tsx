@@ -4,14 +4,21 @@ import { OfficeBoard } from "../office/OfficeBoard";
 import { teamNotesForOffice } from "../office/officeNotes";
 import type { OfficeState } from "../office/officeState";
 import { PcConsult } from "./PcConsult";
+import { ConsultWindow } from "./components/ConsultWindow";
 import type { ConsultDataSource } from "./data/ConsultDataSource";
 import type { ConsultEvent, ConsultState } from "./state";
+import type { Survey } from "./types";
+import type { ChatState } from "../chat/chatState";
+import type { CompanyPolicy } from "./data/companyPolicy";
+import { applyResponsePolicy } from "./data/demoRules";
 import { useOfficeBridge } from "./useOfficeBridge";
+import { acceptedReviewSelection, reviewSelectionStore } from "./reviewSelectionStore";
 import {
   appendConsultMessage,
   appendConsultTransition,
   initialConsultChatState,
 } from "./consultTranscript";
+import "./consultationLayout.css";
 
 /** Reuses the original office and voice panel; PC work never starts the canned mock stream. */
 export function IntegratedWorkspace({
@@ -19,23 +26,55 @@ export function IntegratedWorkspace({
   sessionId,
   intervalMs,
   onOffice,
+  initialSurvey,
+  requestedDiscountPercent,
+  onConsultState,
+  onTranscript,
+  policy,
 }: {
   source: ConsultDataSource;
   sessionId: string;
   intervalMs: number;
   onOffice: (office: OfficeState) => void;
+  initialSurvey?: Survey;
+  requestedDiscountPercent?: number;
+  onConsultState?: (state: ConsultState) => void;
+  onTranscript?: (chat: ChatState) => void;
+  policy?: CompanyPolicy;
 }) {
   const { office, receive } = useOfficeBridge({ sessionId, intervalMs });
   const [chat, setChat] = useState(() => initialConsultChatState(new Date().toISOString()));
   const notes = useMemo(() => teamNotesForOffice(office), [office]);
   useEffect(() => onOffice(office), [office, onOffice]);
+  const displayedChat = useMemo(
+    () =>
+      !policy
+        ? chat
+        : {
+            ...chat,
+            messages: chat.messages.map((message) =>
+              message.role === "assistant"
+                ? { ...message, content: applyResponsePolicy(message.content, policy) }
+                : message,
+            ),
+          },
+    [chat, policy],
+  );
+  useEffect(() => onTranscript?.(displayedChat), [displayedChat, onTranscript]);
   const acceptedTransition = useCallback(
     (event: ConsultEvent, previous: ConsultState, next: ConsultState) => {
-      setChat((current) =>
-        appendConsultTransition(current, event, previous, next, new Date().toISOString()),
+      const occurredAt = new Date().toISOString();
+      const selection = acceptedReviewSelection(
+        policy?.companyCode,
+        event,
+        previous,
+        next,
+        occurredAt,
       );
+      if (selection) reviewSelectionStore.dispatch({ type: "SELECTED", selection });
+      setChat((current) => appendConsultTransition(current, event, previous, next, occurredAt));
     },
-    [],
+    [policy?.companyCode],
   );
   return (
     <PcConsult
@@ -43,43 +82,69 @@ export function IntegratedWorkspace({
       embedded
       onTransition={receive}
       onAcceptedTransition={acceptedTransition}
-      renderLayout={(content, intake) => (
-        <div className="layout integrated-workspace">
+      initialSurvey={initialSurvey}
+      requestedDiscountPercent={requestedDiscountPercent}
+      onStateChange={onConsultState}
+      renderLayout={(content, intake, summary, screen) => (
+        <div
+          className="layout integrated-workspace"
+          data-layout={intake ? "intake" : "selection"}
+          data-screen={screen}
+        >
+          <div className="consultation-topline">
+            <div>
+              <span className="consultation-company-mark" aria-hidden="true">
+                B
+              </span>
+              <span>
+                <strong>{policy?.companyName ?? "BUILDWISE"}</strong>의 PC 상담실
+              </span>
+            </div>
+            <span className="consultation-presence">
+              <i aria-hidden="true" /> 네 팀과 함께 구성하세요
+            </span>
+          </div>
           <div className="consultation-workspace">
             <OfficeBoard state={office} />
+            {summary && (
+              <div className="consultation-build-summary pc-app pc-embedded">{summary}</div>
+            )}
             <ChatPanel
               key={sessionId}
-              state={chat}
+              state={displayedChat}
               disabled={false}
               onSend={(text) =>
                 setChat((current) => appendConsultMessage(current, text, new Date().toISOString()))
               }
               notes={notes}
               officeRunStatus={office.runStatus}
+              intakeMode={intake}
+              compactWelcome={intake}
             >
               {intake && (
                 <div className="pc-intake-slot">
-                  <p className="integrated-note">
-                    원하시는 PC를 아래 설문에 알려 주세요. 음성·글 입력은 요청 메모로 남습니다.
-                  </p>
-                  {content}
+                  <ConsultWindow
+                    active={screen === "survey" || screen === "review"}
+                    stage={screen}
+                    title={screen === "review" ? "설문 확인" : "상담 설문"}
+                  >
+                    {content}
+                  </ConsultWindow>
                 </div>
               )}
             </ChatPanel>
           </div>
-          <section className="workspace-results" id="results" aria-labelledby="results-title">
+          <section
+            className="workspace-results"
+            id="results"
+            aria-labelledby="results-title"
+            hidden={intake}
+          >
             <div className="results-heading">
-              <h2 id="results-title">내 PC 상담</h2>
-              <p>선택은 대화에, 진행은 사무실에 함께 기록됩니다.</p>
+              <h2 id="results-title">내 PC 구성</h2>
+              <p>추천 근거를 확인하고 직접 골라 주세요.</p>
             </div>
-            {intake ? (
-              <p className="integrated-note">
-                음성 상담 안의 설문을 마치면 이곳에서 부품 후보와 견적을 확인하실 수 있어요.{" "}
-                <a href="#pc-main-content">설문으로 이동</a>
-              </p>
-            ) : (
-              content
-            )}
+            {!intake && content}
           </section>
         </div>
       )}

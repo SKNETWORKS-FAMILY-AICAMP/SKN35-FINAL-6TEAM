@@ -7,6 +7,8 @@ const unavailable = async (): Promise<never> => {
 /** Reserved adapter: API_PROPOSAL.md requires a separate backend contract review. */
 export const apiSource: ConsultDataSource = {
   initialize: unavailable,
+  getCatalogSummary: unavailable,
+  getDemoSurvey: unavailable,
   searchParts: unavailable,
   planConsultation: unavailable,
   getCandidates: unavailable,

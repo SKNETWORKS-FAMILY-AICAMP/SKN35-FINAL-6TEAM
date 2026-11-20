@@ -1,6 +1,18 @@
+import type { ReviewSelection } from "../reviewSelectionStore";
+
 export type SellerRole = "admin" | "agent";
 export type SellerMenu =
-  "home" | "customers" | "sales" | "issues" | "documents" | "employees" | "office";
+  | "home"
+  | "customers"
+  | "sales"
+  | "issues"
+  | "documents"
+  | "employees"
+  | "office"
+  | "catalog"
+  | "feedback"
+  | "preview"
+  | "teams";
 export interface SellerSession {
   companyCode: string;
   companyName: string;
@@ -45,6 +57,20 @@ export interface SellerIssue {
   assignee: string;
   summary: string;
   suggestion: string;
+  reasons?: string[];
+  lines?: { speaker: string; text: string; occurredAt?: string }[];
+  teamNotes?: { team: string; message: string; occurredAt: string }[];
+  consultationId?: string;
+  dataOrigin?: "browser-selection" | "browser-preview";
+  reviewSelections?: ReviewSelection[];
+}
+export interface PreviewHandoffInput {
+  id: string;
+  reasons: string[];
+  messages: { speaker: string; text: string; occurredAt?: string }[];
+  teamNotes: { team: string; message: string; occurredAt: string }[];
+  dataOrigin?: "browser-selection" | "browser-preview";
+  reviewSelections?: ReviewSelection[];
 }
 export interface Employee {
   id: string;
@@ -113,5 +139,7 @@ export interface SellerState {
   toastId: number;
   uploadProgress: number | null;
   scenarioRunning: boolean;
+  /** Latest policy receipt only; policy values are owned by App. */
+  policyVersion: number;
 }
 export type DemoAction = "consult" | "handoff" | "claim" | "abuse" | "sale" | "auto" | "reset";

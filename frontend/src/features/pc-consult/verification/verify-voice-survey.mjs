@@ -15,7 +15,7 @@ baseURL.search = "?pace=300";
 const widths = (process.env.VOICE_SURVEY_VIEWPORTS ?? "1440,1024,360").split(",").map(Number);
 if (!widths.length || widths.some((width) => ![1440, 1024, 360].includes(width)))
   throw new Error("VOICE_SURVEY_VIEWPORTS must contain 1440, 1024, or 360 separated by commas.");
-const output = new URL("./voice-survey/", import.meta.url);
+const output = new URL("../../../../test-results/pc-consult/voice-survey/", import.meta.url);
 const report = {
   checkedAt: new Date().toISOString(),
   baseURL: baseURL.href,
