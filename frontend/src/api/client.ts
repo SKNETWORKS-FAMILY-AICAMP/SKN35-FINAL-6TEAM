@@ -27,3 +27,36 @@ export function errorMessage(error: unknown): string {
   }
   return "요청이 실패했습니다. 백엔드가 켜져 있는지 확인하세요.";
 }
+
+// Display models shared by the transcript, voice controller and server-message adapter.
+export interface QuickReplyIn {
+  slot: string;
+  value: string;
+}
+export interface QuickReply {
+  label: string;
+  slot?: string | null;
+  value?: string | null;
+}
+export interface ChatMessage {
+  id: number;
+  session_id: string;
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+  quick_replies: QuickReply[];
+  nlu: {
+    intent: string;
+    source: string;
+    confidence: number;
+    slots: Record<string, number | string | string[]>;
+  } | null;
+  sources?: { title: string; url?: string | null; text?: string | null }[];
+}
+export interface ChatTurn {
+  user_message: ChatMessage;
+  assistant_message: ChatMessage;
+  requirements_changed: boolean;
+  run_id: string | null;
+  requirement_version: number;
+}

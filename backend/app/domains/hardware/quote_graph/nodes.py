@@ -47,7 +47,7 @@ _RAG_CATEGORY = re.compile(
 _PURPOSE = re.compile(
     r"게임|게이밍|사무|문서\s*작업|영상\s*편집|렌더링|개발|머신러닝|딥러닝|로컬\s*LLM", re.I
 )
-_EXPECTED_CHECKS = {
+ASSEMBLY_CHECK_TYPES = {
     "CPU_SUPPORT",
     "RAM_TYPE",
     "RAM_FORM_FACTOR",
@@ -233,8 +233,8 @@ def validation(state: QuoteState, services) -> dict:
         }
     update = {"checks": checks, "conditions": [], "blocking_failures": []}
     if (
-        len(checks) != len(_EXPECTED_CHECKS)
-        or {c["check_type"] for c in checks} != _EXPECTED_CHECKS
+        len(checks) != len(ASSEMBLY_CHECK_TYPES)
+        or {c["check_type"] for c in checks} != ASSEMBLY_CHECK_TYPES
     ):
         return {**update, "status": "needs_revision", "reason": "조립 검증 결과가 불완전합니다."}
     blockers = []

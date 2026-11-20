@@ -1,4 +1,4 @@
-"""계약 파일 생성 — contracts/openapi.json · contracts/events.schema.json
+"""현재 PC 상담 API와 공통 이벤트의 JSON 계약을 생성합니다.
 
     uv run python -m app.export_contracts
 
@@ -27,7 +27,7 @@ def _write(path: Path, data: dict[str, Any]) -> None:
 
 def main() -> None:
     app = create_app()
-    _write(CONTRACTS_DIR / "openapi.json", app.openapi())
+    _write(CONTRACTS_DIR / "pc-consult.openapi.json", app.openapi())
     _write(CONTRACTS_DIR / "events.schema.json", AgentEventOut.model_json_schema())
 
 
