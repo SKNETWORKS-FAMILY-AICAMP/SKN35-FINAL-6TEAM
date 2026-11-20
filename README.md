@@ -12,35 +12,29 @@ SK네트웍스 Family AI 캠프 35기 최종 프로젝트 6팀.
 - 목표는 "하드웨어를 잘 추천하는 AI" 보다 **같은 엔진에 기업의 상품 DB 와 판매 정책을 바꿔 끼우면 그 기업의 AI 판매 상담원이 되는 구조**를 보여 주는 것입니다.
   (실제 도입에는 데이터 변환 · 접근 권한 · 가격/재고 · CRM · 주문 연동이 더 필요합니다.)
 
-## 지금 되는 것 / 아직 안 되는 것
+## PC 상담 실행
 
-| 기능 | 상태 |
-|---|---|
-| 상담 세션 · 요구사항(목적 · 상품 유형 · 예산) 저장과 버전 관리 | ✅ 화면 입력(음성 아님) |
-| 업무팀 4개 백그라운드 실행 · 설계와 검증 겹쳐 진행 · 후보별 병렬 검증 | ✅ 규칙 코드(Mock) |
-| 실행 이벤트 실시간 표시(SSE) · 끊겼다 다시 붙으면 이어 받기 | ✅ |
-| 예산 변경 시 최신 결과로 갱신 · 늦게 온 옛 결과 차단 | ✅ 테스트로 확인 |
-| 참고 견적 · 가상 주문(중복 요청 방지) | ✅ 실제 결제 없음 |
-| 같은 엔진에 기업 2곳(공개 견본 카탈로그 · 가상 기업 A) 연결 | ✅ 카탈로그 형식 · 판매 정책이 다름 |
-| 실시간 음성 상담 | ⬜ 미구현 |
-| 실제 LLM 연결 | ✅ PC 상담 시연 화면에서 gpt-5-mini 응답과 인용 출처 표시 |
-| 2D 게임형 오피스 디자인 | ⬜ 상태 확인용 최소 화면만 |
-| 실제 공식 상품 데이터 · 가격 | ⬜ 미수집 |
-| 로그인 · 권한, AWS 배포 | ⬜ 미구현 |
+개인 상담은 MySQL의 부품·가격·호환성 자료와 로컬 RAG 근거를 사용합니다. 신규 조립이나 부품 교체를 선택한 뒤 설문, 후보 비교, 검증, 견적 확인으로 진행합니다. 서버 이벤트가 오피스에 반영됩니다. 견적 승인은 현재 상담 세션에만 보관합니다. 판매자 메뉴는 기업 인증·데이터가 연결될 때까지 미연결 상태를 표시합니다.
 
-## 빠른 시작
-
-필요한 것: **Git**, **Docker Desktop**, 디스크 여유 공간 **10GB 이상**. (Python · Node · MySQL 은 따로 설치하지 않습니다.)
+저장소 루트에서 시작합니다. MySQL 접속 정보는 [DB 설정 안내](docs/database/README.md)에 따라 루트 `.env`에 둡니다. 처음 실행하는 환경에서는 의존성을 설치하고 로컬 검색 색인을 준비합니다.
 
 ```bash
-git clone https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN35-FINAL-6TEAM.git
-cd SKN35-FINAL-6TEAM
-docker compose up -d --build --wait
+uv sync --directory backend --frozen
+npm --prefix frontend ci
+uv run --directory backend --frozen python -m app.rag index
 ```
 
-화면 http://localhost:5173 · API 문서 http://localhost:8000/docs
+첫 번째 터미널에서 상담 API를 실행합니다. 현재 상담 세션과 이벤트는 단일 서버 프로세스에서 관리합니다.
 
-처음이라면 **[docs/START_HERE.md](docs/START_HERE.md)** 를 순서대로 따라 하세요(설치부터 검사까지).
+```bash
+uv run --directory backend --frozen uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+두 번째 터미널에서 화면을 실행한 뒤 [PC 상담](http://localhost:5173)을 엽니다. Vite가 같은 출처의 `/api` 요청을 백엔드에 전달합니다. [API 문서](http://127.0.0.1:8000/docs)에서 현재 상담 계약을 확인할 수 있습니다.
+
+```bash
+npm --prefix frontend run dev
+```
 
 ## 문서
 
@@ -133,10 +127,10 @@ Django 대신 FastAPI 를 고른 이유, 스레드 실행 · SSE 를 고른 이�
 ## 폴더 구조
 
 ```text
-backend/            FastAPI 백엔드 (app/ · migrations/ · tests/)
+backend/            FastAPI 상담 API · MySQL · 하드웨어 검증 · RAG
 frontend/           React 화면 (src/features/ · src/events/ · src/api/ · e2e/)
 contracts/          자동 생성된 API · 이벤트 계약 (직접 고치지 않음)
-data/fixtures/      가상 견본 데이터
+data/               부품 적재 원본 · 검토된 RAG 자료
 scripts/            dev · check · stop · reset · gen-contracts (.ps1 / .sh)
 docs/               안내서 · 규칙 · 구조
 .github/            CI · PR 템플릿
