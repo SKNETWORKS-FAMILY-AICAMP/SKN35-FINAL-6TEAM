@@ -1,4 +1,5 @@
-﻿import { useEffect, useState, type FormEvent } from "react";
+﻿/* 시연 진입 화면입니다. 실제 인증이 아니며 아이디와 비밀번호는 저장하거나 서버로 보내지 않습니다. */
+import { useEffect, useState, type FormEvent } from "react";
 import type { AccountKind } from "../types";
 import { DEMO_COMPANIES } from "../seller/mockData";
 import type { SellerSession, SellerRole } from "../seller/types";
