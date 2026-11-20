@@ -7,11 +7,7 @@ import sys
 from pathlib import Path
 
 project_path = os.environ.get("TEST_PROJECT_PATH")
-PROJECT_ROOT = (
-    Path(project_path).resolve()
-    if project_path
-    else Path(__file__).resolve().parents[3]
-)
+PROJECT_ROOT = Path(project_path).resolve() if project_path else Path(__file__).resolve().parents[3]
 BACKEND_ROOT = PROJECT_ROOT / "backend"
 if not BACKEND_ROOT.is_dir():
     raise RuntimeError(f"백엔드 경로를 찾을 수 없습니다: {BACKEND_ROOT}")

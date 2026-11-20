@@ -1,8 +1,8 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-// Docker 안에서는 compose.yaml 이 백엔드 주소를 http://backend:8000 으로 넣어 줍니다.
-const apiTarget = process.env.VITE_API_PROXY_TARGET ?? "http://localhost:8000";
+// 로컬과 Docker 모두 같은 출처의 /api 를 호스트에서 실행하는 상담 API로 전달합니다.
+const apiTarget = process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8000";
 // Windows 에서 저장한 파일을 컨테이너가 알아채려면 폴링 감시가 필요합니다.
 const usePolling = process.env.CHOKIDAR_USEPOLLING === "true";
 

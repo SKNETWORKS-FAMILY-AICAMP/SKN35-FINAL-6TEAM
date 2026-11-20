@@ -5,17 +5,28 @@ from pathlib import Path
 
 import pytest
 
-from app.domains.hardware.consultation_demo.flow import Planner
+from app.domains.hardware.pc_consultation.parts_db import CatalogSnapshot
 
 
 @pytest.fixture
-def planner():
-    fixture_path = Path(__file__).parent / "fixtures" / "consultation_demo_catalog.json"
+def catalog_snapshot():
+    fixture_path = Path(__file__).parent / "fixtures" / "consultation_catalog.json"
     fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
     parts = fixture["parts"]
     evidence = []
     for row in parts:
-        row.update(price_status="test", price_basis=fixture["price_basis"], currency="KRW")
+        row.update(
+            price_status="test",
+            price_basis=fixture["price_basis"],
+            currency="KRW",
+            price_checked_at="2026-11-01T00:00:00+00:00",
+            brand="Test",
+            model_number=None,
+            data_status="test",
+            source_key=f"fixture-{row['id']}",
+            power_status=None,
+            image_url=None,
+        )
         if row["category"] != "motherboard":
             continue
         spec = row["specs"]
@@ -43,8 +54,4 @@ def planner():
                     conditions={"cpu_family": profile["cpu_family"], "kits": profile["kits"]},
                 )
             )
-    build = dict(
-        cpu=101, motherboard=201, ram=302, gpu=402, storage=502, cooler=601, psu=701, case=801
-    )
-    owned = {**build, "ram": 301, "gpu": 401, "storage": 501}
-    return Planner(parts, evidence, default_build=build, default_owned=owned)
+    return CatalogSnapshot(parts, evidence)
