@@ -241,6 +241,11 @@ def export_junit_excel(xml_path: Path) -> Path:
     styles = f'''<styleSheet xmlns="{NS}"><fonts count="2"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="10"/><name val="Arial"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE8EAED"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'''
     summary.extend(
         [
+            ["하위 요소 기록 testcase 수", len({row[0] for row in checks_rows[1:]})],
+            [
+                "하위 요소 미관측 testcase 수",
+                len(details) - 1 - len({row[0] for row in checks_rows[1:]}),
+            ],
             ["하위 비교 요소 수", len(checks_rows) - 1],
             ["하위 불일치 수", sum(row[7] == "불일치" for row in checks_rows[1:])],
             [

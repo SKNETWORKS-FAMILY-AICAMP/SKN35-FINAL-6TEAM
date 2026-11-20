@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-20T02:36:29.860044+00:00",
+  "generatedAt": "2026-11-20T05:15:17.003037+00:00",
   "pythonVersion": "3.14.8",
   "requiredPython": "3.14",
   "projectRoot": "C:\\sk-encoa\\SKN35-FINAL-6TEAM\\jjb",
@@ -13,7 +13,7 @@
   ],
   "summary": {
     "sourceFiles": 139,
-    "testFiles": 46,
+    "testFiles": 49,
     "symbols": 707,
     "candidates": 695,
     "candidatesWithExistingUnitReference": 218,
@@ -2506,10 +2506,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
@@ -3805,10 +3807,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
@@ -4497,6 +4501,7 @@
       "requiresBrowser": false,
       "existingTestFiles": [
         "backend/tests/common/report_excel.py",
+        "backend/tests/common/runtime.py",
         "backend/tests/hardware_data/test_layout_and_settings.py",
         "backend/tests/hardware_data/test_mysql.py",
         "backend/tests/hardware_workflow/test_consultation_cooling_documents.py",
@@ -4508,6 +4513,7 @@
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
+        "backend/tests/common/runtime.py",
         "backend/tests/hardware_data/test_layout_and_settings.py",
         "backend/tests/hardware_data/test_mysql.py",
         "backend/tests/hardware_workflow/test_consultation_cooling_documents.py",
@@ -5261,10 +5267,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
@@ -8780,8 +8788,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -8790,8 +8800,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -8964,8 +8976,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -8974,8 +8988,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -9890,6 +9906,7 @@
       "requiresBrowser": false,
       "existingTestFiles": [
         "backend/tests/common/report_excel.py",
+        "backend/tests/common/runtime.py",
         "backend/tests/hardware_data/test_layout_and_settings.py",
         "backend/tests/hardware_data/test_mysql.py",
         "backend/tests/hardware_workflow/test_consultation_cooling_documents.py",
@@ -9901,6 +9918,7 @@
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
+        "backend/tests/common/runtime.py",
         "backend/tests/hardware_data/test_layout_and_settings.py",
         "backend/tests/hardware_data/test_mysql.py",
         "backend/tests/hardware_workflow/test_consultation_cooling_documents.py",
@@ -10835,8 +10853,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -10845,8 +10865,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -10958,8 +10980,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -10968,8 +10992,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -11998,8 +12024,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -12008,8 +12036,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -13369,6 +13399,7 @@
       "requiresBrowser": false,
       "existingTestFiles": [
         "backend/tests/common/report_excel.py",
+        "backend/tests/common/runtime.py",
         "backend/tests/hardware_data/test_layout_and_settings.py",
         "backend/tests/hardware_data/test_mysql.py",
         "backend/tests/hardware_workflow/test_consultation_cooling_documents.py",
@@ -13380,6 +13411,7 @@
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
+        "backend/tests/common/runtime.py",
         "backend/tests/hardware_data/test_layout_and_settings.py",
         "backend/tests/hardware_data/test_mysql.py",
         "backend/tests/hardware_workflow/test_consultation_cooling_documents.py",
@@ -13602,6 +13634,7 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/common/report_checks.py",
         "backend/tests/common/report_excel.py",
         "backend/tests/hardware_data/test_mysql.py",
@@ -13616,6 +13649,7 @@
         "frontend/src/features/pc-consult/state.test.ts"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/common/report_checks.py",
         "backend/tests/common/report_excel.py",
         "backend/tests/hardware_data/test_mysql.py",
@@ -14187,10 +14221,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
@@ -16869,8 +16905,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -16879,8 +16917,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -17044,10 +17084,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
@@ -17087,10 +17129,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_data/test_paid_quotes.py",
         "backend/tests/hardware_workflow/test_consultation_parts_db.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_data/test_paid_quotes.py",
         "backend/tests/hardware_workflow/test_consultation_parts_db.py"
       ],
@@ -17129,9 +17173,13 @@
       "suggestedEngine": "pytest",
       "strategy": "direct-call",
       "requiresBrowser": false,
-      "existingTestFiles": [],
-      "existingUnitTestFiles": [],
-      "status": "candidate",
+      "existingTestFiles": [
+        "backend/tests/common/assertion_details.py"
+      ],
+      "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py"
+      ],
+      "status": "existing-test-reference",
       "requirementId": null,
       "owner": null,
       "areaHint": "domains",
@@ -18479,10 +18527,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
@@ -18826,8 +18876,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -18836,8 +18888,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -19413,8 +19467,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -19423,8 +19479,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -19556,10 +19614,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
@@ -21242,10 +21302,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
@@ -21422,6 +21484,7 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_adapters.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/rag/test_loader.py",
@@ -21430,6 +21493,7 @@
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_adapters.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/rag/test_loader.py",
@@ -21742,6 +21806,7 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_adapters.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/rag/test_loader.py",
@@ -21750,6 +21815,7 @@
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_adapters.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/rag/test_loader.py",
@@ -22172,10 +22238,12 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/unit/discover.py"
       ],
@@ -25167,6 +25235,7 @@
       "strategy": "vitest-direct",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_mappings.py",
         "backend/tests/unit/contracts/test_base_contract.py",
@@ -25179,6 +25248,7 @@
         "frontend/src/features/pc-consult/state.test.ts"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_mappings.py",
         "backend/tests/unit/contracts/test_base_contract.py",
@@ -29762,6 +29832,7 @@
       "strategy": "vitest-direct",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_adapters.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/rag/test_loader.py",
@@ -29770,6 +29841,7 @@
         "backend/tests/unit/discover.py"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/assertion_details.py",
         "backend/tests/hardware_workflow/test_adapters.py",
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/rag/test_loader.py",
@@ -31920,8 +31992,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -31930,8 +32004,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -33064,8 +33140,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -33074,8 +33152,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -33254,8 +33334,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -33264,8 +33346,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -34506,8 +34590,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -34516,8 +34602,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -35021,8 +35109,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -35031,8 +35121,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -35680,6 +35772,7 @@
       "strategy": "direct-call",
       "requiresBrowser": false,
       "existingTestFiles": [
+        "backend/tests/common/runtime.py",
         "backend/tests/hardware_data/test_layout_and_settings.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/unit/contracts/test_base_contract.py",
@@ -35688,6 +35781,7 @@
         "frontend/src/features/office/officeState.test.ts"
       ],
       "existingUnitTestFiles": [
+        "backend/tests/common/runtime.py",
         "backend/tests/hardware_data/test_layout_and_settings.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/unit/contracts/test_base_contract.py",
@@ -35794,8 +35888,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -35804,8 +35900,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -35978,8 +36076,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "existingUnitTestFiles": [
         "backend/tests/common/report_excel.py",
@@ -35988,8 +36088,10 @@
         "backend/tests/hardware_workflow/test_graph.py",
         "backend/tests/hardware_workflow/test_pc_consult_api.py",
         "backend/tests/rag/test_loader.py",
+        "backend/tests/run_base.py",
         "backend/tests/unit/discover.py",
-        "backend/tests/unit/run.py"
+        "backend/tests/unit/run.py",
+        "backend/tests/unit/run_all.py"
       ],
       "status": "existing-test-reference",
       "requirementId": null,
@@ -36343,6 +36445,7 @@
         "kind": "method",
         "candidate": false,
         "existingUnitTestFiles": [
+          "backend/tests/common/assertion_details.py",
           "backend/tests/hardware_workflow/test_graph.py",
           "backend/tests/unit/discover.py"
         ],
@@ -36755,6 +36858,7 @@
         "kind": "nested-function",
         "candidate": true,
         "existingUnitTestFiles": [
+          "backend/tests/common/assertion_details.py",
           "backend/tests/common/report_checks.py",
           "backend/tests/common/report_excel.py",
           "backend/tests/hardware_data/test_mysql.py",
@@ -36903,6 +37007,7 @@
         "kind": "method",
         "candidate": false,
         "existingUnitTestFiles": [
+          "backend/tests/common/assertion_details.py",
           "backend/tests/hardware_workflow/test_graph.py",
           "backend/tests/unit/discover.py"
         ],
@@ -38013,6 +38118,7 @@
         "kind": "function",
         "candidate": true,
         "existingUnitTestFiles": [
+          "backend/tests/common/assertion_details.py",
           "backend/tests/hardware_workflow/test_pc_consult_api.py",
           "backend/tests/rag/test_mappings.py",
           "backend/tests/unit/contracts/test_base_contract.py",
@@ -38953,6 +39059,7 @@
         "kind": "function",
         "candidate": true,
         "existingUnitTestFiles": [
+          "backend/tests/common/assertion_details.py",
           "backend/tests/hardware_workflow/test_adapters.py",
           "backend/tests/hardware_workflow/test_graph.py",
           "backend/tests/rag/test_loader.py",

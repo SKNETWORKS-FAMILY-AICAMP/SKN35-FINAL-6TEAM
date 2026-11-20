@@ -42,11 +42,20 @@
 `--test-id` 개별 실행도 동일합니다. 별도 설치나 가상환경 생성은 하지 않습니다.
 일반 `pytest --junitxml=...` 직접 실행은 이 실행기를 거치지 않으므로 Excel을 만들지 않습니다.
 
-Excel은 `요약`, `테스트 상세` 시트로 구성됩니다. 상세 시트에는 테스트 함수·결과·시간·오류와
+Excel은 `요약`, `테스트 상세`, `검증 요소 상세` 시트로 구성됩니다. 상세 시트에는 테스트 함수·결과·시간·오류와
 검증 대상·검증 기준·기대값·실제값이 표시됩니다. 기본 규약 9건은 실제 비교값을 JUnit properties에
 기록합니다. 다른 테스트는 properties를 기록하지 않았다면 해당 설명 칸이 비어 있습니다.
 이는 검증하지 않은 내용을 추측해서 채우지 않기 위한 것입니다.
-`검증 요소 상세` 시트는 실제 pytest 9건을 상위 그룹으로 두고 내부 비교 요소를 별도 행으로 표시합니다.
+ALL과 개별 업무 테스트는 공통 `assertion_details` 플러그인으로 실행된 검증을 자동 기록합니다.
+일반 assert는 pytest가 생성한 비교 설명, unittest/Mock은 기존 검증 함수의 인수와 판정,
+pytest.raises는 예상 예외와 실제 예외 유형을 기록합니다. 검증 표현식을 다시 실행하지 않습니다.
+매개변수화 입력만 수집하며 fixture/지역변수/실제 환경변수는 수집하지 않습니다.
+비밀값 관련 표현식은 값을 숨깁니다. 실제값 열의 pytest 설명은 원시 값만 분리한 데이터가 아닙니다.
+루프의 반복 검증은 실제 실행 횟수대로 기록합니다. subprocess 내부, 미지원 검증 함수,
+실행되지 않은 분기는 상세 검증 항목으로 통과 처리하지 않습니다. 하위 항목이 없는 테스트는
+관측 검증 횟수 0으로 기록되며 상위 pytest 통과와 하위 수집 완전성은 별개입니다.
+BASE의 수동 상세 기록은 유지하고 자동 기록과 중복 집계하지 않습니다.
+`검증 요소 상세` 시트는 각 pytest testcase를 상위 그룹으로 두고 내부 비교 요소를 별도 행으로 표시합니다. BASE는 9건이며 ALL은 등록된 업무 testcase도 포함합니다.
 열거형은 요소 수와 위치별 값, 이벤트 스키마는 JSON 경로별 키·값, API Breaking은 경로별 내역으로 나눕니다.
 상위 ID와 하위 ID(예: 4.001)로 연결하며 하위 행은 추가 실행된 단위테스트가 아닙니다.
 API 불일치는 소스의 문자열 상수 prefix 근거와 저장 명세의 해당 경로 존재 여부를 함께 표시합니다.
@@ -109,10 +118,40 @@ python "C:\sk-encoa\SKN35-FINAL-6TEAM\jjb\backend\tests\unit\discover.py" --acce
 
 ## 실행
 
+### 기본 규약만 빠르게 실행
+
+`backend/tests/config.py`에 `PROJECT_PATH`와 프로젝트용 Python 3.14 실행기 `PROJECT_PYTHON`을 직접 지정한 뒤 저장소 루트에서 실행합니다. 이 명령을 시작하는 `python`이 3.12여도 지정한 프로젝트 실행기로 테스트를 실행합니다.
+
+```powershell
+python -B backend/tests/run_base.py
+```
+
+`backend/tests` 폴더에서는 `python -B run_base.py`로 실행할 수 있습니다. 이 파일은 `PROJECT_PYTHON`의 존재 여부와 3.14 버전을 확인하고 기존 `unit/run.py`에 기본 규약 ID를 전달합니다. 환경 활성화는 필요하지 않으며 가상환경 생성이나 패키지 설치를 수행하지 않습니다. XML 저장 규칙과 기존 실행기의 사전 검사·실패 종료 코드는 유지합니다.
+
+### 전체 단위 테스트 및 공통 설정
+
+기본 규약을 포함한 전체 단위 테스트를 한 번 실행하고 ALL 집계 리포트만 만들려면 다음 명령을 사용합니다.
+
+```powershell
+python -B backend/tests/unit/run_all.py
+```
+
+`unit` 폴더에서는 `python -B run_all.py`로 실행합니다. `tests/config.py`의 프로젝트 Python을 사용하며 `tests/reports`에 ALL XML과 Excel을 생성합니다. 별도의 BASE 리포트는 추가 생성하지 않습니다. 기존 분류·의존성 검사 및 테스트 실패는 그대로 보고합니다.
+
+| 실행기 | 검사 범위 | 생성 리포트 |
+|---|---|---|
+| `tests/run_base.py` | 기본 규약만 | BASE XML + Excel |
+| `tests/unit/run_all.py` | 기본 규약 포함 등록된 전체 단위 테스트 | ALL XML + Excel |
+
+기존 `unit/run.py`를 옵션 없이 실행하는 경우 BASE와 ALL을 함께 생성하는 동작은 유지합니다. `--all-only`와 `--test-id`는 동시에 지정할 수 없습니다.
+
 프로젝트 경로는 모든 테스트 단계가 공유하는 `backend/tests/config.py`에서 관리합니다. 각 사용자는 실행 전에 `PROJECT_PATH`에 자신의 프로젝트 루트 절대 경로를 직접 지정합니다. `__file__`을 이용한 자동 계산은 사용하지 않습니다. 경로는 `backend`나 `tests`가 아닌 저장소 루트를 지정합니다.
 
 ```python
 PROJECT_PATH = Path(r"C:\sk-encoa\SKN35-FINAL-6TEAM\jjb")
+PROJECT_PYTHON = Path(
+    r"C:\sk-encoa\.environment-center\envs\SKN35-FINAL-6TEAM-jjb-backend\Scripts\python.exe"
+)
 ```
 
 공통 Python 기준은 `../common/runtime.py`의 `REQUIRED_PYTHON = (3, 14)`를 사용합니다. 이 규칙은 단위·모듈·시스템·인수 테스트에서 함께 사용합니다.
@@ -172,7 +211,8 @@ C:\sk-encoa\SKN35-FINAL-6TEAM\jjb\backend\tests\reports\YYMMDD_jjb_unit_BASE_com
 
 - 순수 단위 테스트는 `catalog.json`의 `tests`에 등록합니다.
 - DB·저장소·전체 워크플로처럼 통합 성격인 테스트는 `classifiedElsewhere`에 단계와 이유를 기록합니다.
-- 전체 실행(옵션 없이 BASE + ALL 실행)에서는 새 파일이 어느 쪽에도 없으면 미분류 오류를 내고 실행을 중단합니다.
+- 전체 실행(BASE + ALL 또는 `--all-only`)에서는 미분류 파일을 경고로 출력하고 등록된 테스트 실행과 XML·Excel 생성을 계속합니다. 미분류 파일은 자동 실행하거나 PASS 처리하지 않으며, 검증 범위 미완료를 알리기 위해 최종 종료 코드는 1을 반환합니다. 생성된 리포트의 건수는 실제 실행한 케이스만 포함하므로 미분류 경고와 함께 확인해야 합니다.
+- 중복 분류·존재하지 않는 대상·잘못된 실행 환경처럼 검증 대상을 신뢰할 수 없는 오류는 중단합니다.
 - `--test-id` 개별 실행에서는 전체 파일 분류 검사를 생략합니다. 선택한 ID·대상 파일·필수 경로·Python·의존성 검사는 유지하므로, 무관한 신규 테스트 파일이 기본 규약 실행을 막지 않습니다.
 
 따라서 앞으로 업무별 단위 테스트를 추가할 때는 `backend/tests/<업무영역>/test_<대상>.py`에 작성하고 `catalog.json`에 독립 XML 정보와 함께 등록합니다.
