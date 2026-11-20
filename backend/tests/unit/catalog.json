@@ -148,6 +148,11 @@
   ],
   "classifiedElsewhere": [
     {
+      "testPath": "backend/tests/module/test_value_flow.py",
+      "testType": "module",
+      "reason": "모듈 간 입력·호출 인수·반환값·견적 상태 전달 검증"
+    },
+    {
       "testPath": "backend/tests/hardware_data/test_mysql.py",
       "testType": "module",
       "reason": "실제 MySQL 제약과 롤백 검증"

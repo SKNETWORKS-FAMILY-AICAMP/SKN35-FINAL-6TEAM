@@ -8,8 +8,9 @@ import inspect
 import json
 import re
 import unittest
+from decimal import Decimal
 from pathlib import Path
-from unittest.mock import NonCallableMock
+from unittest.mock import NonCallableMock, _Call
 
 import pytest
 
@@ -26,6 +27,10 @@ def safe(value, key="", depth=0):
         return "[중첩 생략]"
     if value is None or type(value) in (str, int, float, bool):
         return str(value)[:4000] if isinstance(value, str) else value
+    if type(value) is Decimal:
+        return f"Decimal('{value}')"
+    if isinstance(value, _Call):
+        return {"args": safe(value.args, depth=depth + 1), "kwargs": safe(value.kwargs, depth=depth + 1)}
     if type(value) is dict:
         return {str(k): safe(v, str(k), depth + 1) for k, v in list(value.items())[:30]}
     if type(value) in (list, tuple):
@@ -51,20 +56,34 @@ def append_check(name, expected, actual, passed, evidence):
 
 
 def expected_condition(expression):
+    """조건식을 읽기 쉬운 정확한 조건으로 표현하며 실행/재평가하지 않습니다."""
+    operators = {
+        ast.Eq: "같아야 함", ast.NotEq: "달라야 함",
+        ast.Is: "동일한 객체여야 함", ast.IsNot: "동일한 객체가 아니어야 함",
+        ast.In: "포함되어야 함", ast.NotIn: "포함되지 않아야 함",
+        ast.Gt: "커야 함", ast.GtE: "크거나 같아야 함",
+        ast.Lt: "작아야 함", ast.LtE: "작거나 같아야 함",
+    }
+
+    def describe(node):
+        if isinstance(node, ast.Compare):
+            terms = [node.left, *node.comparators]
+            return " 그리고 ".join(
+                f"{ast.unparse(left)} 값이 {ast.unparse(right)}와(과) {operators[type(op)]}"
+                for left, op, right in zip(terms[:-1], node.ops, terms[1:], strict=True)
+            )
+        if isinstance(node, ast.BoolOp):
+            joiner = " 그리고 " if isinstance(node.op, ast.And) else " 또는 "
+            return joiner.join(f"({describe(value)})" for value in node.values)
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+            return f"{ast.unparse(node.operand)}가 거짓으로 평가되어야 함 (빈 값·0·False·None 등)"
+        return f"{ast.unparse(node)}가 참으로 평가되어야 함 (비어 있지 않음·0이 아님 등)"
+
     try:
         node = ast.parse(expression, mode="eval").body
-        if isinstance(node, ast.Compare) and len(node.ops) == 1:
-            right = node.comparators[0]
-            try:
-                return {"operator": type(node.ops[0]).__name__, "right": ast.literal_eval(right)}
-            except ValueError, TypeError:
-                return {
-                    "operator": type(node.ops[0]).__name__,
-                    "right_expression": ast.unparse(right),
-                }
+        return describe(node)
     except SyntaxError:
-        pass
-    return "assert 조건이 참이어야 함"
+        return f"다음 조건이 참이어야 함: {expression}"
 
 
 def pytest_assertion_pass(item, lineno, orig, expl):
@@ -85,10 +104,36 @@ def wrap_assertion(original, name, drop_self):
             return original(*args, **kwargs)
         _busy = True
         values = args[1:] if drop_self else args
-        expected = {"검증 함수": name, "인수": safe(values[1:]), "옵션": safe(kwargs)}
+        conditions = {
+            "assertEqual": "실제값 == 기대값", "assertNotEqual": "실제값 != 기대값",
+            "assertTrue": "실제값이 참으로 평가됨", "assertFalse": "실제값이 거짓으로 평가됨",
+            "assertIs": "실제값과 기대값이 동일 객체", "assertIsNot": "실제값과 기대값이 다른 객체",
+            "assertIsNone": "실제값 is None", "assertIsNotNone": "실제값 is not None",
+            "assertIn": "실제값이 기대 컨테이너에 포함", "assertNotIn": "실제값이 기대 컨테이너에 미포함",
+            "assertGreater": "실제값 > 기준값", "assertGreaterEqual": "실제값 >= 기준값",
+            "assertLess": "실제값 < 기준값", "assertLessEqual": "실제값 <= 기준값",
+            "assertAlmostEqual": "두 값의 차이가 places/delta 허용 오차 이내 (미지정 시 소수 7자리)",
+            "assertIsInstance": "실제값이 기대 타입의 인스턴스",
+        }
+        expected = {"조건": conditions.get(name, name), "기대값 또는 기준": safe(values[1:]), "옵션": safe(kwargs)}
         actual = safe(values[:1])
         if isinstance(args[0], NonCallableMock):
-            actual = {"call_count": args[0].call_count, "call_args": safe(args[0].call_args_list)}
+            mock_conditions = {
+                "assert_called": "호출 횟수 >= 1", "assert_called_once": "호출 횟수 == 1",
+                "assert_not_called": "호출 횟수 == 0",
+                "assert_called_with": "마지막 호출의 위치·키워드 인수가 기대 인수와 정확히 일치",
+                "assert_called_once_with": "호출 횟수 == 1 그리고 위치·키워드 인수가 기대 인수와 정확히 일치",
+                "assert_any_call": "기대 인수와 일치하는 호출이 최소 1회 존재",
+                "assert_has_calls": "기대 호출 목록이 순서대로 연속 존재 (any_order=True이면 순서 무관)",
+            }
+            expected = {"조건": mock_conditions[name], "위치 인수": safe(values), "키워드 인수": safe(kwargs)}
+            actual = {
+                "call_count": args[0].call_count,
+                "call_args": json.dumps(
+                    [{"args": safe(c.args), "kwargs": safe(c.kwargs)} for c in args[0].call_args_list[:30]],
+                    ensure_ascii=False,
+                ),
+            }
         try:
             result = original(*args, **kwargs)
         except AssertionError:
@@ -278,7 +323,12 @@ def pytest_runtest_makereport(item, call):
     props = {
         "target": item.nodeid,
         "criterion": "실제로 실행된 assert·unittest·Mock·pytest.raises 검증을 하위 항목으로 기록",
-        "expected": "각 하위 항목의 기대 조건 참조",
+        "expected": {
+            "완료 조건": "아래에 관측된 검증 조건이 모두 충족되고 테스트 오류가 없어야 함",
+            "검증 조건": [row["expected"] for row in rows[:8]],
+            "추가 조건 수": max(0, len(rows) - 8),
+            "전체 조건 위치": "검증 요소 상세 시트 (XML checks 속성)",
+        },
         "actual": {
             "관측한 검증 횟수": len(rows),
             "하위 불일치": sum(r["result"] == "불일치" for r in rows),
