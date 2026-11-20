@@ -35,6 +35,13 @@ regexes = [
 ]
 
 [[rules.allowlists]]
+description = "Intel Core i5-14400F catalog ID in the reviewed fit specifications"
+condition = "AND"
+regexTarget = "match"
+paths = ['''^data/hardware/reviewed_fit_specs\.json$''']
+regexes = ['''^source_key"[ \t]*:[ \t]*"verified-cpu-8b5bcbb398c9ff82"$''']
+
+[[rules.allowlists]]
 description = "CPU support and memory QVL relationship IDs"
 condition = "AND"
 regexTarget = "match"

@@ -78,19 +78,34 @@ test("신규 조립 여덟 부품을 선택해 DB 가격과 RAG 근거가 있는
   expect(retired).toEqual([]);
 });
 
-test("교체할 부품을 실제 카탈로그에서 선택해 견적을 받는다", async ({ page }) => {
+test("보유 CPU를 Ryzen으로 검색하고 교체 부품의 DB 가격으로 견적을 받는다", async ({ page }) => {
   await enterPersonal(page);
   await page.getByRole("button", { name: /기존 PC 부품 교체/ }).click();
   await page.locator("#pc-budget").fill("800000");
   await page.getByRole("checkbox", { name: /고사양 게임/ }).check();
   await page.locator(".pc-owned summary").filter({ hasText: "CPU" }).click();
-  await page.getByRole("list", { name: "CPU 검색 결과" }).getByRole("button").first().click();
+  const search = page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return url.pathname.endsWith("/parts") && url.searchParams.get("query") === "Ryzen";
+  });
+  await page.locator("#pc-search-cpu").fill("Ryzen");
+  const matches = await search;
+  expect(matches.status()).toBe(200);
+  const [cpu] = await matches.json();
+  expect(cpu.name).toMatch(/Ryzen/i);
+  expect(cpu.part_id).toBeGreaterThan(0);
+  await page
+    .getByRole("list", { name: "CPU 검색 결과" })
+    .getByText(`${cpu.brand} ${cpu.name}`, { exact: true })
+    .first()
+    .click();
   await page.getByRole("checkbox", { name: "저장 공간이 부족해요" }).check();
   await page.locator(".pc-survey button[type=submit]").click();
   const candidates = page.waitForResponse((response) => response.url().endsWith("/candidates"));
   await page.locator(".pc-review .pc-primary").click();
   const response = await candidates;
   expect(response.status()).toBe(200);
+  expect(response.request().postDataJSON().survey.owned.cpu.part_id).toBe(cpu.part_id);
   const list = await response.json();
   if (!list.passed.length) await page.locator(".pc-unknown > summary").click();
   const chosen = list.passed[0] ?? list.needsReview[0];
@@ -110,5 +125,9 @@ test("교체할 부품을 실제 카탈로그에서 선택해 견적을 받는�
     chosen.part.part_id,
   ]);
   expect(draft.total_amount).toBe(chosen.part.current_price);
-  await expect(page.locator(".pc-quote-screen")).toContainText(chosen.part.name);
+  const quotation = page.getByRole("region", { name: "참고 견적" });
+  await expect(quotation.getByRole("table")).toContainText(chosen.part.name);
+  await expect(quotation.locator(".pc-quote-total strong")).toHaveText(
+    `₩${chosen.part.current_price.toLocaleString("ko-KR")}`,
+  );
 });

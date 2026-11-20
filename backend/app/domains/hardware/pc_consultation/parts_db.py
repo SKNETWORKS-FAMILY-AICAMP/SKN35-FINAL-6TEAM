@@ -170,9 +170,11 @@ def load_catalog(
                         where.append("p.category=%s")
                         params.append(category)
                     if query:
+                        # The name, model number and JSON key have different MySQL collations.
                         where.append(
                             "LOCATE(LOWER(%s), LOWER(CONCAT_WS(' ', p.brand, p.name, "
-                            "p.model_number, p.specs->>'$._provenance.source_key')))>0"
+                            "p.model_number, p.specs->>'$._provenance.source_key')) "
+                            "COLLATE utf8mb4_bin)>0"
                         )
                         params.append(query)
                     if budget is not None:
