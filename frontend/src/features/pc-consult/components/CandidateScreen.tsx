@@ -50,7 +50,7 @@ function CandidateCard({
     >
       {recommended && (
         <div className="pc-recommendation">
-          <span>✦ 추천</span>
+          <span>✦ AI 추천</span>
           <span>{candidate.reason}</span>
         </div>
       )}
@@ -89,6 +89,7 @@ function CandidateCard({
       <div className="pc-candidate-validation">
         <div className="pc-badge-row">
           <StatusBadge status={validation.status} />
+          {validation.basis === "demo" && <span className="pc-demo-label">간이 판단</span>}
         </div>
         <ValidationDetails validation={validation} />
       </div>
@@ -129,7 +130,7 @@ export function CandidateScreen({
   const phase = progress?.phase;
   const message =
     phase === "loading"
-      ? "부품 카탈로그을 불러오고 있습니다."
+      ? "부품 카탈로그를 불러오고 있습니다."
       : phase === "validation"
         ? `검증팀이 호환성을 확인하고 있습니다 (${progress?.completed ?? 0}/${progress?.total ?? 0})`
         : phase === "ready"
@@ -200,6 +201,7 @@ export function CandidateScreen({
       <div className="pc-team-status" role="status">
         <span className={`pc-status-dot${pending ? " pc-working" : ""}`} />
         {pending ? message : error ? "작업을 마치지 못했습니다." : "설계팀이 후보를 정리했습니다."}
+        {result?.basis === "demo" && <span className="pc-demo-label">간이 판단</span>}
       </div>
       {pending ? (
         <div className="pc-loading">
@@ -298,7 +300,9 @@ export function CandidateScreen({
               {result.missingColorCount > 0
                 ? ` · 색상 정보 없음 ${result.missingColorCount}개 (색상 조건 확인 불가)`
                 : ""}
-              . 제조사 확인이 필요한 조건을 함께 확인해 주세요.
+              {result.basis === "demo"
+                ? ". 시연 결과는 실제 조립 가능 여부를 보장하지 않습니다."
+                : ". 제조사 확인이 필요한 조건을 함께 확인해 주세요."}
             </p>
           </>
         )

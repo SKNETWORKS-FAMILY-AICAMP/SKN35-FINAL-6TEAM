@@ -96,6 +96,7 @@ export function BudgetScreen({
         <div className="pc-budget-results">
           <div className="pc-section-heading">
             <h2>새 한도로 찾은 후보</h2>
+            {preview.basis === "demo" && <span className="pc-demo-label">간이 판단</span>}
           </div>
           <p className="pc-muted">
             {preview.sortLabel} · 통과 {preview.passed.length}개 / 확인 필요{" "}
