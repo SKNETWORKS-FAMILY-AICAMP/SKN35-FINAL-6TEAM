@@ -1,6 +1,7 @@
 {
   "tests": [
-    {"id": "value-flow", "label": "요청 → 검색·검증 → 견적 값 전달", "testPath": "backend/tests/module/test_value_flow.py"},
+    {"id": "value-flow", "label": "상담 → 검색 / 설계 → 검증 / 검증 → 견적 연결별 입출력", "testPath": "backend/tests/module/test_value_flow.py"},
+    {"id": "db-flow", "label": "실제 DB 사용자 입력 → PK → 조회 / 부품 PK → 조회·검증 (롤백)", "testPath": "backend/tests/module/db_flow.py"},
     {"id": "graph", "label": "전체 그래프·재설계·최종 견적 연결", "testPath": "backend/tests/hardware_workflow/test_graph.py"},
     {"id": "qdrant", "label": "문서 → Qdrant 저장·검색·출처 반환", "testPath": "backend/tests/rag/test_qdrant.py"},
     {"id": "mysql", "label": "현재 DB 값 조회·제약·저장 스냅샷 (롤백)", "testPath": "backend/tests/hardware_data/test_mysql.py"}
