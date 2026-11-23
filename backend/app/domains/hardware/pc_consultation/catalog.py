@@ -3,6 +3,7 @@
 from operator import contains, ge
 
 from app.domains.hardware.assembly import validate_assembly
+from app.domains.hardware.reviewed_fit import add_reviewed_fit
 
 from .cooling_documents import supplement_cooling_check
 from .fit_documents import supplement_checks
@@ -157,6 +158,7 @@ def validate_selection(selection: dict[str, int], parts, compatibility=()) -> li
     supplement_memory_check(selected, checks)
     supplement_cooling_check(selected, checks)
     supplement_power_checks(selected, checks)
+    add_reviewed_fit(selected, checks)
     selected_ids = set(selection.values())
     for record in compatibility:
         if (
