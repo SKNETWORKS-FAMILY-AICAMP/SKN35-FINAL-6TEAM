@@ -1,5 +1,5 @@
 /* TailAdmin (MIT) sidebar grouping adapted within the existing shell; pc-consult/THIRD_PARTY_NOTICES.md. */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import type { ConnectionState } from "../events/eventStream";
 import type { DisplayStatus, OfficeState } from "../features/office/officeState";
 import { StartScreen } from "../features/pc-consult/components/StartScreen";
@@ -23,6 +23,9 @@ const SEARCH = new URLSearchParams(window.location.search);
 /** ?demo 면 처음부터 스냅샷 시연 데이터로 상담합니다. 기본은 상담 서버(부품 DB)에 붙습니다. */
 const FORCE_DEMO = SEARCH.has("demo");
 const PACE_MS = mockIntervalFromSearch(window.location.search);
+/** 개발 서버 전용 음성 엔진 실험 화면. 빌드 결과에는 들어가지 않습니다. */
+const VOICE_LAB = import.meta.env.DEV && SEARCH.has("voice-lab");
+const VoiceLab = VOICE_LAB ? lazy(() => import("../features/chat/VoiceLab")) : null;
 
 const CONNECTION_LABEL = {
   connecting: "연결 중",
@@ -52,6 +55,12 @@ function demoLabel(status: ShellStatus | null) {
 }
 
 export function App() {
+  if (VoiceLab)
+    return (
+      <Suspense fallback={null}>
+        <VoiceLab />
+      </Suspense>
+    );
   return <Shell />;
 }
 

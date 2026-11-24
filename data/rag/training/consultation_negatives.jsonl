@@ -1,0 +1,10 @@
+{"id":"train-pilot-01","negative":"JINBONG:CHK-CMP-005","bm25_rank":2,"reason":"CPU와 필요한 BIOS를 함께 다루지만 ASUS 문서다. 질문이 지정한 MSI 지원표를 알려주지 않는다."}
+{"id":"train-pilot-02","negative":"JINBONG:CHK-CMP-002","bm25_rank":1,"reason":"Intel 도구는 프로세서에 맞는 보드 목록을 찾는다. MSI 보드별 최소 BIOS를 확인하는 메뉴가 없다."}
+{"id":"train-pilot-03","negative":"JINBONG:CHK-MSI-QVL-001","bm25_rank":2,"reason":"허용된 제조사인 MSI이지만 Memory Support 목록이다. CPU 지원 BIOS를 알려주지 않는다."}
+{"id":"train-pilot-04","negative":"JINBONG:CHK-MSI-QVL-002","bm25_rank":2,"reason":"같은 보드의 CPU Support 목록이다. 검증된 RAM 모듈은 Memory Support에서 확인한다."}
+{"id":"train-pilot-05","negative":"JINBONG:CHK-ACR-001","bm25_rank":1,"reason":"Acer의 업그레이드·보증 안내다. Lenovo 빈 슬롯과 호환 부품을 찾는 도구를 제시하지 않는다."}
+{"id":"train-pilot-06","negative":"JINBONG:CHK-DELL-001","bm25_rank":2,"reason":"Dell 모델의 메모리 규격·슬롯을 다룬다. HP에서 장착 절차를 볼 서비스 가이드가 없다."}
+{"id":"train-pilot-07","negative":"JINBONG:CHK-MS-002","bm25_rank":1,"reason":"WSL의 NVIDIA 드라이버 조건을 다룬다. Windows 네이티브 CUDA 개발에 필요한 Visual Studio와 Toolkit을 안내하지 않는다."}
+{"id":"train-pilot-08","negative":"JINBONG:CHK-INT-002","bm25_rank":3,"reason":"Windows 드라이버를 다루지만 Intel NPU와 OpenVINO용이다. WSL의 NVIDIA GPU 드라이버를 설명하지 않는다."}
+{"id":"train-pilot-09","negative":"JINBONG:CHK-MS-001","bm25_rank":4,"reason":"Windows 가속 기술인 DirectML과 DX12 GPU에 대한 설명이다. Intel NPU 상태를 확인할 장치 관리자를 안내하지 않는다."}
+{"id":"train-pilot-10","negative":"JINBONG:CHK-PT-001","bm25_rank":2,"reason":"PyTorch 설치 명령에서 ROCm을 선택하는 방법이다. ROCm이 요구하는 GPU·드라이버·펌웨어 호환 조합을 제시하지 않는다."}

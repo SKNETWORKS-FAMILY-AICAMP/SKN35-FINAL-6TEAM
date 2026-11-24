@@ -1,0 +1,10 @@
+{"id":"train-pilot-01","question":"검증표에서 MSI 보드의 CPU를 찾았는데, 어느 BIOS부터 쓸 수 있는지는 어디서 확인하죠?","gold":["JINBONG:CHK-MSI-QVL-002"]}
+{"id":"train-pilot-02","question":"MSI에서 프로세서 교체 전 펌웨어 최소 버전을 찾는 메뉴가 뭐예요?","gold":["JINBONG:CHK-MSI-QVL-002"]}
+{"id":"train-pilot-03","question":"ASUS나 MSI 중 한 곳을 예로 들어 주세요. 보드에 지원되는 CPU와 필요한 BIOS 버전을 어디서 같이 확인하나요?","gold":["JINBONG:CHK-CMP-005","JINBONG:CHK-MSI-QVL-002"]}
+{"id":"train-pilot-04","question":"MSI 보드에서 제조사가 확인한 램 모듈 목록은 어느 메뉴에 있나요?","gold":["JINBONG:CHK-MSI-QVL-001"]}
+{"id":"train-pilot-05","question":"레노버 노트북에 비어 있는 램 슬롯이 있는지, 호환 부품은 어디서 조회해요?","gold":["JINBONG:CHK-LNV-001"]}
+{"id":"train-pilot-06","question":"HP 노트북 메모리를 교체하기 전에 어떤 설명서에서 장착 절차를 봐야 하죠?","gold":["JINBONG:CHK-HP-001"]}
+{"id":"train-pilot-07","question":"윈도우에서 CUDA를 시작하려면 그래픽카드 외에 개발 도구도 따로 준비해야 하나요?","gold":["JINBONG:CHK-NV-001"]}
+{"id":"train-pilot-08","question":"윈도우의 WSL에서 엔비디아 CUDA를 쓰려면 어느 드라이버를 갖춰야 하나요?","gold":["JINBONG:CHK-MS-002"]}
+{"id":"train-pilot-09","question":"인텔 NPU가 OpenVINO에서 쓸 수 있는 상태인지 윈도우에서 어디를 확인하죠?","gold":["JINBONG:CHK-INT-002"]}
+{"id":"train-pilot-10","question":"AMD에서 ROCm이 돌아가는지 확인할 때 운영체제와 커널 외에 무엇을 대조해야 하나요?","gold":["JINBONG:CHK-AMD-001"]}
