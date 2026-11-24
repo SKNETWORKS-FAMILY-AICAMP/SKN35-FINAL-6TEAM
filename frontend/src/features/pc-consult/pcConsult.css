@@ -57,6 +57,7 @@
   background: transparent;
 }
 .pc-embedded .pc-main {
+  min-height: 0;
   max-width: none;
   padding: 16px 0;
   margin: 0;
@@ -76,6 +77,7 @@
 }
 /* Only the personal workspace widens the voice panel; mock/live keep their layout. */
 .integrated-workspace .panel.consultation-transcript {
+  align-items: stretch;
   display: flex;
   contain: none;
   align-self: start;
@@ -1113,7 +1115,7 @@
   font-size: 11px;
   color: var(--muted);
   border-bottom: 1px solid var(--line);
-  padding-bottom: 18px;
+  padding-bottom: 14px;
   margin-bottom: 23px;
 }
 .pc-criteria summary {
@@ -1124,6 +1126,8 @@
 .pc-criteria ul {
   padding-left: 20px;
   margin-bottom: 0;
+  margin-top: 8px;
+  line-height: 1.6;
 }
 .pc-list-title {
   display: flex;
@@ -1269,7 +1273,7 @@
   align-items: center;
   flex-shrink: 0;
   padding: 3px 8px;
-  border-radius: 5px;
+  border-radius: 7px;
   font-size: 10px;
   font-weight: 600;
   line-height: 1.5;
@@ -1361,6 +1365,23 @@
   display: grid;
   gap: 15px;
 }
+.pc-unknown.pc-unknown-primary {
+  margin-top: 0;
+}
+.pc-unknown-primary > summary {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.pc-review-reasons {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--warn);
+  border-radius: 0 8px 8px 0;
+  color: var(--text);
+  background: color-mix(in srgb, var(--warn) 7%, var(--panel));
+  font-size: 12px;
+  line-height: 1.6;
+}
 .pc-summary-panel {
   position: sticky;
   top: 24px;
@@ -1376,6 +1397,7 @@
 }
 .pc-summary-header h2 {
   font-size: 16px;
+  letter-spacing: -0.025em;
 }
 .pc-summary-header > span:last-child {
   font-size: 10px;
@@ -1437,6 +1459,7 @@
   display: grid;
   gap: 10px;
   margin: 20px 0 14px;
+  font-variant-numeric: tabular-nums;
 }
 .pc-totals > div {
   display: flex;
@@ -1493,6 +1516,11 @@
 }
 .pc-empty .pc-actions {
   justify-content: center;
+}
+.pc-empty {
+  padding: 28px 22px;
+  margin-block: 16px;
+  gap: 10px;
 }
 .pc-spinner {
   width: 30px;
@@ -1613,9 +1641,9 @@
 }
 .pc-version {
   color: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
-  background: color-mix(in srgb, var(--accent) 5%, var(--panel));
-  border-radius: 9px;
+  border: 0;
+  background: var(--accent-soft);
+  border-radius: 10px;
   padding: 9px 15px;
   font-size: 13px;
   font-weight: 650;
@@ -1633,7 +1661,7 @@
 }
 .pc-quote-table-wrap {
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 18px;
   background: var(--panel);
   overflow: hidden;
 }
@@ -1677,13 +1705,27 @@
   font-size: 9px;
   color: var(--muted);
 }
+.pc-quote-item-review {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  margin-top: 4px;
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.pc-quote-item-review > span:last-child {
+  color: var(--muted);
+}
 .pc-quote-total {
   padding: 23px 25px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 15px;
-  background: color-mix(in srgb, var(--accent) 3%, var(--panel));
+  background: var(--surface-soft);
+  font-variant-numeric: tabular-nums;
 }
 .pc-quote-total > span {
   font-size: 12px;
@@ -1718,9 +1760,9 @@
   align-items: center;
   gap: 2px 15px;
   padding: 12px 16px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--panel);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--surface-soft);
   color: var(--muted);
   font-size: 12px;
 }
@@ -1731,7 +1773,7 @@
 .pc-history-item.pc-active {
   border-color: var(--accent);
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 4%, var(--panel));
+  background: var(--accent-soft);
 }
 .pc-modal {
   border: 1px solid var(--line);
@@ -1892,6 +1934,15 @@
 }
 .pc-skip:focus {
   top: 12px;
+}
+/* A size container can keep fixed offsets inside the card; clipping still hides the unfocused link. */
+.pc-skip:not(:focus) {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 @keyframes pc-spin {
   to {

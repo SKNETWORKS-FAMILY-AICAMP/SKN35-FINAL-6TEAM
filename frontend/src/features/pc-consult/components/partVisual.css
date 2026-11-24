@@ -1,0 +1,351 @@
+.pc-part-visual {
+  --part-tint: #e9f2f3;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+.pc-part-visual[data-category="cpu"],
+.pc-part-visual[data-category="motherboard"] {
+  --part-tint: #eaf1f6;
+}
+.pc-part-visual[data-category="ram"],
+.pc-part-visual[data-category="storage"] {
+  --part-tint: #e7f2ed;
+}
+.pc-part-visual[data-category="gpu"],
+.pc-part-visual[data-category="case"] {
+  --part-tint: #ebedf8;
+}
+.pc-part-visual-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.15;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--part-tint) 80%, var(--line));
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 30%, #fff 0%, var(--part-tint) 90%);
+  overflow: hidden;
+}
+.pc-hardware-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 230px;
+  transition: transform 0.25s ease;
+}
+.pc-candidate:hover .pc-hardware-art {
+  transform: translateY(-3px) rotate(-1deg);
+}
+.pc-part-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 12px;
+  opacity: 0;
+  background: #fff;
+}
+.pc-part-photo-loaded {
+  opacity: 1;
+}
+.pc-part-visual figcaption {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.pc-part-visual-card {
+  width: 168px;
+}
+.pc-part-visual-thumbnail {
+  width: 104px;
+}
+.pc-part-visual-compact {
+  width: 54px;
+}
+.pc-part-visual-compact .pc-part-visual-stage {
+  border-radius: 10px;
+}
+.pc-candidate-main:has(> .pc-part-visual) {
+  grid-template-columns: 168px minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+}
+.pc-build-list > li:has(> .pc-part-visual) {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+}
+
+.pc-quote-table-wrap {
+  container: quote-document / inline-size;
+}
+
+.pc-quote-document-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  padding: 25px 28px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--accent) 6%, var(--panel)),
+    var(--panel)
+  );
+}
+.pc-quote-document-head p {
+  margin: 0 0 7px;
+}
+.pc-quote-document-head h2 {
+  font-size: 18px;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+.pc-quote-document-amount {
+  text-align: right;
+  display: grid;
+  gap: 3px;
+}
+.pc-quote-document-amount > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.pc-quote-document-amount strong {
+  font-size: clamp(23px, 2.5vw, 32px);
+  color: var(--accent);
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+}
+.pc-quote-document-amount small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.pc-quote-table .pc-quote-product {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+.pc-quote-product-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.pc-quote-product-copy > strong {
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 650;
+}
+.pc-quote-table .pc-quote-product-copy > small {
+  font-size: 10px;
+  font-weight: 400;
+}
+.pc-quote-table .pc-quote-product-copy > .pc-quote-category {
+  color: var(--accent);
+  font-weight: 600;
+}
+.pc-quote-table:has(.pc-quote-product) th:first-child {
+  width: 78px;
+}
+.pc-quote-table:has(.pc-quote-product) th:nth-child(3) {
+  width: 116px;
+}
+.pc-quote-table:has(.pc-quote-product) th:last-child {
+  width: 108px;
+}
+.pc-quote-table:has(.pc-quote-product) td {
+  padding: 20px 16px;
+}
+.pc-quote-table:has(.pc-quote-product) th {
+  padding: 13px 16px;
+}
+.pc-quote-table:has(.pc-quote-product) td:nth-child(3) {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pc-quote-photo-notice {
+  margin: 0;
+  padding: 11px 20px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+.pc-order-list .pc-order-product {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+}
+.pc-order-product .pc-part-visual {
+  flex-shrink: 0;
+}
+.pc-order-product > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pc-success-parts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 22px auto;
+}
+.pc-success-parts .pc-part-visual {
+  width: 76px;
+}
+
+@media (max-width: 1100px) {
+  .pc-candidate-main:has(> .pc-part-visual) {
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 18px;
+  }
+  .pc-candidate-main > .pc-part-visual {
+    width: 130px;
+    grid-row: 1 / span 2;
+  }
+  .pc-candidate-main:has(> .pc-part-visual) .pc-candidate-price {
+    grid-column: 2;
+  }
+  .pc-quote-table .pc-quote-product {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .pc-quote-product .pc-part-visual {
+    width: 76px;
+  }
+  .pc-quote-table:has(.pc-quote-product) td {
+    padding: 16px 10px;
+  }
+  .pc-quote-table:has(.pc-quote-product) th {
+    padding: 12px 10px;
+  }
+  .pc-quote-table:has(.pc-quote-product) th:first-child {
+    width: 65px;
+  }
+  .pc-quote-table:has(.pc-quote-product) th:nth-child(3) {
+    width: 100px;
+  }
+  .pc-quote-table:has(.pc-quote-product) th:last-child {
+    width: 88px;
+  }
+}
+@media (max-width: 700px) {
+  .pc-candidate-main:has(> .pc-part-visual) {
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 15px;
+  }
+  .pc-candidate-main > .pc-part-visual {
+    width: 100px;
+    grid-row: 1;
+  }
+  .pc-candidate-main:has(> .pc-part-visual) .pc-candidate-price {
+    grid-column: 1 / -1;
+  }
+  .pc-candidate .pc-part-visual figcaption {
+    font-size: 11px;
+  }
+  .pc-quote-document-head {
+    padding: 22px 18px;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .pc-quote-document-amount {
+    text-align: left;
+  }
+  .pc-quote-document-amount strong {
+    font-size: 29px;
+  }
+  .pc-quote-table .pc-quote-product {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .pc-quote-product .pc-part-visual {
+    width: 90px;
+  }
+  .pc-quote-table:has(.pc-quote-product) td {
+    padding: 4px 0;
+  }
+  .pc-quote-table:has(.pc-quote-product) td:nth-child(2) {
+    padding-bottom: 12px;
+  }
+  .pc-quote-photo-notice {
+    padding: 13px 18px;
+  }
+  .pc-order-list:has(.pc-order-product) > li {
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .pc-order-list:has(.pc-order-product) > li > strong {
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-hardware-art {
+    transition: none;
+  }
+  .pc-candidate:hover .pc-hardware-art {
+    transform: none;
+  }
+}
+
+@container quote-document (max-width: 650px) {
+  .pc-quote-document-head {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 22px 18px;
+  }
+  .pc-quote-document-amount {
+    text-align: left;
+  }
+  .pc-quote-table,
+  .pc-quote-table tbody,
+  .pc-quote-table td {
+    display: block;
+  }
+  .pc-quote-table thead {
+    display: none;
+  }
+  .pc-quote-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .pc-quote-table:has(.pc-quote-product) td {
+    border: 0;
+    padding: 0;
+  }
+  .pc-quote-table td:first-child,
+  .pc-quote-table td:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+  .pc-quote-table .pc-quote-product {
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .pc-quote-product .pc-part-visual {
+    width: 90px;
+  }
+  .pc-quote-table:has(.pc-quote-product) td:nth-child(2) {
+    padding-bottom: 12px;
+  }
+  .pc-quote-table td:nth-child(3) {
+    align-self: center;
+  }
+  .pc-quote-table td:last-child {
+    text-align: right;
+  }
+  .pc-quote-product-copy > strong {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}

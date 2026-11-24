@@ -57,7 +57,7 @@ export function BudgetScreen({
   }
   return (
     <section className="pc-budget-screen">
-      <p className="pc-eyebrow">BUDGET PLANNER</p>
+      <p className="pc-eyebrow">예산 다시 나누기</p>
       <h1>원하는 부품에 조금 더.</h1>
       <p className="pc-muted">전체 예산을 보면서 다른 부품의 배분을 조정합니다.</p>
       <form className="pc-panel pc-form" onSubmit={submit}>
@@ -96,6 +96,7 @@ export function BudgetScreen({
         <div className="pc-budget-results">
           <div className="pc-section-heading">
             <h2>새 한도로 찾은 후보</h2>
+            {preview.basis === "demo" && <span className="pc-demo-label">간이 판단</span>}
           </div>
           <p className="pc-muted">
             {preview.sortLabel} · 통과 {preview.passed.length}개 / 확인 필요{" "}
