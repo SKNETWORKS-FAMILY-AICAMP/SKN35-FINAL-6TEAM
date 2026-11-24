@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BUILDWISE 판매자 관리 목업</title>
+<style>
+:root{--ac:#0f766e;--ac2:#14b8a6;--acbg:#e6f6f3;--bg:#f4f6f8;--line:#e3e7ec;--tx:#1f2933;--mu:#6b7785;--ok:#15803d;--okbg:#e8f5ec;--warn:#c2410c;--warnbg:#fff4e5;--red:#dc2626;--redbg:#fdecec}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:14px}
+button{font:inherit;cursor:pointer}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px}
+.btn.pri{background:var(--ac);border-color:var(--ac);color:#fff}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.red{color:var(--red);border-color:#f5c2c2}
+.btn.ghost{border:none;background:none;color:var(--ac);padding:4px}
+.press{outline:3px solid var(--ac2)!important;outline-offset:2px;transform:scale(.97);transition:.15s}
+input,select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+h2{margin:0 0 4px;font-size:20px}h3{margin:0 0 10px;font-size:16px}
+.sub{color:var(--mu);margin:0 0 14px}
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
+.logo{font-weight:800;color:var(--ac);letter-spacing:.5px;font-size:22px}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.pick button{width:260px;padding:30px;border:2px solid var(--line);border-radius:16px;background:#fff;text-align:left;transition:.2s}
+.pick button:hover{border-color:var(--ac);transform:translateY(-2px)}
+.pick b{display:block;font-size:19px;margin:8px 0 4px}
+.auth{width:380px}
+.auth input{width:100%;margin-bottom:10px}
+.err{color:var(--red);font-size:13px;margin:-4px 0 10px}
+.quick{display:flex;gap:8px;margin-top:12px}
+.quick button{flex:1}
+.shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+aside{background:#fff;border-right:1px solid var(--line);padding:16px 10px}
+aside .logo{font-size:17px;padding:4px 10px 16px}
+.nav{display:flex;align-items:center;gap:8px;width:100%;border:none;background:none;text-align:left;padding:10px;border-radius:8px;color:var(--tx);position:relative}
+.nav:hover{background:#f2f5f7}.nav.on{background:var(--acbg);color:var(--ac);font-weight:700}
+.nav .lock{margin-left:auto;font-size:12px;color:var(--mu)}
+.nav .dot{width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:auto}
+.top{display:flex;align-items:center;gap:10px;padding:12px 22px;background:#fff;border-bottom:1px solid var(--line)}
+.top .co{font-weight:700}.role{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--acbg);color:var(--ac)}
+.role.c{background:#eef2ff;color:#4338ca}
+.content{padding:20px 22px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.kpi .n{font-size:28px;font-weight:800;margin-top:4px;transition:color .3s}
+.kpi .n.bump{color:var(--ac)}
+.kpi small{color:var(--mu)}
+.g2{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+.hbar{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:13px}
+.hbar span:first-child{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar .t{flex:1;height:14px;background:#eef1f4;border-radius:999px;overflow:hidden}
+.hbar .t i{display:block;height:100%;background:var(--ac);border-radius:999px;transition:width .6s}
+.hbar .t i.b{background:#94a3b8}
+.hbar span:last-child{width:46px;text-align:right;color:var(--mu)}
+.feed{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto}
+.feed div{padding:8px 10px;background:#f7f9fa;border-radius:8px;font-size:13px;animation:up .35s}
+.feed div small{color:var(--mu);margin-right:6px}
+@keyframes up{from{opacity:0;transform:translateY(-6px)}}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px}
+.tab.on{background:var(--ac);border-color:var(--ac);color:#fff}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
+th{color:var(--mu);font-weight:600}
+tbody tr{cursor:pointer}tbody tr:hover{background:#f7f9fa}
+.st{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--okbg);color:var(--ok)}
+.st.b{background:var(--redbg);color:var(--red)}.st.w{background:var(--warnbg);color:var(--warn)}.st.g{background:#eef1f4;color:var(--mu)}
+.filters{display:flex;gap:8px;margin-bottom:12px}
+.panel{position:fixed;top:0;right:0;width:420px;height:100vh;background:#fff;border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.08);padding:20px;overflow:auto;z-index:15;animation:slide .3s}
+@keyframes slide{from{transform:translateX(100%)}}
+.sec{margin-top:16px}.sec h4{margin:0 0 8px;font-size:14px}
+.li{display:flex;justify-content:space-between;padding:8px 10px;background:#f7f9fa;border-radius:8px;margin-bottom:6px;font-size:13px;cursor:pointer}
+.chat{background:#fff;border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin:-2px 0 8px;font-size:12px;line-height:1.7}
+.sumcard{border:2px solid var(--ac);border-radius:10px;padding:12px;background:var(--acbg);font-size:13px;line-height:1.7;animation:up .4s}
+.sumcard b{color:var(--ac)}
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.col{background:#eef1f4;border-radius:12px;padding:10px;min-height:380px}
+.col h4{margin:2px 4px 10px;font-size:13px;color:var(--mu);display:flex;justify-content:space-between}
+.kc{background:#fff;border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid var(--line);cursor:pointer;font-size:13px}
+.kc.new{animation:pop .45s}
+@keyframes pop{0%{transform:scale(.6) translateY(-20px);opacity:0}70%{transform:scale(1.04)}}
+.kc.move{animation:slidein .5s}
+@keyframes slidein{from{transform:translateX(-60px);opacity:.3}}
+.type{font-size:11px;padding:2px 7px;border-radius:999px;font-weight:700}
+.type.이슈{background:#e0f2fe;color:#0369a1}.type.클레임{background:var(--redbg);color:var(--red)}.type.오류{background:var(--warnbg);color:var(--warn)}
+.counters{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.4);display:flex;align-items:center;justify-content:center;z-index:25}
+.modal{background:#fff;border-radius:14px;padding:20px;width:440px;max-height:85vh;overflow:auto}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1f2933;color:#fff;padding:10px 18px;border-radius:999px;z-index:50;animation:up .3s}
+.toast.alert{background:var(--red)}
+.donut{flex:none;width:150px;height:150px;border-radius:50%;position:relative;transition:background .6s}
+.donut::after{content:"";position:absolute;inset:32px;background:#fff;border-radius:50%}
+.legend div{display:flex;align-items:center;gap:6px;font-size:13px;margin:5px 0}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.prog{height:8px;background:#eef1f4;border-radius:999px;overflow:hidden;margin-top:6px}
+.prog i{display:block;height:100%;background:var(--ac);width:0;transition:width 2s linear}
+.office{position:relative;min-width:790px;height:440px;border-radius:14px;overflow:hidden;background:repeating-linear-gradient(0deg,#f3efe6 0 39px,#e9e2d3 39px 40px),#f3efe6}
+.room{position:absolute;top:40px;width:200px;height:250px;border:3px solid #cbbfa8;border-radius:12px;background:rgba(255,255,255,.55)}
+.room .lab{position:absolute;top:-14px;left:12px;background:#fff;border:1px solid #cbbfa8;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700}
+.desk{position:absolute;left:40px;top:120px;width:120px;height:46px;background:#b08d62;border-radius:8px;box-shadow:inset 0 -6px 0 #94744e}
+.agent{position:absolute;left:78px;top:60px;width:46px;height:46px;border-radius:50%;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:transform .3s}
+.agent.busy{animation:bob .6s infinite alternate}
+@keyframes bob{to{transform:translateY(-5px)}}
+.aname{position:absolute;left:0;right:0;top:176px;text-align:center;font-size:12px;color:#5b4b32;font-weight:600}
+.bubble{position:absolute;left:20px;top:8px;max-width:170px;background:#fff;border:1px solid #cbbfa8;border-radius:10px;padding:4px 8px;font-size:11px;animation:up .3s}
+.guest{position:absolute;font-size:26px;transition:left .8s,top .8s,opacity .5s}
+.drawers{position:absolute;left:560px;top:310px;display:flex;gap:8px}
+.drawer{width:62px;height:56px;border-radius:8px;background:#8a8f98;color:#fff;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:.3s}
+.drawer.hit{background:var(--ac);transform:scale(1.1)}
+.doc{position:absolute;font-size:28px;transition:left 1s ease-in-out,top 1s ease-in-out;z-index:3;cursor:pointer;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
+.olog{display:flex;flex-direction:column;gap:6px;max-height:380px;overflow:auto}
+.olog div{font-size:12px;padding:6px 8px;background:#f7f9fa;border-radius:6px;animation:up .3s}
+.ocard{position:absolute;z-index:6;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:230px;font-size:12px;box-shadow:0 6px 16px rgba(0,0,0,.12);line-height:1.6}
+.demo{position:fixed;right:18px;bottom:18px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);width:220px;z-index:30}
+.demo .hd{display:flex;justify-content:space-between;padding:10px 12px;font-weight:700;border-bottom:1px solid var(--line);cursor:pointer}
+.demo .bd{padding:10px;display:flex;flex-direction:column;gap:6px}
+.demo.fold .bd{display:none}
+.demo .bd .btn{text-align:left;font-size:13px;padding:7px 10px}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.kanban{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="demo" id="demo" style="display:none">
+  <div class="hd" onclick="this.parentNode.classList.toggle('fold')">시연 패널 <span>▾</span></div>
+  <div class="bd">
+    <button class="btn" onclick="evConsult()">새 상담 들어옴</button>
+    <button class="btn" onclick="evHandoff()">상담 끝 → 전달</button>
+    <button class="btn" onclick="evClaim()">클레임 발생</button>
+    <button class="btn" onclick="evAbuse()">욕설 감지</button>
+    <button class="btn" onclick="evSale()">판매 발생</button>
+    <button class="btn pri" onclick="autoAll()">▶ 전체 시나리오 자동 재생</button>
+    <button class="btn" onclick="resetAll()">처음으로</button>
+  </div>
+</div>
+<script>
+const won=n=>n.toLocaleString('ko-KR')+'원';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const COMPANIES={'BW-1001':'가상전자','BW-2002':'테스트컴퓨터'};
+const MENUS=[['home','🏠','홈 대시보드'],['cust','👥','고객 정보'],['sales','📊','판매 통계',1],['issue','🎧','상담·이슈 현황'],['docs','📄','문서·정책 관리',1],['staff','🪪','직원 관리',1],['office','🏢','2D 오피스']];
+const SUR=['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','홍'];
+const TYPES=['개인','학생','스타트업','연구실'];
+let D,RUN={};
+function mk(){const customers=SUR.map((s,i)=>({id:'C-'+(1001+i),name:s+'고객',type:TYPES[i%4],last:'11/'+(10+i%8),quotes:1+i%3,blocked:i===6||i===13,reason:i===6?'반복적인 허위 클레임':'욕설 반복',blockBy:'김관리',blockAt:'11/1'+(i%9),
+ quotesList:Array.from({length:1+i%3},(_,k)=>({no:'Q-'+(2000+i*3+k),amt:[1280000,2150000,438000,890000][(i+k)%4],date:'11/'+(8+k+i%5)})),
+ hist:Array.from({length:2},(_,k)=>({date:'11/'+(9+k*3+i%4),title:k?'견적 변경 문의':'신규 PC 조립 상담',chat:k?['고객: 케이스를 흰색으로 바꿀 수 있나요?','상담 에이전트: 기존 구성과 맞는 흰색 케이스 3개를 찾았어요.']:['고객: 로컬에서 LLM 돌릴 PC가 필요해요','상담 에이전트: 예산은 어느 정도 생각하세요?','고객: 200만 원 정도요']})),summary:null}));
+ return{user:null,role:null,company:null,menu:'home',dots:{},kpi:{consult:12,pending:3,sales:27,abuse:1},feed:[{t:'09:12',m:'상담 #1038 요약이 고객센터로 전달됨'},{t:'09:40',m:'이슈 #I-21 처리 완료'},{t:'10:05',m:'판매: RTX 4070급 그래픽카드 1건'}],
+ customers,custTab:'list',q:'',ft:'전체',sel:null,openHist:{},
+ abuseList:[{cust:'C-1004',text:'이게 무슨 *** 같은 견적이에요',t:'10:21'}],
+ issues:[{id:'I-31',type:'이슈',cust:'C-1002',sum:'배송 일정 문의',owner:'-',col:0},{id:'I-30',type:'오류',cust:'C-1009',sum:'견적 PDF가 열리지 않음',owner:'-',col:1},{id:'I-29',type:'클레임',cust:'C-1011',sum:'받은 RAM 용량이 다름',owner:'이상담',col:1},{id:'I-28',type:'이슈',cust:'C-1003',sum:'AS 접수 방법 문의',owner:'박상담',col:2},{id:'I-27',type:'클레임',cust:'C-1015',sum:'파워 소음 불만',owner:'최상담',col:2},{id:'I-26',type:'오류',cust:'C-1007',sum:'결제 후 견적 상태 미반영',owner:'이상담',col:3},{id:'I-25',type:'이슈',cust:'C-1018',sum:'세금계산서 발행 요청',owner:'박상담',col:3},{id:'I-24',type:'이슈',cust:'C-1020',sum:'호환성 재확인 요청',owner:'최상담',col:3}],
+ live:{now:3,wait:1,done:18},
+ parts:[['RTX 4070급 그래픽카드','GPU',42],['라이젠 7급 7800X3D','CPU',38],['DDR5 32GB 메모리','RAM',35],['NVMe SSD 2TB','저장장치',31],['B650 메인보드','메인보드',27],['RTX 4060급 그래픽카드','GPU',25],['650W 파워','파워',22],['코어 i5급 14400F','CPU',20],['미들타워 케이스','케이스',18],['공랭 쿨러','쿨러',15]],
+ demand:[['그래픽카드',64,48],['CPU',51,40],['메모리',30,35],['저장장치',28,31],['파워',12,22]],period:'주',
+ docs:[{t:'2026 겨울 배송 공지',d:'11/15',ok:true},{t:'자주 묻는 질문 (FAQ) v3',d:'11/12',ok:true},{t:'AS 정책 (부품별 보증 기간)',d:'11/02',ok:true}],policy:{ship:3000,disc:5},
+ staff:[{n:'김관리',id:'admin01',r:'관리자',s:'활성'},{n:'이상담',id:'cs01',r:'상담원',s:'활성'},{n:'박상담',id:'cs02',r:'상담원',s:'활성'},{n:'최상담',id:'cs03',r:'상담원',s:'활성'},{n:'정신입',id:'cs04',r:'상담원',s:'승인 대기'}],
+ office:{guest:false,bubble:['',''],log:['09:00 고객센터 업무 시작'],busy:[0,0,0],doc:null,hit:null},nextC:1042,nextI:32,authMode:null,authErr:'',screen:'home'}}
+function now(){return new Date().toTimeString().slice(0,5)}
+function toast(m,alert){const t=document.createElement('div');t.className='toast'+(alert?' alert':'');t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
+function feed(m){D.feed.unshift({t:now(),m});if(D.feed.length>12)D.feed.pop()}
+function dot(menu){if(D.menu!==menu)D.dots[menu]=true}
+function olog(m){D.office.log.push(now()+' '+m);const el=document.getElementById('olog');if(el){const d=document.createElement('div');d.textContent=now()+' '+m;el.appendChild(d);el.scrollTop=1e6}else dot('office')}
+function isAdmin(){return D.role==='관리자'}
+function render(){const a=document.getElementById('app');document.getElementById('demo').style.display=D.user?'block':'none';
+ if(!D.user){a.innerHTML=authHTML();return}
+ const nav=MENUS.map(([k,ic,t,adm])=>{const locked=adm&&!isAdmin();return `<button class="nav ${D.menu===k?'on':''}" data-a="m-${k}" onclick="go('${k}')">${ic} ${t}${locked?'<span class="lock">🔒</span>':D.dots[k]?'<span class="dot"></span>':''}</button>`}).join('');
+ a.innerHTML=`<div class="shell"><aside><div class="logo">BUILDWISE</div>${nav}</aside><div><div class="top"><span class="co">${D.company}</span><span class="sub" style="margin:0">고객센터 관리</span><span style="margin-left:auto">${D.user}</span><span class="role ${isAdmin()?'':'c'}">${D.role}</span><button class="btn sm" onclick="logout()">로그아웃</button></div><div class="content" id="content">${page()}</div></div></div>${D.sel?panelHTML():''}${D.modal||''}`;
+ if(D.menu==='office')drawOffice()}
+function go(k){const m=MENUS.find(x=>x[0]===k);if(m[3]&&!isAdmin()){toast('관리자 전용 메뉴입니다');return}D.menu=k;D.dots[k]=false;D.sel=null;render()}
+function authHTML(){if(D.screen==='home')return `<div class="center"><div class="logo">BUILDWISE</div><p class="sub">AI 상담과 고객센터 관리 자동화</p><div class="pick"><button data-a="pick-biz" onclick="D.authMode='biz';D.screen='login';render()"><span style="font-size:30px">🏢</span><b>기업</b><span class="sub">판매자 · 고객센터 담당자</span></button><button onclick="D.authMode='per';D.screen='login';render()"><span style="font-size:30px">🙋</span><b>개인</b><span class="sub">상담을 받으려는 손님</span></button></div></div>`;
+ if(D.screen==='personal')return `<div class="center"><div class="card auth"><h3>개인 회원</h3><p class="sub">손님 상담 화면은 이번 시연 범위 밖입니다. (PC 상담 화면 목업에서 확인)</p><button class="btn" onclick="D.screen='home';render()">처음으로</button></div></div>`;
+ const biz=D.authMode==='biz';
+ if(D.screen==='signup')return `<div class="center"><div class="card auth"><h3>${biz?'기업':'개인'} 회원가입</h3><input id="su-id" placeholder="아이디"><input id="su-pw" type="password" placeholder="비밀번호">${biz?'<input id="su-code" placeholder="기업 인증번호 (예: BW-1001)">':''}${D.authErr?'<div class="err">'+D.authErr+'</div>':''}<button class="btn pri" style="width:100%" onclick="signup()">가입하기</button><p class="sub" style="margin-top:10px">${biz?'인증번호는 기업 관리자에게 받은 팀 지정번호·사번입니다.':''}</p><button class="btn ghost" onclick="D.screen='login';D.authErr='';render()">로그인으로</button></div></div>`;
+ return `<div class="center"><div class="logo">BUILDWISE</div><div class="card auth"><h3>${biz?'기업':'개인'} 로그인</h3><input placeholder="아이디"><input type="password" placeholder="비밀번호"><button class="btn pri" style="width:100%" onclick="login('관리자')">로그인</button><div style="text-align:center;margin-top:8px"><button class="btn ghost" onclick="D.screen='signup';D.authErr='';render()">회원가입</button></div>${biz?`<div class="quick"><button class="btn" data-a="as-admin" onclick="login('관리자')">관리자로 시연</button><button class="btn" data-a="as-cs" onclick="login('상담원')">상담원으로 시연</button></div>`:''}<div style="margin-top:8px"><button class="btn ghost" onclick="D.screen='home';render()">← 기업/개인 다시 고르기</button></div></div></div>`}
+function signup(){const biz=D.authMode==='biz';if(biz){const c=document.getElementById('su-code').value.trim().toUpperCase();if(!COMPANIES[c]){D.authErr='등록되지 않은 기업 인증번호입니다';render();return}toast(COMPANIES[c]+' 소속으로 가입되었습니다. 관리자 승인 후 로그인할 수 있어요');}else toast('가입되었습니다');D.authErr='';D.screen='login';render()}
+function login(role){if(D.authMode!=='biz'){D.screen='personal';render();return}D.role=role;D.user=role==='관리자'?'김관리':'이상담';D.company='가상전자';D.menu='home';render()}
+function logout(){const keep=D;D=mk();render()}
+function page(){return({home:homeP,cust:custP,sales:salesP,issue:issueP,docs:docsP,staff:staffP,office:officeP})[D.menu]()}
+function bars(list,max,cls){return list.map(([n,,v])=>`<div class="hbar"><span>${n}</span><span class="t"><i class="${cls||''}" style="width:${v/max*100}%"></i></span><span>${v}건</span></div>`).join('')}
+function homeP(){const k=D.kpi;const top=[...D.parts].sort((a,b)=>b[2]-a[2]).slice(0,5);
+ return `<h2>오늘 한눈에 보기</h2><p class="sub">${new Date().toLocaleDateString('ko-KR')} · 실시간</p><div class="kpis">${[['오늘 상담 수','consult','건'],['처리 대기 이슈','pending','건'],['오늘 판매 건수','sales','건'],['욕설 감지 알림','abuse','건']].map(([t,key,u])=>`<div class="card kpi"><small>${t}</small><div class="n" id="k-${key}">${k[key]}<small> ${u}</small></div></div>`).join('')}</div>
+ <div class="g2"><div class="card"><h3>잘 팔리는 부품 TOP 5</h3>${bars(top,top[0][2])}</div><div class="card"><h3>최근 활동</h3><div class="feed">${D.feed.map(f=>`<div><small>${f.t}</small>${f.m}</div>`).join('')}</div></div></div>`}
+function custP(){const tabs=`<div class="tabs"><button class="tab ${D.custTab==='list'?'on':''}" onclick="D.custTab='list';render()">고객별 조회</button><button class="tab ${D.custTab==='abuse'?'on':''}" data-a="tab-abuse" onclick="D.custTab='abuse';render()">악성 사용자 관리 ${D.abuseList.length?'<span class="st b">'+D.abuseList.length+'</span>':''}</button></div>`;
+ if(D.custTab==='abuse'){const bl=D.customers.filter(c=>c.blocked);
+  return `<h2>고객 정보</h2>${tabs}<div class="card" style="margin-bottom:14px"><h3>욕설 자동 감지 목록</h3><table><thead><tr><th>감지된 문장</th><th>고객 ID</th><th>시각</th><th></th></tr></thead><tbody>${D.abuseList.map((x,i)=>`<tr><td>${x.text}</td><td>${x.cust}</td><td>${x.t}</td><td>${isAdmin()?`<button class="btn sm red" onclick="event.stopPropagation();blockFromAbuse(${i})">차단</button> <button class="btn sm" onclick="event.stopPropagation();D.abuseList.splice(${i},1);render()">무시</button>`:`<button class="btn sm" onclick="event.stopPropagation();toast('관리자에게 차단을 요청했습니다')">차단 요청</button>`}</td></tr>`).join('')||'<tr><td colspan="4" class="sub">감지된 문장이 없습니다</td></tr>'}</tbody></table></div>
+  <div class="card"><h3>차단된 사용자</h3><table><thead><tr><th>고객</th><th>차단 사유</th><th>처리자</th><th>차단일</th><th></th></tr></thead><tbody>${bl.map(c=>`<tr><td>${c.name} (${c.id})</td><td>${c.reason}</td><td>${c.blockBy}</td><td>${c.blockAt}</td><td>${isAdmin()?`<button class="btn sm" onclick="event.stopPropagation();unblock('${c.id}')">해제</button>`:''}</td></tr>`).join('')}</tbody></table></div>`}
+ const list=D.customers.filter(c=>(D.ft==='전체'||c.type===D.ft)&&(!D.q||c.name.includes(D.q)||c.id.includes(D.q.toUpperCase())));
+ return `<h2>고객 정보</h2>${tabs}<div class="card"><div class="filters"><input id="q" placeholder="이름 · 고객 ID 검색" value="${D.q}" oninput="D.q=this.value;render();const e=document.getElementById('q');e.focus();e.setSelectionRange(99,99)"><select onchange="D.ft=this.value;render()">${['전체',...TYPES].map(t=>`<option ${D.ft===t?'selected':''}>${t}</option>`).join('')}</select></div>
+ <table><thead><tr><th>고객 ID</th><th>이름</th><th>유형</th><th>최근 상담일</th><th>견적 수</th><th>상태</th></tr></thead><tbody>${list.map(c=>`<tr data-a="row-${c.id}" onclick="D.sel='${c.id}';render()"><td>${c.id}</td><td>${c.name}${c.summary?' <span class="st">요약 도착</span>':''}</td><td>${c.type}</td><td>${c.last}</td><td>${c.quotes}</td><td><span class="st ${c.blocked?'b':''}">${c.blocked?'차단':'정상'}</span></td></tr>`).join('')}</tbody></table></div>`}
+function panelHTML(){const c=D.customers.find(x=>x.id===D.sel);
+ return `<div class="panel"><div style="display:flex;justify-content:space-between"><h3>${c.name} <span class="sub">${c.id}</span></h3><button class="btn sm" onclick="D.sel=null;render()">닫기</button></div><div><span class="st">${c.type}</span> <span class="st ${c.blocked?'b':''}">${c.blocked?'차단':'정상'}</span></div>
+ ${c.summary?`<div class="sec"><h4>상담 요약 카드</h4><div class="sumcard"><b>요청</b> ${c.summary.req}<br><b>추천 결과</b> ${c.summary.rec}<br><b>사람이 확인할 점</b> ${c.summary.chk}<br><span class="sub" style="font-size:11px">전달 에이전트가 작성 · ${c.summary.t}</span></div></div>`:''}
+ <div class="sec"><h4>견적서</h4>${c.quotesList.map(q=>`<div class="li" onclick="quoteModal('${q.no}',${q.amt},'${q.date}')"><span>${q.no}</span><span>${won(q.amt)} · ${q.date}</span></div>`).join('')}</div>
+ <div class="sec"><h4>상담 이력</h4>${c.hist.map((h,i)=>`<div class="li" onclick="D.openHist['${c.id}${i}']=!D.openHist['${c.id}${i}'];render()"><span>${h.title}</span><span>${h.date} ▾</span></div>${D.openHist[c.id+i]?`<div class="chat">${h.chat.join('<br>')}</div>`:''}`).join('')}</div>
+ <div class="sec">${c.blocked?(isAdmin()?`<button class="btn" onclick="unblock('${c.id}')">차단 해제</button>`:''):(isAdmin()?`<button class="btn red" onclick="blockModal('${c.id}')">이 고객 차단</button>`:`<button class="btn" onclick="toast('관리자에게 차단을 요청했습니다')">차단 요청</button>`)}</div></div>`}
+function quoteModal(no,amt,date){D.modal=`<div class="modal-bg" onclick="D.modal=null;render()"><div class="modal" onclick="event.stopPropagation()"><h3>견적서 ${no}</h3><p class="sub">${date} · 승인된 견적</p><table><tr><td>CPU · 라이젠 7급</td><td>529,000원</td></tr><tr><td>그래픽카드 · RTX 4070급</td><td>799,000원</td></tr><tr><td>기타 부품</td><td>${won(Math.max(0,amt-1328000))}</td></tr><tr><th>합계</th><th>${won(amt)}</th></tr></table><div style="text-align:right;margin-top:12px"><button class="btn" onclick="D.modal=null;render()">닫기</button></div></div></div>`;render()}
+function blockModal(id){D.modal=`<div class="modal-bg"><div class="modal"><h3>차단 사유</h3><input id="br" style="width:100%" placeholder="예: 반복적인 허위 클레임"><div style="text-align:right;margin-top:12px"><button class="btn" onclick="D.modal=null;render()">취소</button> <button class="btn pri" onclick="doBlock('${id}',document.getElementById('br').value||'관리자 판단')">차단</button></div></div></div>`;render()}
+function doBlock(id,r){const c=D.customers.find(x=>x.id===id);Object.assign(c,{blocked:true,reason:r,blockBy:D.user,blockAt:now()});D.modal=null;toast(c.name+' 고객을 차단했습니다');render()}
+function blockFromAbuse(i){const x=D.abuseList.splice(i,1)[0];doBlock(x.cust,'욕설 (자동 감지)')}
+function unblock(id){const c=D.customers.find(x=>x.id===id);c.blocked=false;toast(c.name+' 고객 차단을 해제했습니다');render()}
+function salesP(){const f={일:.15,주:1,월:4.2}[D.period];const parts=D.parts.map(p=>[p[0],p[1],Math.round(p[2]*f)]);const top=[...parts].sort((a,b)=>b[2]-a[2]);
+ const cat={};parts.forEach(p=>cat[p[1]]=(cat[p[1]]||0)+p[2]);const ents=Object.entries(cat).sort((a,b)=>b[1]-a[1]);const tot=ents.reduce((a,b)=>a+b[1],0);const cols=['#0f766e','#14b8a6','#5eead4','#94a3b8','#cbd5e1','#e2e8f0','#f1f5f9'];let acc=0;const grad=ents.map(([k,v],i)=>{const s=acc;acc+=v/tot*360;return cols[i]+' '+s+'deg '+acc+'deg'}).join(',');
+ const pts=[12,15,14,19,22,21,27].map(v=>Math.round(v*f));const mx=Math.max(...pts);const poly=pts.map((v,i)=>`${20+i*60},${150-v/mx*120}`).join(' ');
+ return `<div style="display:flex;align-items:center;gap:10px"><h2>판매 통계</h2><span class="sub" style="margin:0">부품·항목별 · 재고 수량은 다루지 않음</span><div class="tabs" style="margin:0 0 0 auto">${['일','주','월'].map(p=>`<button class="tab ${D.period===p?'on':''}" onclick="D.period='${p}';render()">${p}</button>`).join('')}</div></div>
+ <div class="g2" style="margin-top:12px"><div class="card"><h3>부품별 판매량 TOP 10</h3>${bars(top,top[0][2])}</div><div class="card"><h3>카테고리별 판매 비중</h3><div style="display:flex;gap:24px;align-items:center"><div class="donut" style="background:conic-gradient(${grad})"></div><div class="legend">${ents.map(([k,v],i)=>`<div><i style="background:${cols[i]}"></i>${k} ${Math.round(v/tot*100)}%</div>`).join('')}</div></div></div></div>
+ <div class="g2" style="margin-top:14px"><div class="card"><h3>기간별 추이</h3><svg viewBox="0 0 400 170" style="width:100%"><polyline points="${poly}" fill="none" stroke="#0f766e" stroke-width="3"/>${pts.map((v,i)=>`<circle cx="${20+i*60}" cy="${150-v/mx*120}" r="4" fill="#0f766e"/><text x="${20+i*60}" y="166" font-size="10" text-anchor="middle" fill="#6b7785">${i+1}${D.period==='월'?'주':'일'}</text>`).join('')}</svg></div>
+ <div class="card"><h3>상담 수요 vs 실제 판매</h3><p class="sub">상담에서 많이 물어본 부품과 실제 판매</p>${D.demand.map(([n,a,b])=>`<div class="hbar"><span>${n} 상담</span><span class="t"><i style="width:${a/64*100}%"></i></span><span>${Math.round(a*f)}</span></div><div class="hbar"><span>${n} 판매</span><span class="t"><i class="b" style="width:${b/64*100}%"></i></span><span>${Math.round(b*f)}</span></div>`).join('')}<div class="card" style="margin-top:10px;background:var(--acbg);border:none"><small>견적 → 구매 전환율</small><div style="font-size:24px;font-weight:800;color:var(--ac)">34.8%</div></div></div></div>`}
+function issueP(){const L=D.live;const cols=['받음','분류됨','처리 중','완료'];
+ return `<h2>상담 · 이슈 현황</h2><p class="sub">실시간 모니터링</p><div class="counters">${[['상담 중',L.now],['대기',L.wait],['오늘 완료',L.done]].map(([t,v])=>`<div class="card kpi"><small>${t}</small><div class="n">${v}</div></div>`).join('')}</div>
+ <div class="kanban">${cols.map((c,ci)=>`<div class="col"><h4>${c}<span>${D.issues.filter(x=>x.col===ci).length}</span></h4>${D.issues.filter(x=>x.col===ci).map(x=>`<div class="kc ${x.anim||''}" onclick="issueModal('${x.id}')"><span class="type ${x.type}">${x.type}</span> <b>${x.id}</b><div style="margin:6px 0">${x.sum}</div><small class="sub">${x.cust} · 담당 ${x.owner}</small></div>`).join('')}</div>`).join('')}</div>`}
+function issueModal(id){const x=D.issues.find(i=>i.id===id);x.anim='';D.modal=`<div class="modal-bg" onclick="D.modal=null;render()"><div class="modal" onclick="event.stopPropagation()"><h3><span class="type ${x.type}">${x.type}</span> ${x.id} · ${x.sum}</h3><div class="sumcard" style="margin-bottom:10px"><b>상담 요약</b> ${x.cust} 고객 · ${x.sum}<br><b>업무 보조 에이전트 처리 제안</b> ${x.type==='클레임'?'교환 절차 안내 + 회수 택배 접수, 사과 쿠폰 검토':x.type==='오류'?'개발팀 오류 접수 후 고객에게 임시 PDF 재발송':'FAQ 답변 링크 발송'}</div><p class="sub">담당: ${x.owner} · 상태: ${['받음','분류됨','처리 중','완료'][x.col]}</p><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="assign('${x.id}')">담당자 지정</button><button class="btn pri" onclick="finish('${x.id}')">완료 처리</button></div></div></div>`;render()}
+function assign(id){const x=D.issues.find(i=>i.id===id);x.owner=D.role==='상담원'?D.user:'이상담';if(x.col<2)x.col=2;x.anim='move';setTimeout(()=>x.anim='',800);D.modal=null;toast(x.id+' 담당자: '+x.owner);render()}
+function finish(id){const x=D.issues.find(i=>i.id===id);x.col=3;x.anim='move';setTimeout(()=>x.anim='',800);D.modal=null;D.kpi.pending=Math.max(0,D.kpi.pending-1);D.live.done++;feed('이슈 '+x.id+' 처리 완료');toast(x.id+' 완료 처리');render()}
+function docsP(){return `<h2>문서 · 정책 관리</h2><p class="sub">올린 문서는 상담 에이전트가 참고합니다(RAG)</p><div class="g2"><div class="card"><div style="display:flex;justify-content:space-between"><h3>문서 목록</h3><button class="btn pri sm" onclick="upload()">문서 올리기</button></div><table><thead><tr><th>제목</th><th>수정일</th><th>상태</th></tr></thead><tbody>${D.docs.map((d,i)=>`<tr><td>${d.t}</td><td>${d.d}</td><td>${d.ok?'<span class="st">상담 에이전트 반영됨</span>':`<span class="st w">반영 중…</span><div class="prog"><i id="pg${i}"></i></div>`}</td></tr>`).join('')}</tbody></table></div>
+ <div class="card"><h3>판매 정책</h3><label class="sub">배송비 (원)</label><input id="ship" type="number" value="${D.policy.ship}" style="width:100%;margin:4px 0 12px"><label class="sub">할인율 (%)</label><input id="disc" type="number" value="${D.policy.disc}" style="width:100%;margin:4px 0 12px"><button class="btn pri" onclick="D.policy={ship:+ship.value,disc:+disc.value};toast('견적에 반영되었습니다')">저장</button></div></div>`}
+function upload(){const i=D.docs.length;D.docs.push({t:'신규 AS 정책 (11/18 개정).pdf',d:'11/18',ok:false});render();requestAnimationFrame(()=>{const p=document.getElementById('pg'+i);if(p)p.style.width='100%'});setTimeout(()=>{D.docs[i].ok=true;toast('상담 에이전트 반영 완료');if(D.menu==='docs')render()},2100)}
+function staffP(){return `<h2>직원 관리</h2><p class="sub">상담원 계정 승인 · 역할 변경</p><div class="card"><table><thead><tr><th>이름</th><th>아이디</th><th>역할</th><th>상태</th><th></th></tr></thead><tbody>${D.staff.map((s,i)=>`<tr><td>${s.n}</td><td>${s.id}</td><td>${s.r}</td><td><span class="st ${s.s==='승인 대기'?'w':s.s==='비활성'?'g':''}">${s.s}</span></td><td>${s.s==='승인 대기'?`<button class="btn sm pri" onclick="D.staff[${i}].s='활성';toast('${s.n} 계정을 승인했습니다');render()">승인</button> `:''}${i?`<button class="btn sm" onclick="D.staff[${i}].r=D.staff[${i}].r==='상담원'?'관리자':'상담원';render()">역할 변경</button> <button class="btn sm" onclick="D.staff[${i}].s='비활성';render()">비활성화</button>`:''}</td></tr>`).join('')}</tbody></table></div>`}
+const POS={counter:[100,120],handoff:[350,120],support:[600,120],이슈:[572,318],클레임:[642,318],오류:[712,318],door:[10,330]};
+function officeP(){const O=D.office;const room=(x,lab,ic,i,name)=>`<div class="room" style="left:${x}px"><span class="lab">${lab}</span>${O.bubble[i]?`<div class="bubble">${O.bubble[i]}</div>`:''}<div class="agent ${O.busy[i]?'busy':''}" onclick="agentCard(${i})">${ic}</div><div class="desk"></div><div class="aname">${name}</div></div>`;
+ return `<h2>2D 오피스</h2><p class="sub">최고 관리자 시점 · 보기 전용 (처리는 고객 정보 · 상담·이슈 현황에서)</p><div style="display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px"><div style="overflow-x:auto"><div class="office" id="office">${room(40,'상담 창구','🤖',0,'상담 에이전트')}${room(290,'전달 데스크','📨',1,'전달 에이전트')}${room(540,'업무 보조 부서','🗂️',2,'업무 보조 에이전트')}
+ <div class="guest" id="guest" style="left:${O.guest?60:-40}px;top:250px;opacity:${O.guest?1:0}">🧑</div>
+ <div class="drawers">${['이슈','클레임','오류'].map(k=>`<div class="drawer ${O.hit===k?'hit':''}">🗄️<span>${k}</span></div>`).join('')}</div>
+ ${O.doc?`<div class="doc" id="doc" style="left:${POS[O.doc.at][0]}px;top:${POS[O.doc.at][1]}px" onclick="docCard()">📄</div>`:''}<div id="ocard"></div></div></div>
+ <div class="card"><h3>작업 로그</h3><div class="olog" id="olog">${O.log.map(l=>`<div>${l}</div>`).join('')}</div></div></div>`}
+function drawOffice(){const el=document.getElementById('olog');if(el)el.scrollTop=1e6}
+function agentCard(i){const t=[['상담 에이전트','손님과 상담 중',D.office.guest?'상담 #'+(D.nextC-1)+' 진행 중':'대기 중'],['전달 에이전트','상담 요약 작성·전달',D.office.doc?'서류 '+D.office.doc.no+' 처리':'대기 중'],['업무 보조 에이전트','이슈·클레임 분류·처리 제안','처리 대기 '+D.kpi.pending+'건']][i];showOcard(`<b>${t[0]}</b><br>${t[1]}<br>현재: ${t[2]}`)}
+function docCard(){const d=D.office.doc;showOcard(`<b>서류 ${d.no}</b><br>상태: ${d.state}<br>${d.sum}<br><button class="btn sm" style="margin-top:6px" onclick="go('issue')">처리함에서 보기</button>`)}
+function showOcard(h){const c=document.getElementById('ocard');if(!c)return;c.innerHTML=`<div class="ocard" style="left:250px;top:300px">${h}<div style="text-align:right"><button class="btn ghost" onclick="this.closest('.ocard').remove()">닫기</button></div></div>`}
+function officeOn(){return D.menu==='office'&&document.getElementById('office')}
+function moveDoc(at){D.office.doc.at=at;const e=document.getElementById('doc');if(e){e.style.left=POS[at][0]+'px';e.style.top=POS[at][1]+'px'}}
+function bump(key){const e=document.getElementById('k-'+key);if(e){e.innerHTML=D.kpi[key]+'<small> 건</small>';e.classList.add('bump');setTimeout(()=>e.classList.remove('bump'),600)}}
+function rr(){if(D.menu!=='office')render();else{const k=document.getElementById('office');if(!k)render()}}
+async function evConsult(){const n=D.nextC++;D.kpi.consult++;D.live.now++;feed('상담 #'+n+' 시작');dot('home');dot('issue');D.office.guest=true;D.office.busy[0]=1;olog('상담 #'+n+' 손님 입장');
+ if(D.menu==='office'){render()}else rr();bump('consult');
+ const lines=['안녕하세요! 어떤 PC가 필요하세요?','손님: 로컬에서 LLM 돌릴 PC요','예산이 어떻게 되세요?','손님: 200만 원 정도요'];
+ for(const l of lines){await sleep(900);D.office.bubble[0]=l;if(D.menu==='office')render()}
+ olog('상담 에이전트: 조건 정리 완료 (예산 200만 원 · AI 개발)')}
+async function evHandoff(){const n=D.nextC-1;D.office.bubble[0]='';D.office.busy=[0,1,0];D.office.doc={no:'#'+n,at:'counter',state:'요약 작성',sum:'요약: LLM용 PC · 예산 200만 원'};olog('상담 #'+n+' 종료 → 전달 데스크로 서류 이동');if(D.menu==='office')render();await sleep(80);moveDoc('handoff');
+ await sleep(1100);D.office.bubble[1]='요약 서류 작성 완료';D.office.doc.state='받음';const c=D.customers[0];c.summary={req:'로컬 LLM 실행용 PC, 예산 200만 원',rec:'라이젠 7급 + RTX 4070급 구성 (견적 2,150,000원)',chk:'예산 15만 원 초과 → 할인 정책 안내 필요',t:now()};
+ feed('상담 #'+n+' 요약이 고객센터로 전달됨');dot('cust');olog('전달 에이전트: '+c.id+' 고객에게 상담 요약 카드 추가');D.office.guest=false;if(D.menu==='office')render();else rr()}
+async function evClaim(){const id='I-'+(D.nextI++);if(!D.office.doc)D.office.doc={no:'#'+(D.nextC-1),at:'handoff',state:'받음',sum:''};D.office.doc.sum='클레임: 받은 그래픽카드에서 소음';D.office.doc.state='분류 중';D.office.busy=[0,0,1];D.office.bubble[1]='';olog('전달 데스크 → 업무 보조 부서로 서류 이동');if(D.menu==='office')render();await sleep(80);moveDoc('support');
+ await sleep(1100);D.office.bubble[2]='클레임으로 분류할게요';if(D.menu==='office')render();await sleep(80);moveDoc('클레임');await sleep(1000);D.office.hit='클레임';D.office.doc.state='분류됨';olog('업무 보조 에이전트: '+id+' 클레임 서랍으로 분류');
+ D.issues.push({id,type:'클레임',cust:'C-1001',sum:'받은 그래픽카드에서 소음',owner:'-',col:0,anim:'new'});dot('issue');rr();if(D.menu==='office')render();
+ await sleep(1500);const x=D.issues.find(i=>i.id===id);x.col=1;x.anim='move';setTimeout(()=>x.anim='',800);D.kpi.pending++;feed('클레임 '+id+' 분류됨 (업무 보조 에이전트)');dot('home');D.office.hit=null;D.office.busy=[0,0,0];D.office.bubble[2]='';D.office.doc=null;if(D.menu==='office')render();else rr();bump('pending')}
+function evAbuse(){D.abuseList.unshift({cust:'C-1012',text:'상담원 *** 진짜 답답하네 ***',t:now()});D.kpi.abuse++;toast('욕설이 감지되었습니다',true);feed('욕설 감지: C-1012 (자동)');dot('cust');dot('home');rr();bump('abuse')}
+function evSale(){const i=Math.random()<.5?5:2;D.parts[i][2]+=9;D.kpi.sales++;feed('판매: '+D.parts[i][0]+' 9건');dot('sales');dot('home');rr();bump('sales')}
+async function press(sel,me){for(let i=0;i<40&&!document.querySelector(sel);i++)await w(100,me);const el=document.querySelector(sel);if(!el)return;el.classList.add('press');await w(400,me);el.click()}
+async function w(ms,me){await sleep(ms);if(me!==RUN)throw 'stop'}
+async function autoAll(){const me=RUN={};try{
+ await press('[data-a="m-office"]',me);await w(500,me);await evConsult();await w(1000,me);await evHandoff();await w(900,me);await evClaim();await w(1500,me);
+ await press('[data-a="m-issue"]',me);await w(2200,me);
+ await press('[data-a="m-cust"]',me);await w(600,me);evAbuse();await w(1300,me);await press('[data-a="tab-abuse"]',me);await w(2000,me);
+ D.custTab='list';render();await w(400,me);await press('[data-a="row-C-1001"]',me);await w(2500,me);D.sel=null;
+ if(isAdmin()){await press('[data-a="m-sales"]',me);await w(800,me);evSale();await w(800,me);evSale();await w(1500,me)}
+ await press('[data-a="m-home"]',me);toast('시나리오 끝')}catch(e){if(e!=='stop')console.log(e)}}
+function resetAll(){RUN={};const u=D.user,r=D.role;D=mk();if(u){D.user=u;D.role=r;D.company='가상전자';D.authMode='biz'}render()}
+D=mk();render();
+</script>
+</body>
+</html>
