@@ -1,14 +1,19 @@
-/* Application shell. Feature surfaces live alongside their components. */
+/* TailAdmin (MIT) sidebar grouping adapted within this shell; pc-consult/THIRD_PARTY_NOTICES.md. */
 :root {
-  --bg: #f6f7f4;
+  --bg: #f5f7f5;
   --panel: #ffffff;
-  --line: #dfe5dd;
-  --text: #20382f;
-  --muted: #56625b;
-  --accent: #245d46;
+  --line: #e0e7e2;
+  --text: #203b31;
+  --muted: #62746a;
+  --accent: #28674f;
+  --accent-soft: #e7f1e9;
+  --surface-soft: #f1f5f1;
+  --shadow-panel: 0 4px 24px #203b3105;
+  --shadow-raised: 0 12px 36px #203b310d;
+  --radius-panel: 18px;
   --ok: #367b5c;
   --warn: #94641e;
-  --bad: #b74c4c;
+  --bad: #b34a4a;
   /* 상태 신호: 진행 중 파랑 하나가 신호색, 나머지는 의미색. 글자와 바탕 대비 4.5:1 이상 */
   --st-run: #1f63c6;
   --st-run-ink: #ffffff;
@@ -60,8 +65,8 @@ time {
   font-variant-numeric: tabular-nums;
 }
 ::selection {
-  color: #20382f;
-  background: #dce9d2;
+  color: var(--text);
+  background: var(--accent-soft);
 }
 button,
 input,
@@ -84,7 +89,7 @@ button:disabled {
   opacity: 0.45;
 }
 :focus-visible {
-  outline: 2px solid #245d46;
+  outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
 a {
@@ -92,6 +97,7 @@ a {
 }
 .app-shell {
   padding-left: 80px;
+  min-height: 100dvh;
 }
 main {
   max-width: 1660px;
@@ -110,8 +116,8 @@ main {
   flex-direction: column;
   align-items: center;
   width: 80px;
-  border-right: 1px solid #e2e7df;
-  background: #ffffff;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
 }
 .brand {
   display: grid;
@@ -124,9 +130,9 @@ main {
   place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 8px;
-  color: #ffffff;
-  background: #245d46;
+  border-radius: 12px;
+  color: var(--panel);
+  background: var(--accent);
 }
 .workspace-nav {
   display: flex;
@@ -144,7 +150,7 @@ main {
   min-height: 60px;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #56625b;
+  color: var(--muted);
   font-size: var(--fs-12);
   font-weight: 400;
   line-height: 1.35;
@@ -155,13 +161,13 @@ main {
     border-color 160ms;
 }
 .workspace-nav a:hover {
-  color: #20382f;
-  background: #f3f6ef;
+  color: var(--text);
+  background: var(--surface-soft);
 }
 .workspace-nav a[aria-current] {
-  border-color: #d9e5d1;
-  color: #245d46;
-  background: #edf3e7;
+  border-color: var(--line);
+  color: var(--accent);
+  background: var(--accent-soft);
   font-weight: 700;
 }
 .workspace-nav svg {
@@ -567,14 +573,155 @@ main {
   background: var(--panel);
   padding: 6px 10px;
 }
+.shell-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.shell-user-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-style: normal;
+  font-weight: 700;
+}
+.shell-user strong,
+.shell-user small {
+  display: block;
+}
+.shell-user strong {
+  font-size: 13px;
+}
+.shell-user small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
 .shell-menu-toggle {
   display: none;
 }
 .app-shell-business {
-  padding-left: 184px;
+  /* TailAdmin (MIT) grouped sidebar adapted to the existing shell; see pc-consult/THIRD_PARTY_NOTICES.md. */
+  padding-left: 216px;
+  position: relative;
+  min-height: 100dvh;
+}
+.app-shell-business::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 216px;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  pointer-events: none;
 }
 .app-shell-business .app-rail {
-  width: 184px;
+  width: 216px;
+  height: 100dvh;
+  overflow-y: auto;
+  background: var(--panel);
+  align-items: stretch;
+}
+.app-shell-business .brand {
+  display: flex;
+  gap: 11px;
+  justify-content: start;
+  height: 76px;
+  padding: 0 18px;
+}
+.rail-wordmark {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+}
+.app-shell-business .business-nav {
+  display: block;
+  margin: 0;
+  padding: 0 12px 24px;
+}
+.shell-company-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  margin-bottom: 20px;
+}
+.shell-company-card > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  color: var(--accent);
+  background: var(--team-quotation-bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.shell-company-card strong {
+  font-size: 13px;
+}
+.shell-company-card small {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 4px;
+  color: var(--muted);
+}
+.shell-nav-group {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 12px;
+  margin: 20px 0 8px;
+}
+.shell-nav-entry {
+  min-width: 0;
+}
+.shell-nav-entry button {
+  width: 100%;
+}
+.shell-rail-note {
+  padding: 20px 10px;
+  margin-top: 24px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+.shell-rail-note small {
+  display: block;
+  margin-top: 12px;
+  font-size: 12px;
+}
+.app-shell-business .top {
+  min-height: 76px;
+}
+.app-shell-business .brand-wordmark h1,
+.app-shell-business .header-divider {
+  display: none;
+}
+.app-shell-business .header-context {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text);
+}
+.app-shell-business .top .badge {
+  display: none;
+}
+.app-shell-business .shell-account > span {
+  max-width: 270px;
+  overflow-wrap: anywhere;
 }
 .business-nav {
   width: 100%;
@@ -585,10 +732,10 @@ main {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 52px;
+  min-height: 46px;
   padding: 10px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
   color: var(--muted);
   text-align: left;
@@ -599,9 +746,13 @@ main {
 }
 .business-nav button:hover,
 .business-nav button[aria-current] {
-  background: #edf3e7;
-  border-color: #d9e5d1;
+  background: var(--accent-soft);
+  border-color: transparent;
   color: var(--accent);
+}
+.business-nav button[aria-current] {
+  font-weight: 700;
+  box-shadow: inset 3px 0 var(--accent);
 }
 .shell-unread {
   width: 7px;
@@ -613,6 +764,9 @@ main {
 @media (min-width: 760px) and (max-width: 1199px) {
   .app-shell-business {
     padding-left: 80px;
+  }
+  .app-shell-business::before {
+    width: 80px;
   }
   .app-shell-business .app-rail {
     width: 80px;
@@ -627,13 +781,41 @@ main {
     font-size: var(--fs-12);
     text-align: center;
   }
+  .app-shell-business .business-nav {
+    padding: 0 4px 16px;
+  }
+  .shell-company-card,
+  .shell-rail-note {
+    display: none;
+  }
+  .shell-nav-group {
+    text-align: center;
+    padding: 0;
+    margin: 12px 0 4px;
+  }
+  .app-shell-business .brand {
+    padding: 0;
+    justify-content: center;
+  }
+  .rail-wordmark {
+    display: none;
+  }
 }
 @media (max-width: 759px) {
   .app-shell-business {
     padding-left: 0;
   }
+  .app-shell-business::before {
+    display: none;
+  }
   .app-shell-business .app-rail {
     width: 100%;
+    position: relative;
+    inset: auto;
+    height: auto;
+    min-height: 62px;
+    padding-bottom: 0;
+    overflow: visible;
   }
   .app-shell-business .app-rail.rail-expanded {
     z-index: 60;
@@ -649,6 +831,9 @@ main {
   .business-nav {
     display: none;
   }
+  .app-shell-business .business-nav {
+    display: none;
+  }
   .rail-expanded .business-nav {
     display: grid;
     position: absolute;
@@ -660,6 +845,19 @@ main {
     box-shadow: 0 -8px 24px #20382f18;
     max-height: 75svh;
     overflow-y: auto;
+  }
+  .app-shell-business .rail-expanded .business-nav {
+    display: block;
+    position: static;
+    max-height: none;
+    box-shadow: none;
+  }
+  .shell-company-card,
+  .shell-rail-note {
+    display: none;
+  }
+  .shell-nav-group {
+    margin: 10px 0 4px;
   }
   .shell-account {
     order: 4;
@@ -943,6 +1141,131 @@ tfoot th {
   .workspace-nav a,
   .top-replay {
     transition: none;
+  }
+}
+/* The consultation shell shares the office palette with more space for the current decision. */
+.app-shell-personal > main {
+  max-width: 1512px;
+  padding-inline: 32px;
+}
+.app-shell-personal .top {
+  min-height: 76px;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.app-shell-personal .top .header-context,
+.app-shell-personal .top .header-divider,
+.app-shell-personal .shell-account > span {
+  display: none;
+}
+.app-shell-personal .brand-wordmark {
+  flex: 1;
+}
+.app-shell-personal .brand-wordmark h1 {
+  font-size: 19px;
+  letter-spacing: -0.8px;
+}
+.app-shell-personal .top .company {
+  order: 1;
+  font-size: 12px;
+}
+.app-shell-personal .top .shell-account {
+  order: 2;
+}
+.app-shell-personal .top .company select {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  height: 38px;
+  font-size: 12px;
+}
+.app-shell-personal .connection {
+  font-size: 12px;
+  background: transparent;
+}
+.app-shell-personal .badge {
+  font-size: 12px;
+  height: 24px;
+}
+.app-shell-personal .app-rail {
+  border-color: var(--line);
+}
+.app-shell-personal .workspace-nav a {
+  border-radius: 12px;
+  margin-block: 3px;
+}
+.app-shell-personal .workspace-footer {
+  margin-top: 36px;
+  font-size: 12px;
+}
+.entry-shell {
+  display: grid;
+  align-items: center;
+  max-width: none;
+  min-height: 100svh;
+  padding: 24px;
+  background: #f5f7f2;
+}
+.entry-shell .shell-entry {
+  width: 100%;
+  min-width: 0;
+}
+.entry-shell .pc-start {
+  margin-block: 0;
+}
+@media (max-width: 1199px) {
+  .app-shell-personal > main {
+    padding-inline: 22px;
+  }
+  .app-shell-personal .connection {
+    display: none;
+  }
+}
+@media (max-width: 759px) {
+  .app-shell-personal > main {
+    padding-inline: 12px;
+  }
+  .app-shell-personal .top {
+    min-height: 100px;
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+  .app-shell-personal .top::after {
+    display: none;
+  }
+  .app-shell-personal .top .shell-account {
+    margin-left: auto;
+  }
+  .app-shell-personal .top .badge {
+    order: 3;
+  }
+  .app-shell-personal .top .company {
+    order: 4;
+    width: 100%;
+    margin-top: 0;
+    gap: 8px;
+  }
+  .app-shell-personal .top .company select {
+    min-height: 40px;
+  }
+  .app-shell-personal .brand-wordmark {
+    flex: 1 1 100px;
+    min-height: 40px;
+  }
+  .app-shell-personal .shell-account {
+    font-size: 12px;
+    width: auto;
+    margin-top: 0;
+  }
+  .entry-shell {
+    display: block;
+    padding: 0;
+  }
+  .app-shell-business .brand-wordmark h1 {
+    display: block;
+  }
+  .app-shell-business .header-context {
+    display: none;
   }
 }
 @media print {

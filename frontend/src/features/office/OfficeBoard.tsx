@@ -1,9 +1,10 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { Team } from "../../api/client";
 import { OfficeScene } from "./OfficeScene";
+import { OfficeTeamDetail } from "./OfficeTeamDetail";
 import { latestQuote, runStopped, teamHalted, validators } from "./officeCues";
 import { teamNotesForOffice } from "./officeNotes";
-import { clockText, eventClock, teamPreview, type ElapsedKind } from "./officePreview";
+import { clockText, teamPreview, type ElapsedKind } from "./officePreview";
 import {
   STATUS_LABELS,
   TEAM_LABELS,
@@ -121,7 +122,6 @@ export function OfficeBoard({ state, onRetry }: Props) {
   const [focusedTeam, setFocusedTeam] = useState<Team | null>(null);
   const [tappedTeam, setTappedTeam] = useState<Team | null>(null);
   const boardRef = useRef<HTMLElement>(null);
-  const detailRef = useRef<HTMLDivElement>(null);
   const roomRefs = useRef<Partial<Record<Team, HTMLButtonElement | null>>>({});
   const titleId = useId();
   const detailId = useId();
@@ -151,11 +151,6 @@ export function OfficeBoard({ state, onRetry }: Props) {
     if (open) roomRefs.current[open]?.focus();
     setOpen(null);
   }
-
-  useEffect(() => {
-    // The record opens in place; it never scrolls the page.
-    if (open) detailRef.current?.focus({ preventScroll: true });
-  }, [open]);
 
   // Presentation only: pausing or hiding the scene never stops the event stream.
   useEffect(() => {
@@ -280,6 +275,7 @@ export function OfficeBoard({ state, onRetry }: Props) {
               data-testid={`desk-${team}`}
               data-preview={previewState(team)}
               aria-expanded={open === team}
+              aria-haspopup="dialog"
               aria-controls={open === team ? detailId : undefined}
               aria-describedby={previewTeam === team ? previewId : undefined}
               onPointerEnter={(event) => {
@@ -410,50 +406,14 @@ export function OfficeBoard({ state, onRetry }: Props) {
         )}
       </div>
       {open && (
-        <div
-          className="office-detail"
-          ref={detailRef}
+        <OfficeTeamDetail
+          state={state}
+          team={open}
           id={detailId}
-          tabIndex={-1}
-          role="region"
-          aria-labelledby={`${detailId}-title`}
-        >
-          <div className="office-detail-heading">
-            <div>
-              <h3 id={`${detailId}-title`}>{TEAM_LABELS[open]} 작업 기록</h3>
-              <p>요구사항 v{state.version} · 받은 순서대로</p>
-            </div>
-            <button type="button" className="office-detail-close" onClick={closeDetail}>
-              <svg
-                className="office-icon"
-                viewBox="0 0 12 12"
-                width="12"
-                height="12"
-                aria-hidden="true"
-                focusable="false"
-                shapeRendering="crispEdges"
-              >
-                <path d="M0 0h2v2H0Zm10 0h2v2h-2ZM2 2h2v2H2Zm6 0h2v2H8ZM4 4h4v4H4ZM2 8h2v2H2Zm6 0h2v2H8ZM0 10h2v2H0Zm10 0h2v2h-2Z" />
-              </svg>
-              닫기
-            </button>
-          </div>
-          <ol className="desk-log" aria-label={`${TEAM_LABELS[open]} 작업 기록`}>
-            {state.teams[open].log.length === 0 && (
-              <li className="office-detail-empty">아직 기록이 없어요</li>
-            )}
-            {state.teams[open].log.map((event) => (
-              <li key={event.seq}>
-                <time dateTime={event.occurred_at}>{eventClock(event)}</time>
-                <span className={`office-chip chip-${ICON_FOR[event.status]}`}>
-                  <PixelIcon kind={ICON_FOR[event.status]} />
-                  {STATUS_LABELS[event.status]}
-                </span>
-                <span className="office-detail-message">{event.message}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
+          paused={paused}
+          onClose={closeDetail}
+          onSelectTeam={setOpen}
+        />
       )}
     </section>
   );

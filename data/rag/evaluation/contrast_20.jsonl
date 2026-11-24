@@ -1,0 +1,20 @@
+{"id":"contrast-01","group":"seen_passage","question":"MSI 메인보드 CPU 목록에서 프로세서 이름 옆의 펌웨어 조건을 찾아야 해요. 어느 지원표죠?","gold":["JINBONG:CHK-MSI-QVL-002"],"foil":"JINBONG:CHK-CMP-005"}
+{"id":"contrast-02","group":"seen_passage","question":"인텔에서 호환 보드가 뜨긴 했는데 제 MSI 보드에서 CPU 교체 전 확인할 BIOS는 어디에 나와요?","gold":["JINBONG:CHK-MSI-QVL-002"],"foil":"JINBONG:CHK-CMP-002"}
+{"id":"contrast-03","group":"seen_passage","question":"CPU 업그레이드 때 보드별 BIOS 지원표를 제공하는 제조사 사례 하나면 돼요. ASUS와 MSI 중 어디서 찾아요?","gold":["JINBONG:CHK-CMP-005","JINBONG:CHK-MSI-QVL-002"],"foil":"JINBONG:CHK-MSI-QVL-001"}
+{"id":"contrast-04","group":"seen_passage","question":"MSI 호환 페이지에서 메모리 스틱을 검색하려는데 프로세서 목록 옆의 어느 메뉴죠?","gold":["JINBONG:CHK-MSI-QVL-001"],"foil":"JINBONG:CHK-MSI-QVL-002"}
+{"id":"contrast-05","group":"seen_passage","question":"ThinkPad에서 여분의 메모리 자리가 있는지 보고 부품 번호도 대조하려면 어떤 조회 방법을 써요?","gold":["JINBONG:CHK-LNV-001"],"foil":"JINBONG:CHK-ACR-001"}
+{"id":"contrast-06","group":"seen_passage","question":"HP 노트북을 열어서 RAM을 끼우는 순서까지 나오는 모델별 문서가 필요해요.","gold":["JINBONG:CHK-HP-001"],"foil":"JINBONG:CHK-DELL-001"}
+{"id":"contrast-07","group":"seen_passage","question":"리눅스 하위 시스템 없이 Windows에서 CUDA 코드를 빌드할 때 어떤 툴체인이 필요하죠?","gold":["JINBONG:CHK-NV-001"],"foil":"JINBONG:CHK-MS-002"}
+{"id":"contrast-08","group":"seen_passage","question":"Windows 안의 리눅스에서 CUDA 연산을 하려는데 그래픽 드라이버는 어느 회사 것을 준비해요?","gold":["JINBONG:CHK-MS-002"],"foil":"JINBONG:CHK-INT-002"}
+{"id":"contrast-09","group":"seen_passage","question":"윈도우가 인텔 신경망 가속 장치를 잡았는지 OpenVINO 쓰기 전에 어디서 볼까요?","gold":["JINBONG:CHK-INT-002"],"foil":"JINBONG:CHK-MS-001"}
+{"id":"contrast-10","group":"seen_passage","question":"ROCm 설치 명령은 찾았어요. AMD의 지원 표에서 커널·GPU와 함께 맞춰 볼 소프트웨어가 뭐죠?","gold":["JINBONG:CHK-AMD-001"],"foil":"JINBONG:CHK-PT-001"}
+{"id":"contrast-11","group":"heldout_passage","question":"MAG B550 TOMAHAWK에서 22110 SATA 모듈이 들어가는 자리와 짧은 PCIe 전용 자리를 구별하고 싶어요.","gold":["BW20261119:CHK-HW19-006"],"foil":"BW20261119:CHK-HW19-007"}
+{"id":"contrast-12","group":"heldout_passage","question":"MAG B550 TOMAHAWK의 M.2를 한 자리 더 쓰면서 확장 슬롯 두 개도 채우면 어느 슬롯이 멈추죠?","gold":["BW20261119:CHK-HW19-007"],"foil":"BW20261119:CHK-HW19-006"}
+{"id":"contrast-13","group":"heldout_passage","question":"TUF GAMING B550-PLUS에 저장장치를 붙인 뒤 원래 하드 두 개가 안 보여요. 포트 번호를 확인하고 싶어요.","gold":["BW20261119:CHK-HW19-008"],"foil":"BW20261119:CHK-HW19-009"}
+{"id":"contrast-14","group":"heldout_passage","question":"TUF GAMING B550-PLUS에서 짧은 PCIe 슬롯을 쓰면 두 번째 긴 슬롯의 속도는 어떻게 되죠?","gold":["BW20261119:CHK-HW19-009"],"foil":"BW20261119:CHK-HW19-008"}
+{"id":"contrast-15","group":"heldout_passage","question":"Crucial 모듈은 고정했는데 펌웨어 화면의 저장장치 목록에 없어요. 다시 끼워 봐야 해요?","gold":["BW20261119:CHK-HW19-018"],"foil":"BW20261119:CHK-HW19-019"}
+{"id":"contrast-16","group":"heldout_passage","question":"Crucial SSD를 넣기 전부터 소켓 돌기와 홈이 어긋나 있어요. 삽입을 계속해도 될까요?","gold":["BW20261119:CHK-HW19-019"],"foil":"BW20261119:CHK-HW19-018"}
+{"id":"contrast-17","group":"heldout_passage","question":"NH-D15 G2의 앞 팬을 유지하고 높은 메모리를 쓰면 옆판 높이를 얼마나 확보해야 하죠?","gold":["BW20261119:CHK-HW19-020"],"foil":"BW20261119:CHK-HW19-021"}
+{"id":"contrast-18","group":"heldout_passage","question":"NH-D15 계열에서 앞 팬을 아예 뺐을 때 구형과 G2의 남는 RAM 공간을 비교해 주세요.","gold":["BW20261119:CHK-HW19-021"],"foil":"BW20261119:CHK-HW19-020"}
+{"id":"contrast-19","group":"heldout_passage","question":"WD19 뒤쪽 HDMI와 USB-C 영상 단자에 각각 화면을 달면 같이 켜지는지 궁금해요.","gold":["BW20261119:CHK-HW19-029"],"foil":"BW20261119:CHK-HW19-030"}
+{"id":"contrast-20","group":"heldout_passage","question":"WD19로 모니터 한 대를 연결했는데 4K 주사율이 낮아요. 호스트 쪽 링크 종류에 따라 달라지나요?","gold":["BW20261119:CHK-HW19-030"],"foil":"BW20261119:CHK-HW19-029"}

@@ -3,9 +3,11 @@
 From backend/:
     python -m app.rag validate
     python -m app.rag validate --mysql
+    python -m app.rag prepare-dpr --batch-size 4
     python -m app.rag search "MAG B550 TOMAHAWK" --brand MSI
     python -m app.rag tokens
     python -m app.rag index
+    python -m app.rag search "M425R1GB4BB0-CWM 검증 목록 보여줘" --mode auto
     python -m app.rag search "램을 바꾼 뒤 부팅이 안 돼요" --mode hybrid
 """
 
@@ -73,10 +75,12 @@ def validate(mysql: bool) -> tuple[dict, int]:
     return summary, int(verified is not None and bool(verified.unresolved))
 
 
-def _embedder(args):
+def _embedder(args, *, offline: bool = False):
     from app.rag.embeddings import LocalEmbedder
 
-    return LocalEmbedder(cache_dir=args.model_cache, local_files_only=args.local_files_only)
+    return LocalEmbedder(
+        cache_dir=args.model_cache, local_files_only=offline or args.local_files_only
+    )
 
 
 def _index(args) -> tuple[dict, int]:
@@ -113,10 +117,12 @@ def _lookup(args) -> dict:
         for key in ("brand", "category", "topic", "verification_status")
         if getattr(args, key) is not None
     }
-    mode = args.mode or ("hybrid" if args.path or args.collection else "keyword")
+    mode = args.mode or ("auto" if args.path or args.collection else "keyword")
     if mode == "keyword":
         if args.path or args.collection:
-            raise ValueError("--path 및 --collection은 hybrid 또는 vector 모드에서 사용하세요.")
+            raise ValueError(
+                "--path 및 --collection은 auto, hybrid 또는 vector 모드에서 사용하세요."
+            )
         hits = search(build_points(load_corpus()), args.query, filters=filters, limit=args.limit)
         return {"mode": mode, "results": [hit.point.payload for hit in hits]}
 
@@ -131,10 +137,19 @@ def _lookup(args) -> dict:
     with closing(QdrantClient(path=str(path))) as client:
         if not client.collection_exists(collection):
             raise ValueError(f"Qdrant 컬렉션이 없습니다. 먼저 index를 실행하세요: {collection}")
+        store = QdrantStore(client, collection)
+        if mode == "auto":
+            from app.rag.routing import routed_search
+
+            return routed_search(
+                store,
+                args.query,
+                lambda text: _embedder(args, offline=True).embed_query(text),
+                filters=filters,
+                limit=args.limit,
+            )
         query_vector = _embedder(args).embed_query(args.query)
-        hits = QdrantStore(client, collection).search(
-            args.query, query_vector, mode=mode, filters=filters, limit=args.limit
-        )
+        hits = store.search(args.query, query_vector, mode=mode, filters=filters, limit=args.limit)
         return {"mode": mode, "results": [dict(hit.payload, score=hit.score) for hit in hits]}
 
 
@@ -145,6 +160,9 @@ def main(argv: list[str] | None = None) -> int:
     check.add_argument(
         "--mysql", action="store_true", help="설정된 MySQL에서 검토 연결을 읽기 전용으로 대조"
     )
+    prepare = commands.add_parser("prepare-dpr", help="DPR 학습 배치와 BM25 오답 검토 후보 생성")
+    prepare.add_argument("--train", type=Path, help="질문과 정답 문단 키를 담은 학습용 JSONL")
+    prepare.add_argument("--batch-size", type=int, default=4)
     tokens = commands.add_parser("tokens", help="모델 토크나이저로 청크 입력 길이 및 잘림 확인")
     index = commands.add_parser("index", help="청크를 임베딩해 로컬 Qdrant에 저장")
     index.add_argument(
@@ -164,8 +182,9 @@ def main(argv: list[str] | None = None) -> int:
     lookup.add_argument("query")
     lookup.add_argument(
         "--mode",
-        choices=("keyword", "vector", "hybrid"),
-        help="기본값은 keyword이며 --path 또는 --collection 지정 시 hybrid입니다.",
+        choices=("keyword", "vector", "hybrid", "auto"),
+        help="auto는 품번 조회에 정확 일치, 상담에 하이브리드를 사용합니다. "
+        "경로·컬렉션 지정 시 기본 auto, 생략 시 오프라인 keyword입니다.",
     )
     lookup.add_argument("--brand")
     lookup.add_argument("--category")
@@ -176,6 +195,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "validate":
             result, exit_code = validate(args.mysql)
+        elif args.command == "prepare-dpr":
+            from app.rag.evaluate import QUESTIONS
+            from app.rag.training import TRAINING_PILOT, prepare_training
+
+            result = prepare_training(
+                load_corpus(), args.train or TRAINING_PILOT, QUESTIONS, args.batch_size
+            )
+            exit_code = 0
         elif args.command == "tokens":
             result, exit_code = _embedder(args).token_report(load_corpus().chunks), 0
         elif args.command == "index":
