@@ -2,6 +2,7 @@ import type {
   BudgetProposal,
   CandidateRequest,
   CandidateResult,
+  CatalogSummary,
   Category,
   ConfirmPayload,
   ConsultPlan,
@@ -15,6 +16,10 @@ import type {
 } from "../types";
 
 export interface ConsultDataSource {
+  /** 시연 데이터처럼 처음에 읽어 둘 것이 있는 데이터 소스만 구현합니다. */
+  initialize?(): Promise<void>;
+  getCatalogSummary?(): Promise<CatalogSummary>;
+  getDemoSurvey?(): Promise<Survey>;
   searchParts(category: Category, query: string): Promise<Part[]>;
   planConsultation(survey: Survey): Promise<ConsultPlan>;
   getCandidates(
@@ -28,6 +33,7 @@ export interface ConsultDataSource {
     version: number;
     survey: Survey;
     selected: SelectionMap;
+    requestedDiscountPercent?: number;
   }): Promise<Quote>;
   confirmQuote(payload: ConfirmPayload): Promise<SaveReceipt>;
 }

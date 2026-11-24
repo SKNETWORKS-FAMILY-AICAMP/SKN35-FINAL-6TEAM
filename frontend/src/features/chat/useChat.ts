@@ -3,8 +3,11 @@ import type { PcApi } from "../pc-consult/data/apiSource";
 import type { SelectionMap, Survey } from "../pc-consult/types";
 import { chatReducer, initialChatState } from "./chatState";
 
+/** 대화에 필요한 것은 두 가지뿐이라 그만큼만 받습니다(실험 화면이 가짜 api 를 넣을 수 있게). */
+export type ChatApi = Pick<PcApi, "messages" | "send">;
+
 export function useChat(
-  api: PcApi,
+  api: ChatApi,
   context: RefObject<{ survey: Survey | null; selected: SelectionMap }>,
 ) {
   const [chat, dispatch] = useReducer(chatReducer, undefined, initialChatState);
