@@ -28,16 +28,40 @@ export interface RecognitionCallbacks {
   activity: (speaking: boolean) => void;
   ended: () => void;
   failed: (reason: string) => void;
+  /** 있으면 브라우저가 인식을 스스로 끊은 경우(aborted)를 실패 대신 여기로 알립니다. 끼어든 직후 다시 켜는 데 씁니다. */
+  interrupted?: () => void;
+}
+
+export interface SpeakCallbacks {
+  /** 소리가 실제로 나기 시작한 때. 첫 소리 시각을 잽니다. */
+  started?: () => void;
+  ended: () => void;
+  failed: (reason: string) => void;
 }
 
 export interface SpeechAdapter {
   recognitionSupported: boolean;
   synthesisSupported: boolean;
   listen(callbacks: RecognitionCallbacks): () => void;
-  speak(
-    text: string,
-    callbacks: { ended: () => void; failed: (reason: string) => void },
-  ): () => void;
+  speak(text: string, callbacks: SpeakCallbacks): () => void;
+  /** 고를 한국어 목소리가 기기 안 음성인지. 모르면 null. 원격 음성이면 즉시 반응을 기다리지 않고 바로 읽습니다. */
+  voiceLocality?(): "local" | "remote" | null;
+  /** 화면을 열 때 지난 페이지에서 남은 읽기 큐를 비웁니다. */
+  reset?(): void;
+}
+
+/** 시작 신호가 이 안에 없으면 그 문장을 건너뜁니다. */
+export const START_WATCHDOG_MS = 3000;
+/** 끝 신호는 글자 수 × 이 값 + 여유까지 기다립니다. */
+const MS_PER_CHAR = 200;
+const END_SLACK_MS = 3000;
+
+type KoreanVoice = { lang: string; localService?: boolean };
+
+/** 기기 안 한국어 음성을 먼저 고릅니다. 원격 음성은 문장마다 합성 왕복이 붙습니다. */
+function pickKorean<T extends KoreanVoice>(voices: readonly T[]): T | undefined {
+  const korean = voices.filter((voice) => /^ko(?:[-_]|$)/i.test(voice.lang));
+  return korean.find((voice) => voice.localService === true) ?? korean[0];
 }
 
 export function recognitionError(code: string): string {
@@ -61,7 +85,17 @@ export function createBrowserSpeech(): SpeechAdapter {
   const Constructor = browser?.SpeechRecognition ?? browser?.webkitSpeechRecognition;
   const synthesis = browser?.speechSynthesis;
   const synthesisSupported = !!synthesis && typeof SpeechSynthesisUtterance !== "undefined";
+  // Chrome 은 첫 getVoices 호출에서 목록을 불러오기 시작합니다. 첫 답 전에 미리 깨워 둡니다.
+  if (synthesisSupported) synthesis?.getVoices();
   return {
+    voiceLocality() {
+      if (!synthesisSupported || !synthesis) return null;
+      const voice = pickKorean(synthesis.getVoices());
+      return voice ? (voice.localService ? "local" : "remote") : null;
+    },
+    reset() {
+      if (synthesisSupported) synthesis?.cancel();
+    },
     recognitionSupported: !!Constructor,
     synthesisSupported,
     listen(callbacks) {
@@ -94,7 +128,9 @@ export function createBrowserSpeech(): SpeechAdapter {
         if (!stopped) callbacks.activity(false);
       };
       recognition.onerror = ({ error }) => {
-        if (!stopped && error !== "no-speech") callbacks.failed(recognitionError(error));
+        if (stopped || error === "no-speech") return;
+        if (error === "aborted" && callbacks.interrupted) callbacks.interrupted();
+        else callbacks.failed(recognitionError(error));
       };
       recognition.onend = () => {
         if (!stopped) callbacks.ended();
@@ -126,29 +162,50 @@ export function createBrowserSpeech(): SpeechAdapter {
         return () => {};
       }
       let stopped = false;
+      let finished = false;
       let utterance: SpeechSynthesisUtterance | null = null;
+      let watchdog: ReturnType<typeof setTimeout> | undefined;
+      const finish = (report: () => void) => {
+        if (stopped || finished) return;
+        finished = true;
+        clearTimeout(watchdog);
+        report();
+      };
+      // 시작이나 끝 신호가 오지 않으면 그 문장을 건너뜁니다. 읽기 상태에 갇혀 듣기가 다시 안 켜지는 일을 막습니다.
+      const skip = () => {
+        if (stopped || finished) return;
+        synthesis.cancel();
+        finish(callbacks.ended);
+      };
       const speakKorean = () => {
         if (stopped || utterance) return;
-        const korean = synthesis.getVoices().find((voice) => /^ko(?:[-_]|$)/i.test(voice.lang));
+        const korean = pickKorean(synthesis.getVoices());
         if (!korean) return;
         clearTimeout(waitTimer);
         synthesis.removeEventListener("voiceschanged", speakKorean);
         utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "ko-KR";
         utterance.voice = korean;
-        utterance.onend = () => {
-          if (!stopped) callbacks.ended();
+        utterance.onstart = () => {
+          if (stopped || finished) return;
+          clearTimeout(watchdog);
+          watchdog = setTimeout(skip, [...text].length * MS_PER_CHAR + END_SLACK_MS);
+          callbacks.started?.();
         };
-        utterance.onerror = () => {
-          if (!stopped)
+        utterance.onend = () => finish(callbacks.ended);
+        utterance.onerror = () =>
+          finish(() =>
             callbacks.failed(
               "음성 답을 읽지 못했습니다. 화면의 답을 확인하고 음성 답을 다시 켜 주세요.",
-            );
-        };
+            ),
+          );
         try {
           synthesis.speak(utterance);
+          watchdog = setTimeout(skip, START_WATCHDOG_MS);
         } catch {
-          callbacks.failed("음성 읽기를 시작하지 못했습니다. 화면의 답을 확인해 주세요.");
+          finish(() =>
+            callbacks.failed("음성 읽기를 시작하지 못했습니다. 화면의 답을 확인해 주세요."),
+          );
         }
       };
       synthesis.addEventListener("voiceschanged", speakKorean);
@@ -162,13 +219,17 @@ export function createBrowserSpeech(): SpeechAdapter {
       }, 2000);
       speakKorean();
       return () => {
+        const playing = utterance !== null && !finished;
         stopped = true;
         clearTimeout(waitTimer);
+        clearTimeout(watchdog);
         synthesis.removeEventListener("voiceschanged", speakKorean);
         if (utterance) {
+          utterance.onstart = null;
           utterance.onend = null;
           utterance.onerror = null;
-          synthesis.cancel();
+          // 이미 끝난 문장은 다시 cancel 하지 않습니다. 다음 문장이 바로 이어 나올 때 끊기는 일을 막습니다.
+          if (playing) synthesis.cancel();
         }
       };
     },

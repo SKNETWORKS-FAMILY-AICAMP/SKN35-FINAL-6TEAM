@@ -1,0 +1,15 @@
+/* Shared team palette: distinct office colours on warm, light customer and seller surfaces. */
+:root {
+  --team-consultation: #98713e;
+  --team-consultation-ink: #7d5a2c;
+  --team-consultation-bg: #fbf3e5;
+  --team-design: #75629e;
+  --team-design-ink: #5f4d87;
+  --team-design-bg: #f3eff9;
+  --team-validation: #487d94;
+  --team-validation-ink: #356a80;
+  --team-validation-bg: #edf5f7;
+  --team-quotation: #4a8267;
+  --team-quotation-ink: #366e53;
+  --team-quotation-bg: #e9f3ec;
+}

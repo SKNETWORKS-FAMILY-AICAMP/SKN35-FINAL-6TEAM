@@ -1,0 +1,1103 @@
+/* Equal consultation and office surfaces; the entry choices fit above the fold. */
+.layout.integrated-workspace {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 18px 24px;
+  padding-top: 18px;
+  min-width: 0;
+}
+.consultation-topline {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.consultation-topline > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.consultation-topline strong {
+  color: var(--text);
+}
+.consultation-company-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--panel));
+  border-radius: 10px;
+  font-weight: 800;
+}
+.consultation-presence {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+.consultation-presence i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.integrated-workspace .consultation-workspace {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  width: 100%;
+}
+.integrated-workspace[data-layout="intake"] .consultation-workspace {
+  display: contents;
+}
+.integrated-workspace[data-layout="intake"] .consultation-workspace > .office-board {
+  grid-column: 2;
+  grid-row: 2;
+  position: sticky;
+  top: 20px;
+}
+.integrated-workspace[data-layout="intake"] .consultation-workspace > .chat {
+  grid-column: 1;
+  grid-row: 2;
+}
+.integrated-workspace .workspace-results {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+}
+.integrated-workspace .workspace-results[hidden] {
+  display: none;
+}
+.integrated-workspace .results-heading {
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+.integrated-workspace .results-heading h2 {
+  font-size: 15px;
+}
+.integrated-workspace .results-heading p {
+  font-size: 12px;
+}
+.integrated-workspace .workspace-results > .pc-app {
+  container: consult-content / inline-size;
+  padding: 22px;
+  background: var(--panel);
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--text) 4%, transparent);
+}
+.integrated-workspace .office-board {
+  width: 100%;
+  border: 0;
+  border-radius: 22px;
+  padding: 6px 10px 12px;
+  background: var(--panel);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--text) 4%, transparent);
+}
+.integrated-workspace .office-board .office-scene {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.6;
+  border-radius: 8px;
+}
+.integrated-workspace .office-header {
+  gap: 8px;
+  padding: 10px 3px 14px;
+}
+.integrated-workspace .office-header h2 {
+  font-size: 16px;
+}
+.integrated-workspace .office-summary-copy {
+  order: 4;
+  flex-basis: 100%;
+  white-space: normal;
+  font-size: 13px;
+}
+.integrated-workspace .office-motion-button {
+  margin-left: auto;
+  font-size: 11px;
+}
+.integrated-workspace .office-done-count {
+  font-size: 12px;
+}
+.integrated-workspace .office-board .office-room .desk-name {
+  font-size: 12px;
+}
+.integrated-workspace .office-room .desk-status {
+  font-size: 10px;
+}
+.integrated-workspace .office-room .desk-hint {
+  font-size: 11px;
+}
+.integrated-workspace .office-caption {
+  padding-inline: 3px;
+  font-size: 12px;
+}
+.integrated-workspace .panel.consultation-transcript {
+  width: 100%;
+  padding: 24px;
+  gap: 16px;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--text) 4%, transparent);
+  background: var(--panel);
+}
+.integrated-workspace .transcript-header h2 {
+  font-size: 16px;
+}
+.integrated-workspace .voice-console {
+  display: flex;
+  max-height: none;
+  min-height: 0;
+  gap: 12px;
+  background: var(--surface-soft);
+  border: 0;
+  border-radius: 12px;
+  padding: 12px;
+}
+.integrated-workspace .voice-console-copy {
+  flex: 1;
+}
+.integrated-workspace .voice-controls .voice-button-text {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  overflow: visible;
+}
+.integrated-workspace .voice-controls button {
+  width: auto;
+  padding: 0 12px;
+}
+.integrated-workspace .voice-core {
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+}
+.integrated-workspace .voice-core-tile {
+  fill: var(--panel);
+  stroke: transparent;
+}
+.integrated-workspace .voice-indicator {
+  font-size: 14px;
+}
+.integrated-workspace .voice-console-detail {
+  font-size: 12px;
+}
+.integrated-workspace .voice-mic-button {
+  border-radius: 9px;
+  font-size: 12px;
+  min-height: 38px;
+}
+.integrated-workspace .voice-privacy summary {
+  font-size: 11px;
+}
+.integrated-workspace .transcript-conversation {
+  gap: 12px;
+  margin-top: 2px;
+}
+.integrated-workspace .transcript-log,
+.integrated-workspace .chat:has(.pc-intake-slot) .transcript-log {
+  height: auto;
+  min-height: 80px;
+  max-height: 300px;
+  gap: 10px;
+  padding: 4px;
+  overflow: auto;
+}
+.integrated-workspace .transcript-conversation .chat-msg {
+  border: 0;
+  border-radius: 12px;
+  background: var(--bg);
+  padding: 12px 14px;
+  font-size: 13px;
+}
+.integrated-workspace .transcript-conversation .chat-user {
+  background: color-mix(in srgb, var(--accent) 7%, var(--panel));
+}
+.integrated-workspace .transcript-note-group {
+  padding: 10px 0;
+}
+.integrated-workspace .transcript-note-message {
+  font-size: 12px;
+}
+.integrated-workspace .pc-intake-slot {
+  padding-top: 4px;
+  border: 0;
+}
+.integrated-workspace .pc-embedded .pc-main {
+  padding: 24px 0 0;
+  min-height: 0;
+}
+.integrated-workspace .pc-journey {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  justify-content: start;
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+.integrated-workspace .pc-journey > div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  text-align: left;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.integrated-workspace .pc-journey > div::after {
+  display: none;
+}
+.integrated-workspace .pc-journey > div > span {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+.integrated-workspace .pc-type-screen,
+.integrated-workspace .pc-survey,
+.integrated-workspace .pc-review {
+  margin: 0;
+  max-width: none;
+}
+.integrated-workspace .pc-type-screen .pc-page-heading,
+.integrated-workspace .pc-page-heading {
+  margin: 0 0 24px;
+  text-align: left;
+}
+.integrated-workspace .pc-page-heading .pc-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.integrated-workspace .pc-page-heading h1 {
+  font-size: clamp(24px, 2.1vw, 30px);
+  letter-spacing: -0.05em;
+}
+.integrated-workspace .pc-page-heading .pc-muted {
+  font-size: 13px;
+  line-height: 1.7;
+  margin-top: 8px;
+}
+.integrated-workspace .pc-type-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.integrated-workspace .pc-type-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 3px 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: var(--team-consultation-bg);
+  overflow: hidden;
+}
+.integrated-workspace .pc-type-card.pc-type-new {
+  background: var(--accent-soft);
+}
+.integrated-workspace .pc-type-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--text) 5%, transparent);
+}
+.integrated-workspace .pc-type-card > .pc-part-visual {
+  grid-column: 1;
+  grid-row: 1 / 5;
+  width: 76px;
+  height: 88px;
+  margin: 0;
+  background: transparent;
+  border: 0;
+}
+.integrated-workspace .pc-type-card .pc-part-visual-stage {
+  height: 88px;
+  aspect-ratio: auto;
+  border: 0;
+  background: transparent;
+}
+.integrated-workspace .pc-type-card .pc-hardware-art {
+  height: 88px;
+}
+.integrated-workspace .pc-type-icon {
+  width: 72px;
+  height: 72px;
+  background: var(--panel);
+  margin-bottom: 20px;
+}
+.integrated-workspace .pc-type-kicker {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.integrated-workspace .pc-type-card > strong {
+  grid-column: 2;
+  font-size: 18px;
+  margin: 0;
+}
+.integrated-workspace .pc-type-card > .pc-muted {
+  grid-column: 2;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.integrated-workspace .pc-type-detail {
+  grid-column: 2;
+  padding: 0;
+  background: transparent;
+  font-size: 11px;
+  margin: 0;
+}
+.integrated-workspace .pc-type-cta {
+  grid-column: 2;
+  margin-top: 4px;
+  padding-top: 5px;
+  border-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+}
+.integrated-workspace .pc-type-footnote {
+  text-align: left;
+  margin: 18px 0 24px !important;
+}
+.integrated-workspace .pc-form {
+  gap: 20px;
+}
+.integrated-workspace .pc-form > .pc-section {
+  padding: 22px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+.integrated-workspace .pc-form > .pc-section:first-child {
+  padding-top: 0;
+}
+.integrated-workspace .pc-section-heading {
+  margin-bottom: 16px;
+}
+.integrated-workspace .pc-form .pc-section-heading {
+  justify-content: flex-start;
+}
+.integrated-workspace .pc-form .pc-section-heading .pc-required {
+  margin-left: auto;
+}
+.integrated-workspace .pc-section-heading h2 {
+  font-size: 17px;
+}
+.integrated-workspace .pc-section-number {
+  border-radius: 6px;
+  margin-right: 3px;
+}
+.integrated-workspace .pc-field {
+  font-size: 13px;
+}
+.integrated-workspace .pc-budget-input {
+  max-width: 100%;
+  position: relative;
+}
+.integrated-workspace .pc-budget-input > span {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--muted);
+}
+.integrated-workspace .pc-budget-input input {
+  font-size: 26px;
+  padding-block: 14px;
+}
+.integrated-workspace #pc-budget {
+  padding-left: 44px;
+}
+.integrated-workspace .pc-choice {
+  border-radius: 10px;
+  padding: 15px;
+}
+.integrated-workspace .pc-choice strong {
+  font-size: 14px;
+}
+.integrated-workspace .pc-choice small {
+  font-size: 12px;
+  margin-top: 4px;
+}
+.integrated-workspace .pc-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.integrated-workspace .pc-form-grid > :last-child {
+  grid-column: 1 / -1;
+}
+.integrated-workspace .pc-field select {
+  font-size: 13px;
+}
+.integrated-workspace .pc-fineprint,
+.integrated-workspace .pc-notice,
+.integrated-workspace .pc-footnote {
+  font-size: 12px;
+  line-height: 1.75;
+}
+.integrated-workspace .pc-actions {
+  margin-top: 22px;
+}
+.integrated-workspace .pc-button {
+  min-height: 42px;
+  font-size: 13px;
+  border-radius: 9px;
+}
+.integrated-workspace .pc-primary {
+  box-shadow: 0 4px 10px #20382f0c;
+}
+.integrated-workspace .pc-content > .pc-review > .pc-section {
+  background: var(--bg);
+  border: 0;
+}
+.integrated-workspace .pc-summary-grid {
+  gap: 20px;
+}
+.integrated-workspace .pc-summary-grid dt {
+  font-size: 12px;
+}
+.integrated-workspace .pc-summary-grid dd {
+  font-size: 17px;
+}
+.integrated-workspace .pc-steps {
+  padding: 10px 6px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+.integrated-workspace .pc-steps button {
+  font-size: 12px;
+}
+.integrated-workspace .pc-selection > .pc-section-heading {
+  gap: 16px;
+}
+.integrated-workspace .pc-selection h1 {
+  font-size: 25px;
+}
+.integrated-workspace .pc-selection .pc-muted {
+  font-size: 13px;
+  line-height: 1.65;
+}
+.integrated-workspace .pc-list-toolbar > p {
+  font-size: 12px;
+}
+.integrated-workspace .pc-team-status {
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  font-size: 13px;
+}
+.integrated-workspace .pc-demo-label {
+  font-size: 11px;
+}
+.integrated-workspace .pc-validation-list li {
+  font-size: 12px;
+}
+.integrated-workspace .pc-validation-list .pc-status {
+  font-size: 11px;
+}
+.consultation-build-summary {
+  width: 100%;
+}
+.consultation-build-summary .pc-summary-panel {
+  padding: 20px;
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--text) 4%, transparent);
+  position: static;
+}
+.consultation-build-summary .pc-build-list {
+  display: block;
+}
+.consultation-build-summary .pc-build-list > li {
+  padding-block: 11px;
+}
+.consultation-build-summary .pc-summary-header h2 {
+  font-size: 17px;
+}
+.consultation-build-summary .pc-footnote {
+  font-size: 11px;
+}
+.integrated-workspace[data-layout="selection"] .voice-console {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.integrated-workspace[data-layout="selection"] .voice-console-copy {
+  flex: 1 1 130px;
+}
+.integrated-workspace[data-layout="selection"] .voice-controls {
+  margin-left: auto;
+}
+
+/* Product evidence stays visible; the product, price and action form one compact reading row. */
+.integrated-workspace .pc-candidate {
+  border-radius: 16px;
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--text) 3%, transparent);
+}
+.integrated-workspace .pc-recommended {
+  border-width: 1px;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.integrated-workspace .pc-recommendation {
+  padding: 10px 16px;
+  gap: 4px 12px;
+  background: var(--accent-soft);
+  font-size: 11px;
+}
+.integrated-workspace .pc-candidate-main:has(> .pc-part-visual) {
+  grid-template-columns: 104px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 16px;
+}
+.integrated-workspace .pc-candidate-main > .pc-part-visual {
+  grid-row: auto;
+  width: 104px;
+}
+.integrated-workspace .pc-candidate .pc-part-visual-stage,
+.integrated-workspace .pc-quote-product .pc-part-visual-stage {
+  border: 0;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+.integrated-workspace .pc-candidate .pc-product h3 {
+  margin: 4px 0;
+  font-size: 16px;
+  line-height: 1.45;
+  letter-spacing: -0.035em;
+}
+.integrated-workspace .pc-product .pc-eyebrow {
+  font-size: 11px;
+}
+.integrated-workspace .pc-specs {
+  gap: 6px 14px;
+  margin-top: 10px;
+}
+.integrated-workspace .pc-specs small,
+.integrated-workspace .pc-product-meta,
+.integrated-workspace .pc-candidate-price > small,
+.integrated-workspace .pc-source {
+  font-size: 11px;
+}
+.integrated-workspace .pc-specs strong {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 650;
+}
+.integrated-workspace .pc-candidate-price {
+  grid-column: auto;
+  gap: 3px;
+}
+.integrated-workspace .pc-candidate-price > strong {
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+}
+.integrated-workspace .pc-candidate-price .pc-button {
+  min-height: 40px;
+  margin-top: 10px;
+  padding-inline: 12px;
+  font-size: 12px;
+}
+.integrated-workspace .pc-candidate-validation {
+  padding: 14px 16px;
+  border-top: 0;
+  background: color-mix(in srgb, var(--surface-soft) 68%, var(--panel));
+}
+.integrated-workspace .pc-badge-row {
+  margin-bottom: 10px;
+}
+.integrated-workspace .pc-unknown {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--team-consultation-bg) 40%, var(--panel));
+}
+.integrated-workspace .pc-budget-chip {
+  border: 0;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+.integrated-workspace .pc-quote-screen h1 {
+  font-size: 26px;
+  letter-spacing: -0.045em;
+}
+.integrated-workspace .pc-quote-document-head {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  padding: 22px;
+  background: var(--accent-soft);
+  border-bottom: 0;
+}
+.integrated-workspace .pc-quote-document-head h2 {
+  font-size: 18px;
+  line-height: 1.5;
+}
+.integrated-workspace .pc-quote-document-amount {
+  text-align: right;
+}
+.integrated-workspace .pc-quote-document-amount strong {
+  font-size: 30px;
+}
+.integrated-workspace .pc-quote-product-copy > strong {
+  font-size: 14px;
+}
+.integrated-workspace .pc-quote-product .pc-part-visual figcaption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.integrated-workspace .pc-quote-table .pc-quote-product-copy > small,
+.integrated-workspace .pc-quote-photo-notice,
+.integrated-workspace .pc-quote-document-amount small {
+  font-size: 11px;
+}
+.integrated-workspace .pc-quote-checks {
+  padding: 20px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+.integrated-workspace .pc-summary-header {
+  padding-bottom: 14px;
+}
+.integrated-workspace .pc-summary-header .pc-eyebrow {
+  margin-bottom: 4px;
+}
+.integrated-workspace .pc-build-list strong {
+  font-size: 13px;
+}
+.integrated-workspace .pc-build-category,
+.integrated-workspace .pc-build-list small,
+.integrated-workspace .pc-build-list .pc-muted {
+  font-size: 11px;
+}
+.integrated-workspace .pc-totals > div {
+  font-size: 13px;
+}
+
+@media (min-width: 760px) {
+  .integrated-workspace[data-layout="selection"] .pc-journey {
+    padding-bottom: 12px;
+  }
+  .integrated-workspace[data-layout="selection"] .pc-main {
+    padding-top: 16px;
+  }
+  .integrated-workspace .pc-steps {
+    padding: 10px 4px 12px;
+    margin-bottom: 16px;
+  }
+  .integrated-workspace .pc-selection > .pc-section-heading {
+    margin-bottom: 12px;
+  }
+  .integrated-workspace .pc-selection h1 {
+    margin: 6px 0;
+  }
+  .integrated-workspace .pc-selection .pc-section-heading p.pc-muted {
+    margin-top: 4px;
+  }
+  .integrated-workspace .pc-selection .pc-team-status {
+    padding-block: 10px;
+  }
+  .integrated-workspace .pc-selection > .pc-notice {
+    padding: 7px 0;
+    border: 0;
+    background: transparent;
+  }
+  .integrated-workspace .pc-list-toolbar {
+    margin: 10px 0;
+  }
+  .integrated-workspace .pc-criteria {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+  .integrated-workspace .pc-list-title {
+    margin-bottom: 10px;
+  }
+}
+@media (min-width: 1200px) {
+  .consultation-build-summary .pc-build-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+  }
+}
+
+@container consult-content (max-width: 520px) {
+  .integrated-workspace .pc-candidate-main:has(> .pc-part-visual) {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .integrated-workspace .pc-candidate-main > .pc-part-visual {
+    grid-row: 1;
+    width: 96px;
+  }
+  .integrated-workspace .pc-candidate-main:has(> .pc-part-visual) .pc-candidate-price {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    text-align: left;
+    gap: 0 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .integrated-workspace .pc-candidate-price .pc-button {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    margin: 0;
+  }
+}
+@container consult-content (max-width: 400px) {
+  .integrated-workspace .pc-candidate-main:has(> .pc-part-visual) {
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px 12px;
+  }
+  .integrated-workspace .pc-candidate-main > .pc-part-visual {
+    width: 78px;
+  }
+  .integrated-workspace .pc-candidate .pc-product h3 {
+    font-size: 14px;
+  }
+  .integrated-workspace .pc-quote-document-head {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 18px;
+  }
+  .integrated-workspace .pc-quote-document-amount {
+    text-align: left;
+  }
+}
+
+/* A quote is a compact item ledger, including within the half-width workspace. */
+@container quote-document (max-width: 650px) {
+  .integrated-workspace .pc-quote-table tbody tr {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px 14px;
+    padding: 12px 16px;
+  }
+  .integrated-workspace .pc-quote-table:has(.pc-quote-product) td {
+    padding: 0;
+    border: 0;
+  }
+  .integrated-workspace .pc-quote-table td:first-child {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    font-size: 11px;
+  }
+  .integrated-workspace .pc-quote-table td:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .integrated-workspace .pc-quote-table td:nth-child(3) {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+  }
+  .integrated-workspace .pc-quote-table td:last-child {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    text-align: right;
+  }
+  .integrated-workspace .pc-quote-table .pc-quote-product {
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .integrated-workspace .pc-quote-product .pc-part-visual {
+    width: 54px;
+    gap: 0;
+  }
+  .integrated-workspace .pc-quote-product-copy {
+    gap: 2px;
+  }
+  .integrated-workspace .pc-quote-product-copy > strong {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .integrated-workspace .pc-quote-table .pc-button {
+    min-height: 34px;
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+}
+@container quote-document (max-width: 400px) {
+  .integrated-workspace .pc-quote-table tbody tr {
+    gap: 8px 10px;
+    padding: 12px;
+  }
+  .integrated-workspace .pc-quote-table td:first-child,
+  .integrated-workspace .pc-quote-table td:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+  .integrated-workspace .pc-quote-table td:nth-child(3) {
+    grid-column: 1;
+    grid-row: 3;
+    text-align: left;
+  }
+  .integrated-workspace .pc-quote-table td:last-child {
+    grid-column: 2;
+    grid-row: 3;
+  }
+}
+
+@media (max-width: 1199px) and (min-width: 760px) {
+  .layout.integrated-workspace {
+    gap: 18px;
+  }
+  .integrated-workspace .panel.consultation-transcript {
+    padding: 18px;
+  }
+  .integrated-workspace .workspace-results > .pc-app {
+    padding: 20px;
+  }
+  .integrated-workspace .pc-journey > div {
+    flex-direction: column;
+    align-items: start;
+    white-space: normal;
+    font-size: 11px;
+  }
+  .integrated-workspace .pc-choice-grid,
+  .integrated-workspace .pc-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .integrated-workspace .voice-console {
+    flex-wrap: wrap;
+  }
+  .integrated-workspace .voice-console-copy {
+    flex: 1 1 120px;
+  }
+  .integrated-workspace .voice-controls {
+    margin-left: auto;
+  }
+}
+@media (max-width: 759px) {
+  .layout.integrated-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-top: 16px;
+  }
+  .consultation-topline {
+    width: 100%;
+    font-size: 13px;
+  }
+  .consultation-presence {
+    display: none;
+  }
+  .integrated-workspace[data-layout="intake"] .consultation-workspace {
+    display: contents;
+  }
+  .integrated-workspace[data-layout="intake"] .consultation-workspace > .chat {
+    order: 1;
+  }
+  .integrated-workspace[data-layout="intake"] .consultation-workspace > .office-board {
+    order: 2;
+    position: static;
+  }
+  .integrated-workspace .workspace-results {
+    order: 1;
+    width: 100%;
+  }
+  .integrated-workspace[data-layout="selection"] .consultation-workspace {
+    order: 2;
+  }
+  .integrated-workspace .panel.consultation-transcript,
+  .integrated-workspace .workspace-results > .pc-app {
+    padding: 18px 14px;
+    border-radius: 16px;
+  }
+  .integrated-workspace .transcript-header h2 {
+    font-size: 15px;
+  }
+  .integrated-workspace .voice-console {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .integrated-workspace .voice-console-copy {
+    flex: 1 1 150px;
+  }
+  .integrated-workspace .voice-controls {
+    width: 100%;
+  }
+  .integrated-workspace .voice-mic-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .integrated-workspace .pc-journey {
+    gap: 6px;
+    padding-bottom: 16px;
+  }
+  .integrated-workspace .pc-journey > div {
+    flex-direction: column;
+    align-items: center;
+    font-size: 10px;
+    gap: 6px;
+  }
+  .integrated-workspace .pc-page-heading h1,
+  .integrated-workspace .pc-selection h1 {
+    font-size: 24px;
+  }
+  .integrated-workspace .pc-type-card {
+    grid-template-columns: 48px minmax(0, 1fr);
+    padding: 12px;
+    column-gap: 10px;
+  }
+  .integrated-workspace .pc-type-card > .pc-part-visual {
+    width: 48px;
+    height: 70px;
+  }
+  .integrated-workspace .pc-type-card > strong {
+    font-size: 17px;
+  }
+  .integrated-workspace .pc-type-card > .pc-muted {
+    font-size: 12px;
+  }
+  .integrated-workspace .pc-choice-grid,
+  .integrated-workspace .pc-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .integrated-workspace .pc-section-heading {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .integrated-workspace .pc-section-number {
+    flex-shrink: 0;
+  }
+  .integrated-workspace .pc-section-heading .pc-required {
+    font-size: 11px;
+  }
+  .integrated-workspace .pc-budget-input input {
+    font-size: 24px;
+  }
+  .integrated-workspace .pc-steps {
+    margin-bottom: 20px;
+    padding-bottom: 0;
+  }
+  .integrated-workspace .pc-steps button {
+    font-size: 11px;
+  }
+  .integrated-workspace .pc-review .pc-section {
+    padding: 18px 14px;
+  }
+  .integrated-workspace .pc-team-status {
+    font-size: 12px;
+  }
+  .integrated-workspace .pc-demo-label {
+    white-space: normal;
+  }
+  .integrated-workspace .pc-actions {
+    width: 100%;
+  }
+  .integrated-workspace .pc-actions .pc-button {
+    flex: 1;
+  }
+  .integrated-workspace .results-heading p {
+    display: none;
+  }
+}
+/* The first decision takes precedence; voice and the full transcript stay available below it. */
+.integrated-workspace .chat:has(.pc-type-screen) {
+  gap: 12px;
+  padding: 18px;
+}
+.integrated-workspace .chat:has(.pc-type-screen) .transcript-header {
+  order: 0;
+}
+.integrated-workspace .chat:has(.pc-type-screen) .pc-intake-slot {
+  order: 1;
+}
+.integrated-workspace .chat:has(.pc-type-screen) .transcript-voice-section {
+  order: 2;
+}
+.integrated-workspace .chat:has(.pc-type-screen) .transcript-conversation {
+  order: 3;
+  gap: 8px;
+}
+.integrated-workspace .chat:has(.pc-type-screen) .pc-journey {
+  display: none;
+}
+.integrated-workspace .chat:has(.pc-type-screen) .pc-main {
+  padding-top: 4px;
+}
+.integrated-workspace .pc-type-screen .pc-page-heading {
+  margin-bottom: 14px;
+}
+.integrated-workspace .pc-type-screen .pc-page-heading h1 {
+  font-size: 23px;
+  margin: 0;
+}
+.integrated-workspace .pc-type-screen .pc-page-heading .pc-muted {
+  margin-top: 6px;
+}
+.integrated-workspace .chat:has(.pc-type-screen) .transcript-log {
+  min-height: 0;
+  max-height: 80px;
+}
+.integrated-workspace .chat:has(.pc-type-screen) .voice-console {
+  padding: 8px 10px;
+}
+.integrated-workspace details.transcript-history > summary {
+  padding-block: 4px;
+  cursor: pointer;
+}
+.integrated-workspace details.transcript-history[open] > summary {
+  margin-bottom: 8px;
+}
+@media (min-width: 760px) {
+  .layout.integrated-workspace[data-screen="type"] {
+    padding-top: 12px;
+    row-gap: 12px;
+  }
+  .app-shell-personal:has(.pc-type-screen) .workspace-footer {
+    margin-top: 14px;
+    padding-block: 10px;
+  }
+}
+@media (min-width: 760px) and (max-height: 800px) {
+  .layout.integrated-workspace[data-screen="type"] {
+    padding-top: 8px;
+    row-gap: 8px;
+  }
+  .integrated-workspace[data-screen="type"] .consultation-company-mark {
+    width: 24px;
+    height: 24px;
+  }
+  .integrated-workspace .chat:has(.pc-type-screen) {
+    padding: 14px;
+    gap: 8px;
+  }
+  .integrated-workspace .pc-type-card {
+    padding-block: 11px;
+  }
+  .app-shell-personal:has(.pc-type-screen) .workspace-footer {
+    margin-top: 10px;
+    padding-block: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .integrated-workspace *,
+  .integrated-workspace *::before,
+  .integrated-workspace *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

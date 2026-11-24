@@ -1,0 +1,265 @@
+.pc-consult-window {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  width: min(960px, calc(100vw - 48px));
+  height: min(820px, calc(100dvh - 48px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--line));
+  border-radius: 24px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 28px 100px color-mix(in srgb, var(--text) 22%, transparent);
+}
+
+.pc-consult-window[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.pc-consult-window[data-expanded="true"] {
+  width: calc(100vw - 24px);
+  height: calc(100dvh - 24px);
+}
+
+.pc-consult-window::backdrop {
+  background: color-mix(in srgb, var(--text) 23%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.pc-window-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 26px;
+  border-bottom: 0;
+  background: var(--accent-soft);
+}
+
+.pc-window-heading {
+  min-width: 0;
+}
+
+.pc-window-eyebrow {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.pc-window-eyebrow i {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.pc-window-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.04em;
+}
+
+.pc-window-heading p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pc-window-controls {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding-top: 3px;
+}
+
+.pc-window-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pc-window-controls button:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel));
+}
+
+.pc-window-controls svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.pc-window-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pc-window-placeholder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--surface-soft);
+}
+
+.pc-window-placeholder-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 50px;
+  height: 56px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--panel);
+  color: var(--accent);
+}
+
+.pc-window-placeholder-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.pc-window-placeholder-copy {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.pc-window-placeholder-copy > span {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.pc-window-placeholder-copy h2 {
+  margin: 6px 0;
+  font-size: 17px;
+  line-height: 1.45;
+  letter-spacing: -0.035em;
+}
+
+.pc-window-placeholder-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.pc-window-resume {
+  display: flex;
+  flex: 1 0 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pc-window-controls button:focus-visible,
+.pc-window-resume:focus-visible,
+.pc-window-heading h2:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 599px) {
+  .pc-consult-window,
+  .pc-consult-window[data-expanded="true"] {
+    width: calc(100vw - 16px);
+    height: calc(100dvh - 16px);
+    border-radius: 16px;
+  }
+
+  .pc-window-header {
+    position: relative;
+    display: block;
+    padding: 14px 16px;
+  }
+
+  .pc-window-eyebrow {
+    min-height: 32px;
+    margin-bottom: 9px;
+  }
+
+  .pc-window-heading h2 {
+    max-width: calc(100% - 158px);
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    font-size: 17px;
+  }
+
+  .pc-window-heading p {
+    max-width: 28em;
+    font-size: 12px;
+  }
+
+  .pc-window-controls {
+    position: absolute;
+    top: 13px;
+    right: 14px;
+    gap: 4px;
+    padding: 0;
+  }
+
+  .pc-window-controls button {
+    min-height: 32px;
+    padding: 5px 7px;
+    font-size: 11px;
+  }
+
+  .pc-window-controls svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .pc-window-placeholder {
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .pc-window-placeholder-copy {
+    flex-basis: 150px;
+  }
+
+  .pc-window-placeholder-copy h2 {
+    font-size: 16px;
+  }
+}

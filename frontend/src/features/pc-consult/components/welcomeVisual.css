@@ -1,0 +1,70 @@
+/* SVG로 직접 그린 PC 구성 예시. 팬과 조명은 업무 상태와 무관한 장식입니다. */
+.bw-welcome-visual {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.bw-welcome-visual > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  aspect-ratio: 56 / 39;
+  border-radius: 28px;
+}
+.bw-welcome-visual figcaption {
+  margin-top: 10px;
+  color: #708d82;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+.bw-product-fan-rotor {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bw-product-fan-turn 8s linear infinite;
+}
+.bw-product-ring-glow {
+  filter: blur(1.5px);
+}
+.bw-product-ambient {
+  animation: bw-product-light-breathe 7s ease-in-out infinite;
+}
+.bw-product-reflection {
+  animation: bw-product-light-breathe 7s ease-in-out -3.5s infinite;
+}
+.bw-welcome-visual-frameless > svg {
+  border-radius: 0;
+}
+.bw-welcome-visual-frameless .bw-product-ambient,
+.bw-welcome-visual-frameless .bw-product-reflection {
+  opacity: 0.12;
+  animation: none;
+}
+@keyframes bw-product-fan-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes bw-product-light-breathe {
+  50% {
+    opacity: 0.64;
+  }
+}
+@media (max-width: 480px) {
+  .bw-welcome-visual > svg {
+    border-radius: 20px;
+  }
+  .bw-welcome-visual figcaption {
+    margin-top: 8px;
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-welcome-visual * {
+    animation: none !important;
+  }
+}
