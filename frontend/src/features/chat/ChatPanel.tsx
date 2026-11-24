@@ -10,7 +10,9 @@ import { STATUS_LABELS, TEAM_LABELS, type DisplayStatus } from "../office/office
 import { currentQuickReplies, type ChatState } from "./chatState";
 import { consoleDisplay, mergeTranscript, type ConsoleDisplay } from "./transcriptDisplay";
 import { conditionTags, formatMessageTime } from "./transcript";
-import { useVoiceConsultation } from "./useVoiceConsultation";
+import { useVoiceConsultation, type VoiceEngineOptions } from "./useVoiceConsultation";
+import { PAGE_VOICE_FLAGS } from "./voiceFlags";
+import { VoiceTimingPanel } from "./VoiceTimingPanel";
 import "./transcript.css";
 
 interface Props {
@@ -27,11 +29,16 @@ interface Props {
   intakeMode?: boolean;
   /** 시작 단계에서는 대화 기록을 접어 두고 입력칸은 그대로 보여 줍니다. */
   compactWelcome?: boolean;
+  /** 음성 엔진 부품(실험 화면·시험용). 없으면 주소 플래그(?barge-in)와 브라우저 기본값을 씁니다. */
+  voiceEngine?: VoiceEngineOptions;
+  /** 턴 시간 표. 없으면 ?voice-debug 일 때만 보입니다. */
+  showTimings?: boolean;
 }
 
 const PLACEHOLDER = "예: 노트북 추천, 예산 300만 원";
 const EMPTY = "무엇을 도와드릴까요? 사려는 장비 · 예산 · 용도를 말씀해 주세요.";
 const NO_NOTES: TeamNote[] = [];
+const PAGE_ENGINE: VoiceEngineOptions = { bargeIn: PAGE_VOICE_FLAGS.bargeIn };
 // 바닥에서 이만큼 안쪽에 있으면 새 기록이 올 때 따라 내려갑니다.
 const FOLLOW_GAP = 48;
 
@@ -47,16 +54,17 @@ const DISPLAY_LABEL: Record<ConsoleDisplay, string> = {
   done: "답변 준비됨",
 };
 
-function displayDetail(display: ConsoleDisplay, micPaused: boolean): string {
+function displayDetail(display: ConsoleDisplay, micPaused: boolean, bargeIn: boolean): string {
   if (micPaused) {
-    return display === "speaking"
-      ? "마이크 켜짐 · 답 읽기가 끝나면 다시 들어요"
-      : "마이크 켜짐 · 듣기 일시정지";
+    if (display !== "speaking") return "마이크 켜짐 · 듣기 일시정지";
+    return bargeIn
+      ? "마이크 켜짐 · 말씀하시면 읽기를 멈춰요"
+      : "마이크 켜짐 · 답 읽기가 끝나면 다시 들어요";
   }
   switch (display) {
     case "listening":
     case "transcribing":
-      return "말을 멈추고 1초 지나면 보내요";
+      return "말씀을 마치면 바로 보내요";
     case "sending":
       return "글과 선택지로도 이어갈 수 있어요";
     case "speaking":
@@ -155,6 +163,8 @@ export function ChatPanel({
   children,
   intakeMode = false,
   compactWelcome = false,
+  voiceEngine = PAGE_ENGINE,
+  showTimings = PAGE_VOICE_FLAGS.debug,
 }: Props) {
   const History = compactWelcome ? "details" : "div";
   const [text, setText] = useState("");
@@ -163,15 +173,18 @@ export function ChatPanel({
   const [pinRequest, setPinRequest] = useState(false);
   const logRef = useRef<HTMLOListElement>(null);
   const following = useRef(true);
-  const voice = useVoiceConsultation({ chat: state, onSend, disabled });
-  const { phase, micEnabled, speechEnabled, finalText, interimText } = voice.state;
+  const voice = useVoiceConsultation({ chat: state, onSend, disabled, engine: voiceEngine });
+  const { micEnabled, speechEnabled, finalText, interimText, speakingKind } = voice.state;
+  // 즉시 반응을 읽는 동안은 아직 답을 기다리는 중이라 '보내는 중'으로 보여 줍니다.
+  const phase =
+    voice.state.phase === "speaking" && speakingKind === "ack" ? "sending" : voice.state.phase;
   const chips = currentQuickReplies(state);
   const busy = disabled || state.pending !== null;
   const hearing = phase === "listening" || phase === "transcribing";
   const hasVoiceText =
     Boolean(finalText || interimText) && phase !== "sending" && phase !== "speaking";
   const display = consoleDisplay(phase, officeRunStatus);
-  const detail = displayDetail(display, micEnabled && !hearing && phase !== "error");
+  const detail = displayDetail(display, micEnabled && !hearing && phase !== "error", voice.bargeIn);
   const entries = mergeTranscript(state.messages, notes);
   // 팀 기록은 최근 12개까지라 개수가 그대로여도 새 기록이 올 수 있습니다. 마지막 seq 로 봅니다.
   const lastNoteSeq = notes.at(-1)?.seq ?? 0;
@@ -299,7 +312,10 @@ export function ChatPanel({
           <details className="voice-privacy">
             <summary>음성 처리 안내</summary>
             <p>
-              음성은 브라우저 음성 인식으로 글자로 바뀝니다. 녹음 파일은 만들거나 저장하지 않습니다.
+              음성은 Chrome 음성 인식 서비스로 보내 글자로 바꿉니다. 녹음 파일은 만들거나 저장하지
+              않습니다.
+              {voice.bargeIn &&
+                " 끼어들기를 켜면 말소리를 알아채려고 마이크가 계속 켜져 있고, 소리 크기만 브라우저 안에서 확인합니다."}
             </p>
           </details>
         </div>
@@ -313,11 +329,18 @@ export function ChatPanel({
             이 브라우저는 음성 읽기를 지원하지 않습니다. 답변은 글로 표시됩니다.
           </p>
         )}
+        {voice.state.notice && (
+          <p className="voice-help" role="status" data-testid="voice-notice">
+            {voice.state.notice}
+          </p>
+        )}
+        {voice.bargeInError && <p className="voice-help">{voice.bargeInError}</p>}
         {voice.state.error && (
           <p className="voice-error" role="alert">
             {voice.state.error}
           </p>
         )}
+        {showTimings && <VoiceTimingPanel timer={voice.timer} />}
       </div>
       {children}
       <div className="transcript-conversation">

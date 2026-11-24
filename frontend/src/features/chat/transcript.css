@@ -754,3 +754,68 @@
     font-size: 16px;
   }
 }
+
+/* 턴 시간 기록(?voice-debug)과 음성 실험 화면(?voice-lab, 개발 서버 전용) */
+.voice-timing {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--line, #d0d5dd);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.voice-timing-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+.voice-timing-head h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.voice-timing-head button {
+  margin-left: 6px;
+}
+.voice-timing table {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+}
+.voice-timing th,
+.voice-timing td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--line, #d0d5dd);
+  text-align: right;
+}
+.voice-timing th[scope="row"],
+.voice-timing th[scope="col"]:first-child {
+  text-align: left;
+}
+.voice-timing-recent {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+.voice-lab {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.voice-lab-head h1 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+.voice-lab-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 8px 0 12px;
+}
+.voice-lab-controls label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.voice-lab-spoken li[data-cancelled] {
+  text-decoration: line-through;
+}
