@@ -235,6 +235,8 @@ export function SurveyScreen({
   const [errors, setErrors] = useState<FormErrors>({});
   const form = useRef<HTMLFormElement>(null);
   const replacement = survey.mode === "replacement";
+  const showPerformance =
+    !replacement || survey.purposes.includes("gaming") || survey.problems.includes("gaming");
 
   function update(patch: Partial<Survey>, field?: keyof FormErrors) {
     onChange({ ...survey, ...patch });
@@ -361,7 +363,7 @@ export function SurveyScreen({
               </p>
             )}
           </section>
-          {!replacement && (
+          {showPerformance && (
             <section className="pc-section">
               <div className="pc-section-heading">
                 <span className="pc-section-number">03</span>
@@ -407,8 +409,7 @@ export function SurveyScreen({
                 </label>
               </div>
               <p className="pc-notice">
-                사양 하한으로 후보를 찾는 간이 판단이에요. 실제 게임 프레임이나 작업 속도를 보장하지
-                않으며, 적용한 기준은 후보 화면에서 보여드려요.
+                선택한 목표와 후보별 비교 기준은 부품 선택 단계에서 확인할 수 있어요.
               </p>
             </section>
           )}
@@ -421,12 +422,13 @@ export function SurveyScreen({
                 aria-describedby={errors.owned ? "pc-owned-error" : undefined}
               >
                 <div className="pc-section-heading">
-                  <span className="pc-section-number">03</span>
+                  <span className="pc-section-number">{showPerformance ? "04" : "03"}</span>
                   <h2>현재 보유한 부품</h2>
                   <span className="pc-required">필수</span>
                 </div>
                 <p className="pc-muted">
-                  아는 부품부터 선택해 주세요. 입력하지 않은 부품은 확인 불가로 안내해 드려요.
+                  교체할 부품은 검색 결과에서 현재 모델을 선택해 주세요. 함께 사용할 부품도 입력하면
+                  성능 향상과 장착 가능 여부를 확인할 수 있어요.
                 </p>
                 {errors.owned && (
                   <p className="pc-error" id="pc-owned-error">
@@ -452,7 +454,7 @@ export function SurveyScreen({
               </section>
               <section className="pc-section">
                 <div className="pc-section-heading">
-                  <span className="pc-section-number">04</span>
+                  <span className="pc-section-number">{showPerformance ? "05" : "04"}</span>
                   <h2>지금 겪는 문제</h2>
                   <span className="pc-required">필수 · 여러 개 선택 가능</span>
                 </div>
@@ -563,7 +565,9 @@ export function ReviewScreen({
                   .join(" · ")}
               </dd>
             </div>
-            {survey.mode === "new" && (
+            {(survey.mode === "new" ||
+              survey.purposes.includes("gaming") ||
+              survey.problems.includes("gaming")) && (
               <div>
                 <dt>원하는 성능</dt>
                 <dd>
@@ -604,7 +608,6 @@ export function ReviewScreen({
             </>
           )}
         </div>
-        <p className="pc-notice">부품 DB에서 예산에 맞는 후보와 호환성 근거를 조회해요.</p>
         {loading && (
           <p className="pc-muted" role="status">
             설계팀이 부품 DB에서 상담 구성을 확인하고 있습니다.

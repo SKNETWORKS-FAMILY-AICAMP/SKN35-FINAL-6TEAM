@@ -272,6 +272,12 @@ export interface components {
         };
         /** Candidate */
         Candidate: {
+            /**
+             * Cooling Mode
+             * @default purchase
+             * @enum {string}
+             */
+            cooling_mode: "purchase" | "bundled" | "reuse";
             part: components["schemas"]["Part"];
             /** Reason */
             reason: string;
@@ -284,6 +290,7 @@ export interface components {
             budget: components["schemas"]["Money"];
             category: components["schemas"]["Category"];
             color?: components["schemas"]["Text"] | null;
+            cooling?: components["schemas"]["Cooling"] | null;
             /** Note */
             note?: string | null;
             selected: components["schemas"]["Selection"];
@@ -298,6 +305,8 @@ export interface components {
             basis: "api";
             /** Criteria */
             criteria: string[];
+            /** Fans */
+            fans?: components["schemas"]["Part"][];
             /** Missingcolorcount */
             missingColorCount: number;
             /** Needsreview */
@@ -318,6 +327,17 @@ export interface components {
             /** Quote Id */
             quote_id: string;
         };
+        /** Cooling */
+        Cooling: {
+            /** Fans */
+            fans?: components["schemas"]["FanLine"][];
+            /**
+             * Mode
+             * @default purchase
+             * @enum {string}
+             */
+            mode: "purchase" | "bundled" | "reuse";
+        };
         /** EventError */
         EventError: {
             /**
@@ -335,6 +355,12 @@ export interface components {
          * @enum {string}
          */
         EventType: "requirements.updated" | "run.started" | "run.completed" | "run.failed" | "run.needs_input" | "run.needs_revision" | "run.superseded" | "task.started" | "task.progress" | "task.retrying" | "task.completed" | "task.failed" | "task.needs_input" | "order.created";
+        /** FanLine */
+        FanLine: {
+            part_id: components["schemas"]["PositiveId"];
+            /** Quantity */
+            quantity: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -351,6 +377,7 @@ export interface components {
         };
         /** MessageIn */
         MessageIn: {
+            cooling?: components["schemas"]["Cooling"] | null;
             selected?: components["schemas"]["Selection"];
             survey?: components["schemas"]["Survey"] | null;
             /** Text */
@@ -436,6 +463,7 @@ export interface components {
         PositiveId: number;
         /** QuoteIn */
         QuoteIn: {
+            cooling?: components["schemas"]["Cooling"] | null;
             selected: components["schemas"]["Selection"];
             survey: components["schemas"]["Survey"];
             version: components["schemas"]["PositiveId"];
@@ -493,6 +521,7 @@ export interface components {
             budget: components["schemas"]["Money"];
             category: components["schemas"]["Category"];
             color?: components["schemas"]["Text"] | null;
+            cooling?: components["schemas"]["Cooling"] | null;
             /** Note */
             note?: string | null;
             selected: components["schemas"]["Selection"];
@@ -541,6 +570,7 @@ export interface components {
         };
         /** SelectionIn */
         SelectionIn: {
+            cooling?: components["schemas"]["Cooling"] | null;
             selected: components["schemas"]["Selection"];
             survey: components["schemas"]["Survey"];
         };

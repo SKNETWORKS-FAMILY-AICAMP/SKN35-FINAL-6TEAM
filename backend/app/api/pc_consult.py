@@ -80,9 +80,14 @@ def plan(request: Request, session_id: str, body: c.PlanIn):
     with _sessions(request).visit(session_id, request.cookies.get(COOKIE)) as session:
         session.log.current_requirement_version += 1
         session.survey = None
+        session.design.clear()
+        session.assessments.clear()
+        session.candidate_explanations.clear()
         session.draft = session.draft_input = None
         with session.work(Team.consultation, "상담 조건 분석"):
-            result = c.PlanOut.model_validate(_call(service.plan, body.survey.model_dump()))
+            inputs = session.survey_inputs(body.survey)
+            result = c.PlanOut.model_validate(_call(service.plan, inputs))
+            session.design = inputs["_design"]
             session.survey = body.survey
             return result
 
@@ -92,12 +97,21 @@ def candidates(request: Request, session_id: str, body: c.CandidatesIn):
     from app.domains.hardware.pc_consultation import service
 
     with _operation(request, session_id, Team.design, "부품 후보 조회", survey=body.survey) as (
-        _,
+        session,
         stage,
     ):
-        return c.CandidatesOut.model_validate(
-            _call(service.candidates, body.model_dump(), validation_stage=stage)
+        details = {}
+        result = c.CandidatesOut.model_validate(
+            _call(
+                service.candidates,
+                {**body.model_dump(), "survey": session.survey_inputs(body.survey, body.cooling)},
+                validation_stage=stage,
+                explanation=details,
+            )
         )
+        session.candidate_explanations.pop(body.category, None)
+        session.candidate_explanations[body.category] = details
+        return result
 
 
 @router.post("/sessions/{session_id}/validations", response_model=c.ValidationOut)
@@ -106,9 +120,9 @@ def validate(request: Request, session_id: str, body: c.SelectionIn):
 
     with _operation(
         request, session_id, Team.validation, "선택 부품 호환성 검사", survey=body.survey
-    ):
+    ) as (session, _):
         return c.ValidationOut.model_validate(
-            _call(service.validate, body.survey.model_dump(), body.selected)
+            _call(service.validate, session.survey_inputs(body.survey, body.cooling), body.selected)
         )
 
 
@@ -116,9 +130,19 @@ def validate(request: Request, session_id: str, body: c.SelectionIn):
 def rebalance(request: Request, session_id: str, body: c.RebalanceIn):
     from app.domains.hardware.pc_consultation import service
 
-    with _operation(request, session_id, Team.design, "예산 조정안 계산", survey=body.survey):
+    with _operation(request, session_id, Team.design, "예산 조정안 계산", survey=body.survey) as (
+        session,
+        _,
+    ):
         return c.RebalanceOut.model_validate(
-            _call(service.rebalance, body.model_dump(exclude={"amount"}), body.amount)
+            _call(
+                service.rebalance,
+                {
+                    **body.model_dump(exclude={"amount"}),
+                    "survey": session.survey_inputs(body.survey, body.cooling),
+                },
+                body.amount,
+            )
         )
 
 
@@ -128,7 +152,10 @@ def _quote(
     from app.domains.hardware.pc_consultation import service
 
     data = _call(
-        service.quote, body.survey.model_dump(), body.selected, validation_stage=validation_stage
+        service.quote,
+        session.survey_inputs(body.survey, body.cooling),
+        body.selected,
+        validation_stage=validation_stage,
     )
     return c.QuoteOut(
         **data,
@@ -146,6 +173,19 @@ def create_quote(request: Request, session_id: str, body: c.QuoteIn):
     with _sessions(request).visit(session_id, request.cookies.get(COOKIE)) as session:
         session.check_survey(body.survey)
         if session.draft and session.draft_input == body:
+            if (
+                session.draft.status == "DRAFT"
+                and session.draft_preferences != session.candidate_preferences
+            ):
+                with session.work(Team.quotation, "상담 조건으로 견적 재검증") as stage:
+                    checked = _quote(
+                        body, session, session.draft.quote_id, session.draft.created_at, stage
+                    )
+                    if checked != session.draft:
+                        raise HTTPException(
+                            409, "견적 조건이 바뀌었습니다. 새 견적을 만들어 주세요."
+                        )
+                    session.draft_preferences = session.candidate_preferences.copy()
             return session.draft
         expected = session.draft.version + 1 if session.draft else 1
         if body.version != expected:
@@ -153,6 +193,7 @@ def create_quote(request: Request, session_id: str, body: c.QuoteIn):
         with session.work(Team.quotation, "현재 가격으로 견적 계산") as stage:
             draft = _quote(body, session, str(uuid4()), datetime.now(UTC), stage)
             session.draft, session.draft_input = draft, body
+            session.draft_preferences = session.candidate_preferences.copy()
             return draft
 
 
@@ -202,9 +243,13 @@ def send_message(request: Request, session_id: str, body: c.MessageIn):
     ) as (session, _):
         if len(session.messages) >= 200:
             raise HTTPException(429, "이 상담의 대화 한도에 도달했습니다. 새 상담을 시작해 주세요.")
-        survey = session.survey.model_dump() if session.survey else None
+        survey = session.survey_inputs(session.survey, body.cooling) if session.survey else None
         history = [m.model_dump(mode="json") for m in session.messages[-8:]]
-        answer = _call(service.chat, body.text, survey, body.selected, history)
+        from app.domains.hardware.pc_consultation.candidate_answers import answer_question
+
+        answer = _call(answer_question, body.text, session.candidate_explanations, survey)
+        if answer is None:
+            answer = _call(service.chat, body.text, survey, body.selected, history)
         question = c.MessageOut(
             id=len(session.messages) + 1,
             created_at=datetime.now(UTC),
@@ -219,6 +264,10 @@ def send_message(request: Request, session_id: str, body: c.MessageIn):
             role="assistant",
         )
         session.messages.extend([question, reply])
+        session.candidate_preferences.update(answer.get("_preferences", ()))
+        if answer.get("_preferences"):
+            session.candidate_explanations.clear()
+            session.assessments.clear()
         return c.ReplyOut(
             text=reply.content, sources=reply.sources, messages=list(session.messages)
         )

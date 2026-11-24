@@ -1,7 +1,5 @@
 import pytest
 
-from app.domains.hardware.pc_consultation.memory_document import supplement_memory_check
-
 
 @pytest.fixture
 def selected():
@@ -24,15 +22,12 @@ def selected():
 @pytest.mark.parametrize(
     ("slot", "result"), [("DIMM", "PASS"), ("SO-DIMM", "FAIL"), (None, "UNKNOWN")]
 )
-def test_compares_only_module_shape_with_known_board_slot(selected, slot, result):
+def test_compares_only_module_shape_with_known_board_slot(selected, slot, result, validate_parts):
     selected["motherboard"]["specs"]["ram_form_factor"] = slot
-    shape = {"check_type": "RAM_FORM_FACTOR", "result": "UNKNOWN"}
-    qvl = {"check_type": "RAM_QVL", "result": "UNKNOWN"}
-    supplement_memory_check(selected, [shape, qvl])
-    assert shape["result"] == result
-    if slot:
-        assert shape["sources"][0]["url"].endswith("S1102-01-AVL.pdf")
-    assert qvl == {"check_type": "RAM_QVL", "result": "UNKNOWN"}
+    selected["ram"]["specs"]["ram_form_factor"] = "DIMM"
+    checks = validate_parts(selected)
+    assert checks["RAM_FORM_FACTOR"]["result"] == result
+    assert checks["RAM_QVL"]["result"] == "UNKNOWN"
 
 
 @pytest.mark.parametrize(
@@ -45,11 +40,9 @@ def test_compares_only_module_shape_with_known_board_slot(selected, slot, result
         {"specs": {"capacity_gb": 16}},
     ],
 )
-def test_different_or_conflicting_product_keeps_unknown(selected, changes):
+def test_different_or_conflicting_product_keeps_unknown(selected, changes, validate_parts):
     selected["ram"].update(changes)
-    shape = {"check_type": "RAM_FORM_FACTOR", "result": "UNKNOWN"}
-    supplement_memory_check(selected, [shape])
-    assert shape == {"check_type": "RAM_FORM_FACTOR", "result": "UNKNOWN"}
+    assert validate_parts(selected)["RAM_FORM_FACTOR"]["result"] == "UNKNOWN"
 
 
 @pytest.fixture
@@ -68,18 +61,21 @@ def qvl_selection(selected):
     return selected
 
 
-@pytest.mark.parametrize(
-    ("model_number", "detail"),
-    [(None, "실물 라벨의 .M16A1"), ("CT32G48C40U5.M16A1", "전체 품번이 일치")],
-)
-def test_asus_qvl_discloses_revision_and_tested_settings(qvl_selection, model_number, detail):
-    qvl_selection["ram"]["model_number"] = model_number
-    check = {"check_type": "RAM_QVL", "result": "UNKNOWN"}
-    supplement_memory_check(qvl_selection, [check])
+def test_qvl_evidence_requires_the_catalog_pair_and_processor_family(qvl_selection, validate_parts):
+    evidence = {
+        "compatibility_id": 3,
+        "check_type": "MEMORY_QVL",
+        "part_a_id": 1,
+        "part_b_id": 2,
+        "conditions": {"kits": 1, "cpu_family": "Ryzen 7000"},
+        "support_status": "CONDITIONAL",
+        "source_url": "https://example.test/tested-kit",
+    }
+    check = validate_parts(qvl_selection, [evidence])["RAM_QVL"]
     assert check["result"] == "CONDITIONAL"
-    assert detail in check["reason"] and "4800 MT/s" in check["reason"]
-    assert check["sources"][0]["url"].startswith("https://www.asus.com/support/api/")
-    assert "CT32G48C40U5.M16A1" in check["sources"][0]["text"]
+    assert check["sources"][0]["url"] == evidence["source_url"]
+    for changed in ({"part_b_id": 99}, {"conditions": {"kits": 1, "cpu_family": "other"}}):
+        assert validate_parts(qvl_selection, [evidence | changed])["RAM_QVL"]["result"] == "UNKNOWN"
 
 
 @pytest.mark.parametrize(
@@ -102,14 +98,17 @@ def test_asus_qvl_discloses_revision_and_tested_settings(qvl_selection, model_nu
         ("cpu", {"model_number": "Ryzen 5 8600G"}),
     ],
 )
-def test_qvl_scope_does_not_transfer_to_other_parts(qvl_selection, role, change):
+def test_qvl_scope_does_not_transfer_to_other_parts(qvl_selection, role, change, validate_parts):
     qvl_selection[role].update(change)
-    check = {"check_type": "RAM_QVL", "result": "UNKNOWN"}
-    supplement_memory_check(qvl_selection, [check])
-    assert check == {"check_type": "RAM_QVL", "result": "UNKNOWN"}
+    assert validate_parts(qvl_selection)["RAM_QVL"]["result"] == "UNKNOWN"
 
 
-def test_qvl_cannot_override_an_explicit_other_verdict(qvl_selection):
-    check = {"check_type": "RAM_QVL", "result": "FAIL", "reason": "existing conflict"}
-    supplement_memory_check(qvl_selection, [check])
-    assert check == {"check_type": "RAM_QVL", "result": "FAIL", "reason": "existing conflict"}
+def test_qvl_cannot_override_an_explicit_other_verdict(qvl_selection, validate_parts):
+    conflict = {
+        "compatibility_id": 4,
+        "check_type": "KNOWN_CONFLICT",
+        "support_status": "UNSUPPORTED",
+        "part_a_id": 1,
+        "part_b_id": 2,
+    }
+    assert validate_parts(qvl_selection, [conflict])["KNOWN_CONFLICT"]["result"] == "FAIL"

@@ -8,7 +8,7 @@ import {
   type ConsultEvent,
   type ConsultState,
 } from "./state";
-import { CATEGORY_LABELS, won, type Survey } from "./types";
+import { CATEGORY_LABELS, won, type CandidateResult, type Survey } from "./types";
 
 type Line = { role: "user" | "assistant"; content: string };
 const LOCAL_SESSION = "pc-consult-demo";
@@ -45,17 +45,33 @@ export function initialConsultChatState(now?: string): ChatState {
   );
 }
 
-export function appendConsultMessage(chat: ChatState, text: string, now?: string): ChatState {
+export function appendConsultMessage(
+  chat: ChatState,
+  text: string,
+  now?: string,
+  result?: CandidateResult | null,
+): ChatState {
   const memo = text.trim();
   if (!memo) return chat;
+  let reply =
+    "요청을 메모했습니다. 아래 선택 항목에서 반영해 주세요. 이 시연에서는 메모만으로 추천이나 견적이 바뀌지 않습니다.";
+  if (
+    /왜|이유|근거|안\s*(?:보|떠|나와)/.test(memo) &&
+    /추천|후보|없|제외|안\s*(?:보|떠|나)/.test(memo)
+  ) {
+    const recommended = result?.passed.find((item) => item.recommended);
+    if (!result) reply = "후보를 조회하면 현재 목록의 기준을 알려드릴게요.";
+    else if (recommended && /추천/.test(memo) && !/안\s|제외/.test(memo))
+      reply = `이번 시연 목록의 첫 추천은 ${recommended.part.name}입니다. ${recommended.reason}`;
+    else
+      reply = [
+        `현재 시연 목록의 제외 후보는 ${result.rejectedCount}개입니다.`,
+        ...result.criteria.slice(0, 2),
+      ].join(" ");
+  }
   return append(
     chat,
-    [
-      user(memo),
-      assistant(
-        "요청을 메모했습니다. 아래 선택 항목에서 반영해 주세요. 이 시연에서는 메모만으로 추천이나 견적이 바뀌지 않습니다.",
-      ),
-    ],
+    [user(memo), assistant(reply)],
     chat.messages.at(-1)?.session_id ?? LOCAL_SESSION,
     now,
   );
@@ -285,7 +301,7 @@ export function appendConsultTransition(
       if (next.screen === "payment" && next.receipt)
         lines = [
           user("저장한 견적의 결제 안내를 확인할게요."),
-          assistant("결제 연동 예정 화면입니다. 실제 결제는 진행되지 않습니다."),
+          assistant("구성과 금액을 확인한 뒤 모의 결제를 진행해 주세요."),
         ];
       break;
     case "RESTART":

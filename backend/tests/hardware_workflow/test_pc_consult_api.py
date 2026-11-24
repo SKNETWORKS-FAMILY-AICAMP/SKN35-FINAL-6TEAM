@@ -33,6 +33,111 @@ def test_published_contract_matches_the_running_app():
     assert create_app().openapi() == json.loads(path.read_text(encoding="utf-8"))
 
 
+def test_chat_filters_real_candidate_flow_and_keeps_sessions_isolated(
+    catalog_snapshot, monkeypatch
+):
+    # Marked fixture SKUs, with both known and unverified desktop performance variants.
+    indexed = {row["id"]: row for row in catalog_snapshot.parts}
+    indexed[101]["brand"], indexed[102]["brand"] = "AMD", "Intel"
+    for part_id, chipset, size in (
+        (401, "GeForce RTX 3050", 8),
+        (402, "GeForce RTX 3060 12GB", 12),
+        (403, "Radeon RX 6600 XT", 8),
+        (404, "GeForce RTX 3060", 8),
+        (405, "GeForce RTX 4090 Laptop GPU", 16),
+    ):
+        indexed[part_id]["specs"].update(chipset=chipset, vram_gb=size)
+    monkeypatch.setattr(service, "_read", lambda **_: catalog_snapshot)
+    app = create_app()
+    survey = {**SURVEY, "mode": "new", "budget": 2_000_000, "owned": {}}
+
+    def start():
+        client = TestClient(app)
+        prefix = (
+            "/api/pc-consult/sessions/"
+            + client.post("/api/pc-consult/sessions").json()["session_id"]
+        )
+        return client, prefix
+
+    def choices(client, prefix, category):
+        response = client.post(
+            prefix + "/candidates",
+            json={
+                "survey": survey,
+                "selected": {},
+                "category": category,
+                "budget": 500_000,
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        return {r["part"]["part_id"] for key in ("passed", "needsReview") for r in data[key]}
+
+    client, url = start()
+    assert client.post(url + "/messages", json={"text": "Intel로만 바꿔줘"}).status_code == 200
+    assert client.post(url + "/plan", json={"survey": survey}).status_code == 200
+    assert choices(client, url, "cpu") == {102}
+    assert choices(client, url, "gpu") == {401, 402, 403, 404, 405}
+    why = client.post(url + "/messages", json={"text": "이 GPU는 왜 추천해요?"}).json()
+    assert indexed[401]["name"] in why["text"] and "최저가" in why["text"]
+    empty = client.post(
+        url + "/candidates",
+        json={"survey": survey, "selected": {}, "category": "gpu", "budget": 1000},
+    ).json()
+    assert not empty["passed"]
+    why = client.post(url + "/messages", json={"text": "GPU가 왜 안 보여요?"}).json()
+    assert "1,000원" in why["text"] and "충족한 상품이 없" in why["text"]
+    assert (
+        client.post(url + "/messages", json={"text": "GPU는 3060 이상만 원해"}).status_code == 200
+    )
+    assert choices(client, url, "gpu") == {402, 403}
+    assert choices(client, url, "cpu") == {102}
+    validation = client.post(
+        url + "/validations", json={"survey": survey, "selected": {"gpu": 404}}
+    )
+    assert any(
+        c["code"] == "PREFERENCE_GPU" and c["status"] == "FAIL" for c in validation.json()["checks"]
+    )
+    other, separate = start()
+    assert (
+        "후보를 조회하면"
+        in other.post(separate + "/messages", json={"text": "왜 추천해?"}).json()["text"]
+    )
+    assert other.post(separate + "/plan", json={"survey": survey}).status_code == 200
+    assert choices(other, separate, "cpu") == {101, 102}
+    assert choices(other, separate, "gpu") == {401, 402, 403, 404, 405}
+
+    # Add a measured 4060 fixture after the original shortlist assertions.
+    indexed[406] = deepcopy(indexed[402])
+    indexed[406].update(id=406, name="테스트 4060", source_key="fixture-406")
+    indexed[406]["specs"].update(chipset="GeForce RTX 4060", vram_gb=8)
+    catalog_snapshot.parts.append(indexed[406])
+    assert client.post(url + "/messages", json={"text": "AMD CPU로 바꿔줘"}).status_code == 200
+    assert choices(client, url, "cpu") == {101}
+    assert choices(client, url, "gpu") == {402, 403, 406}
+    reply = client.post(url + "/messages", json={"text": "GPU는 4060 이상으로 보여줘"})
+    assert "RTX 4060 8GB" in reply.json()["text"]
+    assert choices(client, url, "gpu") == {406}
+    assert choices(client, url, "cpu") == {101}
+    validation = client.post(
+        url + "/validations", json={"survey": survey, "selected": {"gpu": 402}}
+    )
+    assert any(
+        "RTX 4060" in c["message"] and c["status"] == "FAIL" for c in validation.json()["checks"]
+    )
+    for request, hint in (
+        ("GPU는 4060 Ti 이상", "메모리 용량"),
+        ("GPU는 RTX 9999 이상", "성능 자료"),
+    ):
+        assert hint in client.post(url + "/messages", json={"text": request}).json()["text"]
+        assert choices(client, url, "gpu") == {406}
+    assert (
+        client.post(url + "/messages", json={"text": "RX 6600 XT 이상으로 보여줘"}).status_code
+        == 200
+    )
+    assert choices(client, url, "gpu") == {403, 406}
+
+
 @pytest.fixture
 def visit(monkeypatch):
     app = create_app()

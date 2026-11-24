@@ -105,7 +105,7 @@ function renderQuote(value: Quote) {
 describe("확인 필요 후보와 견적 표시", () => {
   it("통과 후보가 없고 확인 필요 후보가 있으면 빈 상태 대신 목록을 바로 펼칩니다", () => {
     const html = renderCandidates();
-    expect(html).toContain("이 단계는 데이터로 확인할 수 없는 항목이 있어요");
+    expect(html).toContain("확인이 필요한 후보");
     expect(html).toMatch(/<details[^>]*data-testid="pc-unknown"[^>]*open=""/);
     expect(html).toContain(`data-source-key="${reviewCandidate.part.source_key}"`);
     expect(html).not.toContain("현재 조건을 통과한 후보");
@@ -113,13 +113,13 @@ describe("확인 필요 후보와 견적 표시", () => {
     expect(html).not.toContain("pc-recommendation");
   });
 
-  it("확인 필요 목록의 정렬과 중복 없는 UNKNOWN 사유를 따로 알립니다", () => {
-    const html = renderCandidates();
-    expect(html).toContain("확인 필요 후보: 가격 낮은 순 · AI 추천 없음");
+  it("후보를 고를 때 검사 결과와 제외 이유를 자동으로 펼치지 않습니다", () => {
+    const html = renderCandidates({ criteria: ["테스트 선택 기준"] });
     expect(html).not.toContain(result.sortLabel);
-    const reasons = html.match(/<p[^>]*data-testid="pc-review-reasons"[^>]*>(.*?)<\/p>/)?.[1];
-    expect(reasons).toBe(unknownReason);
-    expect(reasons).not.toContain(pendingReason);
+    expect(html).not.toContain(unknownReason);
+    expect(html).not.toContain(pendingReason);
+    expect(html).not.toContain("테스트 선택 기준");
+    expect(html).not.toContain("pc-validation-list");
   });
 
   it("확인 필요 후보만 있으면 예산 조정과 후보를 정책·인계·기준 안내보다 먼저 보여 줍니다", () => {
@@ -129,23 +129,16 @@ describe("확인 필요 후보와 견적 표시", () => {
       criteria: ["화면 순서 검증용 사양 기준"],
     });
     const candidatePosition = html.indexOf(`data-source-key="${reviewCandidate.part.source_key}"`);
-    expect(html.indexOf("확인 필요 후보: 가격 낮은 순 · AI 추천 없음")).toBeLessThan(
-      html.indexOf('data-testid="pc-unknown"'),
-    );
     expect(html.indexOf("이 부품에 예산 더 쓰기")).toBeLessThan(candidatePosition);
-    for (const notice of [
-      "화면 순서 검증용 기업 정책",
-      "화면 순서 검증용 인계 사유",
-      "화면 순서 검증용 사양 기준",
-    ]) {
+    for (const notice of ["화면 순서 검증용 기업 정책", "화면 순서 검증용 인계 사유"]) {
       expect(candidatePosition).toBeLessThan(html.indexOf(notice));
     }
   });
 
   it("통과 후보가 있으면 추천 하나와 하단의 접힌 확인 필요 목록을 유지합니다", () => {
     const html = renderCandidates({ passed: [passedCandidate] });
-    expect(html).toContain("현재 조건을 통과한 후보");
-    expect(html).toContain(result.sortLabel);
+    expect(html).toContain("후보 <span>1</span>");
+    expect(html).not.toContain(result.sortLabel);
     expect(html.match(/class="pc-recommendation"/g)).toHaveLength(1);
     expect(html).not.toMatch(/<details[^>]*data-testid="pc-unknown"[^>]*open/);
     expect(html.indexOf(`data-source-key="${passedCandidate.part.source_key}"`)).toBeLessThan(
@@ -162,13 +155,13 @@ describe("확인 필요 후보와 견적 표시", () => {
   });
 
   it.each(["DRAFT", "CONFIRMED"] as const)(
-    "%s 견적의 부품 행에도 확인 필요 배지와 선택 당시 사유를 남깁니다",
+    "%s 견적의 부품 행은 확인 필요 배지만 표시합니다",
     (status) => {
       const html = renderQuote(quote(status));
       const row = html.match(/<tbody>(.*?)<\/tbody>/)?.[1];
       expect(row).toContain('data-testid="pc-quote-item-review"');
       expect(row).toContain("확인 필요");
-      expect(row).toContain(unknownReason);
+      expect(row).not.toContain(unknownReason);
     },
   );
 

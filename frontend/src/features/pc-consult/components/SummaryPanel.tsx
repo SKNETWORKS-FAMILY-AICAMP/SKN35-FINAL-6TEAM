@@ -3,6 +3,7 @@ import {
   CATEGORY_LABELS,
   won,
   priceLabel,
+  selectionLines,
   type Category,
   type SelectionMap,
 } from "../types";
@@ -22,8 +23,12 @@ export function SummaryPanel({
   steps: Category[];
   onVisit?: (index: number) => void;
 }) {
-  const total = Object.values(selected).reduce((sum, part) => sum + (part.current_price ?? 0), 0);
-  const completePrice = Object.values(selected).every((part) => part.current_price != null);
+  const lines = selectionLines(selected);
+  const total = lines.reduce(
+    (sum, { part, quantity }) => sum + (part.current_price ?? 0) * quantity,
+    0,
+  );
+  const completePrice = lines.every(({ part }) => part.current_price != null);
   const remaining = budget - total;
   return (
     <aside className="pc-summary-panel" aria-label="선택한 부품과 예산">
@@ -58,6 +63,11 @@ export function SummaryPanel({
                     <small>
                       {won(part.current_price)} · {priceLabel(part)}
                     </small>
+                    {part.cooling?.fans.map((f) => (
+                      <small key={f.part.part_id}>
+                        {f.part.name} × {f.quantity}
+                      </small>
+                    ))}
                     {needsReview.includes(category) && (
                       <span className="pc-review-label">다시 확인 필요</span>
                     )}

@@ -62,6 +62,14 @@ export function IntegratedWorkspace({
   const bridge = useOfficeBridge({ sessionId, intervalMs });
   const office = live?.office ?? bridge.office;
   const [demoChat, setChat] = useState(() => initialConsultChatState(new Date().toISOString()));
+  const consultState = useRef<ConsultState | null>(null);
+  const rememberState = useCallback(
+    (state: ConsultState) => {
+      consultState.current = state;
+      onConsultState?.(state);
+    },
+    [onConsultState],
+  );
   const chat = live?.chat ?? demoChat;
   const notes = useMemo(() => teamNotesForOffice(office), [office]);
   useEffect(() => onOffice(office), [office, onOffice]);
@@ -101,13 +109,14 @@ export function IntegratedWorkspace({
     <PcConsult
       source={source}
       sessionId={live ? sessionId : undefined}
+      chatRevision={live?.chat.messages.at(-1)?.id}
       onContext={live?.onContext}
       embedded
       onTransition={live ? undefined : bridge.receive}
       onAcceptedTransition={acceptedTransition}
       initialSurvey={initialSurvey}
       requestedDiscountPercent={requestedDiscountPercent}
-      onStateChange={onConsultState}
+      onStateChange={rememberState}
       renderLayout={(content, intake, summary, screen) => (
         <div
           className="layout integrated-workspace"
@@ -136,13 +145,13 @@ export function IntegratedWorkspace({
               key={sessionId}
               state={displayedChat}
               disabled={false}
-              onSend={(text) =>
-                live
-                  ? live.onSend(text)
-                  : setChat((current) =>
-                      appendConsultMessage(current, text, new Date().toISOString()),
-                    )
-              }
+              onSend={(text) => {
+                if (live) return live.onSend(text);
+                const result = consultState.current?.candidates;
+                setChat((current) =>
+                  appendConsultMessage(current, text, new Date().toISOString(), result),
+                );
+              }}
               notes={notes}
               officeRunStatus={office.runStatus}
               intakeMode={intake}
@@ -169,7 +178,6 @@ export function IntegratedWorkspace({
           >
             <div className="results-heading">
               <h2 id="results-title">내 PC 구성</h2>
-              <p>추천 근거를 확인하고 직접 골라 주세요.</p>
             </div>
             {!intake && content}
           </section>

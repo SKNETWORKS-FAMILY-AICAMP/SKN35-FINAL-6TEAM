@@ -4,12 +4,6 @@ from copy import deepcopy
 
 import pytest
 
-from app.domains.hardware.assembly import validate_assembly
-from app.domains.hardware.pc_consultation.power_documents import (
-    assembly_power_parts,
-    supplement_power_checks,
-)
-
 
 def build():
     return {
@@ -52,85 +46,54 @@ def build():
     }
 
 
-def checks(selected, before="UNKNOWN"):
-    capacity = next(
-        c
-        for c in validate_assembly(assembly_power_parts(selected), [])
-        if c.check_type == "PSU_CAPACITY"
-    )
-    load = dict(check_type=capacity.check_type, result=capacity.result, reason=capacity.reason)
-    fit = dict(check_type="PSU_CASE", result=before, reason="DB 사양")
-    supplement_power_checks(selected, [load, fit])
-    return load, fit
-
-
-def test_case_fits_but_cpu_peak_estimate_keeps_capacity_conditional():
+def test_case_fits_but_cpu_peak_estimate_keeps_capacity_conditional(validate_parts):
     selected = build()
+    selected["case"]["specs"].update(
+        psu_sizes=["ATX"],
+        max_psu_length_mm=200,
+        max_psu_length_mm_source_url="https://example.test/case",
+    )
+    selected["psu"]["specs"]["length_mm"] = 150
+    selected["gpu"]["specs"]["recommended_psu_w"] = 600
     original = deepcopy(selected)
-    load, fit = checks(selected)
-    assert fit["result"] == "PASS"
-    assert "140 mm" in fit["reason"] and "200 mm" in fit["reason"]
-    assert "150 mm" in fit["reason"] and "50 mm" in fit["reason"]
-    assert load["result"] == "CONDITIONAL"
-    assert "제조사 권장 600W" in load["reason"] and "PPT" in load["reason"]
-    assert "8핀" in load["reason"] and "추정" in load["reason"]
-    assert {s["chunk_key"] for s in load["sources"]} >= {
-        "POWER:ZOTAC-3060-TWIN-EDGE-E",
-        "POWER:ZOTAC-3060-TWIN-EDGE-E2",
-        "POWER:AMD-RYZEN-MASTER-PPT",
-        "AMD:RYZEN-5-7600",
-    }
-    assert {s["chunk_key"] for s in fit["sources"]} == {
-        "POWER:NZXT-H5-FLOW-2024-PSU",
-        "POWER:MONTECH-APX-650W",
-        "POWER:MONTECH-APX-650W-SECOND-SPEC",
-    }
+    checks = validate_parts(selected)
+    assert checks["PSU_CLEARANCE"]["result"] == "PASS" and checks["PSU_CASE"]["result"] == "PASS"
+    assert checks["PSU_CAPACITY"]["result"] == "CONDITIONAL"
     assert selected == original
 
 
-def test_below_gpu_manufacturer_recommendation_is_excluded():
+def test_below_gpu_manufacturer_recommendation_is_excluded(validate_parts):
     selected = build()
+    selected["gpu"]["specs"]["recommended_psu_w"] = 600
     selected["psu"]["specs"]["wattage_w"] = 550
-    load, fit = checks(selected)
-    assert load["result"] == "FAIL" and "600W" in load["reason"]
-    assert fit["result"] == "UNKNOWN"
-    assert "8핀" not in load["reason"]
+    checks = validate_parts(selected)
+    assert checks["PSU_CAPACITY"]["result"] == "FAIL"
+    assert checks["PSU_CASE"]["result"] == "UNKNOWN"
 
 
 @pytest.mark.parametrize("wattage", [None, "unknown"])
-def test_unusable_psu_wattage_and_conflicting_gpu_data_remain_unresolved(wattage):
+def test_unusable_psu_wattage_remains_unresolved(wattage, validate_parts):
     selected = build()
     selected["psu"]["specs"]["wattage_w"] = wattage
-    selected["gpu"]["specs"]["recommended_psu_w"] = 450
-    load, fit = checks(selected)
-    assert load["result"] == "UNKNOWN" and "달라" in load["reason"]
-    assert fit["result"] == "UNKNOWN"
+    assert validate_parts(selected)["PSU_CAPACITY"]["result"] == "UNKNOWN"
 
 
-@pytest.mark.parametrize(
-    ("field", "value"),
-    [
-        ("length_mm", 201),
-        ("length_mm", 130),
-    ],
-)
-def test_conflicting_psu_dimensions_never_get_promoted(field, value):
+@pytest.mark.parametrize(("length", "verdict"), [(201, "FAIL"), (130, "PASS"), (None, "UNKNOWN")])
+def test_psu_dimensions_require_an_actual_measurement(length, verdict, validate_parts):
     selected = build()
-    selected["psu"]["specs"][field] = value
-    assert checks(selected)[1]["result"] == "UNKNOWN"
-    assert checks(selected, before="FAIL")[1]["result"] == "FAIL"
+    selected["case"]["specs"].update(
+        max_psu_length_mm=200, max_psu_length_mm_source_url="https://example.test/case"
+    )
+    selected["psu"]["specs"]["length_mm"] = length
+    assert validate_parts(selected)["PSU_CLEARANCE"]["result"] == verdict
 
 
-def test_similar_gpu_or_case_not_attributed_and_more_restrictive_db_limits_are_preserved():
+def test_similar_gpu_or_case_cannot_override_the_database(validate_parts):
     selected = build()
-    selected["case"]["model_number"] = "H5 Flow (2022) Black"
-    selected["gpu"]["model_number"] = "ZT-A30600H-10M"
     selected["gpu"]["specs"]["recommended_psu_w"] = 700
-    load, fit = checks(selected)
-    assert fit["result"] == "UNKNOWN" and load["result"] == "FAIL"
-    assert not any("ZOTAC" in s["chunk_key"] for s in load["sources"])
-    selected["gpu"]["model_number"] = "ZT-A30600E2-10M"
-    load, _ = checks(selected)
-    assert load["result"] == "FAIL" and "700W" in load["reason"] and "달라" in load["reason"]
-    assert "POWER:ZOTAC-3060-TWIN-EDGE-E2" in [s["chunk_key"] for s in load["sources"]]
-    assert "POWER:ZOTAC-3060-TWIN-EDGE-E" not in [s["chunk_key"] for s in load["sources"]]
+    for number in ("ZT-A30600H-10M", "ZT-A30600E2-10M", "test-sku"):
+        selected["gpu"]["model_number"] = number
+        checks = validate_parts(selected)
+        assert checks["PSU_CASE"]["result"] == "UNKNOWN"
+        assert checks["PSU_CAPACITY"]["result"] == "FAIL"
+        assert not checks["PSU_CAPACITY"].get("sources")
