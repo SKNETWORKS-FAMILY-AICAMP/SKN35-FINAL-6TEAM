@@ -1,14 +1,14 @@
 import { useState, type FormEvent } from "react";
 import {
   CATEGORY_LABELS,
+  itemCount,
   won,
   priceLabel,
   type Category,
-  type ConsultMode,
   type Quote,
   type SaveReceipt,
 } from "../types";
-import { Modal, StatusBadge, ValidationDetails } from "./ui";
+import { Modal, ValidationDetails } from "./ui";
 import { PartVisual, type ProductVisualMap } from "./PartVisual";
 
 interface Props {
@@ -98,7 +98,7 @@ export function QuoteScreen({
           <div>
             <p className="pc-eyebrow">견적 · 주문팀</p>
             <h2>고객님을 위한 PC 견적서</h2>
-            <span className="pc-muted">선택한 {quote.items.length}개 부품을 담았습니다.</span>
+            <span className="pc-muted">선택한 {itemCount(quote)}개 부품을 담았습니다.</span>
           </div>
           <div className="pc-quote-document-amount">
             <span>최종 구성 금액</span>
@@ -148,14 +148,13 @@ export function QuoteScreen({
                         {review && (
                           <div className="pc-quote-item-review" data-testid="pc-quote-item-review">
                             <span className="pc-status pc-status-unknown">확인 필요</span>
-                            <span>{review.reasons.join(" · ")}</span>
                           </div>
                         )}
                       </div>
                     </div>
                   </td>
                   <td data-label="가격">
-                    <strong>{won(item.unit_price)}</strong>
+                    <strong>{won(item.unit_price * item.quantity)}</strong>
                     <small>{priceLabel(item)}</small>
                   </td>
                   <td className="no-print">
@@ -185,7 +184,7 @@ export function QuoteScreen({
           </p>
         )}
         <div className="pc-quote-total">
-          <span>총 {quote.items.length}개 부품</span>
+          <span>총 {itemCount(quote)}개 부품</span>
           <strong>{won(quote.total_amount)}</strong>
         </div>
       </div>
@@ -206,66 +205,11 @@ export function QuoteScreen({
           </ul>
         </div>
       )}
-      <section className="pc-panel pc-quote-checks">
-        <div className="pc-section-heading">
-          <h2>승인 전 확인해 주세요.</h2>
-          <StatusBadge status={quote.validation.status} />
-        </div>
-        <p className="pc-muted">
-          {(
-            [
-              ["PASS", "통과"],
-              ["CONDITIONAL", "조건부"],
-              ["UNKNOWN", "확인 필요"],
-              ["FAIL", "탈락"],
-            ] as const
-          )
-            .map(
-              ([code, label]) =>
-                label +
-                " " +
-                quote.validation.checks.filter((check) => check.status === code).length +
-                "개",
-            )
-            .join(" · ")}
+      {blocked && (
+        <p className="pc-warning" role="status">
+          {quote.validation.workflow_reason || "구성을 변경한 뒤 다시 확인해 주세요."}
         </p>
-        <ValidationDetails validation={quote.validation} />
-        {quote.validation.workflow_reason && (
-          <p className={blocked ? "pc-warning" : "pc-footnote"}>
-            {quote.validation.workflow_reason}
-          </p>
-        )}
-        {Boolean(quote.validation.citations?.length) && (
-          <ul aria-label="견적 검증 근거">
-            {quote.validation.citations?.map((citation, index) => {
-              const url =
-                typeof citation.source_url === "string" && /^https?:\/\//i.test(citation.source_url)
-                  ? citation.source_url
-                  : null;
-              const title =
-                typeof citation.source_title === "string"
-                  ? citation.source_title
-                  : typeof citation.publisher === "string"
-                    ? citation.publisher
-                    : url;
-              return (
-                title && (
-                  <li key={index}>
-                    {url ? (
-                      <a href={url} target="_blank" rel="noreferrer">
-                        {title}
-                      </a>
-                    ) : (
-                      title
-                    )}
-                  </li>
-                )
-              );
-            })}
-          </ul>
-        )}
-        <p className="pc-footnote">확인이 필요한 부품은 승인 후에도 확인 사항이 남습니다.</p>
-      </section>
+      )}
       <section className="pc-history no-print">
         <h2>견적 버전 이력</h2>
         <div>
@@ -373,6 +317,16 @@ export function QuoteScreen({
               : "현재 상담 세션에 견적을 승인합니다."}
           </p>
           {latest.validation.status !== "PASS" && (
+            <ValidationDetails
+              validation={{
+                ...latest.validation,
+                checks: latest.validation.checks.filter((check) =>
+                  ["CONDITIONAL", "UNKNOWN"].includes(check.status),
+                ),
+              }}
+            />
+          )}
+          {latest.validation.status !== "PASS" && (
             <p className="pc-warning">
               <label>
                 <input
@@ -414,13 +368,11 @@ export function QuoteScreen({
 
 export function SavedScreen({
   receipt,
-  mode,
   products = {},
   onQuote,
   onPayment,
 }: {
   receipt: SaveReceipt;
-  mode: ConsultMode;
   products?: ProductVisualMap;
   onQuote: () => void;
   onPayment: () => void;
@@ -445,7 +397,7 @@ export function SavedScreen({
         ))}
       </div>
       <div className="pc-success-summary">
-        <span>{receipt.quote.items.length}개 부품</span>
+        <span>{itemCount(receipt.quote)}개 부품</span>
         <strong>{won(receipt.quote.total_amount)}</strong>
       </div>
       <p className="pc-notice">
@@ -457,11 +409,9 @@ export function SavedScreen({
         <button className="pc-button pc-secondary" onClick={onQuote}>
           견적과 버전 이력 보기
         </button>
-        {mode === "replacement" && (
-          <button className="pc-button pc-primary" onClick={onPayment}>
-            결제 안내로 이동 →
-          </button>
-        )}
+        <button className="pc-button pc-primary" onClick={onPayment}>
+          결제 화면으로 이동 →
+        </button>
       </div>
     </section>
   );
@@ -471,17 +421,21 @@ export function PaymentScreen({
   receipt,
   products = {},
   onQuote,
+  onPay,
 }: {
   receipt: SaveReceipt;
   products?: ProductVisualMap;
   onQuote: () => void;
+  onPay: () => void;
 }) {
   return (
     <section className="pc-payment">
-      <p className="pc-eyebrow">다음 단계 안내</p>
-      <h1>결제 연동을 준비하고 있어요.</h1>
+      <p className="pc-eyebrow">승인 완료 · 견적 v{receipt.quote.version}</p>
+      <h1>결제할 견적을 확인해 주세요.</h1>
       <p className="pc-muted">
-        저장한 견적을 확인해 주세요. 현재 실제 주문이나 결제는 진행되지 않습니다.
+        {receipt.storage === "session"
+          ? "승인한 견적은 현재 상담 세션에 보관됩니다. 아래에서 구성과 금액을 확인해 주세요."
+          : "시연에서 승인한 견적의 구성과 금액을 확인해 주세요."}
       </p>
       <div className="pc-panel">
         <h2>주문 요약 · 견적 v{receipt.quote.version}</h2>
@@ -496,9 +450,12 @@ export function PaymentScreen({
                   size="compact"
                   caption={false}
                 />
-                <span>{item.part_name_snapshot}</span>
+                <span>
+                  {item.part_name_snapshot}
+                  {item.quantity > 1 && ` × ${item.quantity}`}
+                </span>
               </div>
-              <strong>{won(item.unit_price)}</strong>
+              <strong>{won(item.unit_price * item.quantity)}</strong>
             </li>
           ))}
         </ul>
@@ -509,12 +466,15 @@ export function PaymentScreen({
       </div>
       <div className="pc-payment-placeholder">
         <span aria-hidden="true">▤</span>
-        <h2>결제 연동 예정</h2>
-        <p>결제 수단과 개인정보를 입력하지 않습니다.</p>
+        <h2>모의 결제</h2>
+        <p>시연용으로 실제 금액은 청구되지 않습니다.</p>
       </div>
       <div className="pc-actions pc-bottom-actions">
         <button className="pc-button pc-secondary" onClick={onQuote}>
           견적으로 돌아가기
+        </button>
+        <button type="button" className="pc-button pc-primary" onClick={onPay}>
+          결제하기
         </button>
       </div>
     </section>

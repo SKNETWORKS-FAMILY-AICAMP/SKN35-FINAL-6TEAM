@@ -53,6 +53,7 @@
       "specs": {
         "socket": "M1",
         "form_factor": "mATX",
+        "pcie_x16_slots": 1,
         "ram_type": "DDR5",
         "ram_form_factor": "DIMM",
         "memory_slots": 4,
@@ -88,6 +89,7 @@
       "specs": {
         "socket": "M1",
         "form_factor": "ATX",
+        "pcie_x16_slots": 1,
         "ram_type": "DDR5",
         "ram_form_factor": "DIMM",
         "memory_slots": 4,

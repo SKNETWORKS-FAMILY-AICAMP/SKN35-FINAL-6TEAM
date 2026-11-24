@@ -26,6 +26,7 @@ FILES = {
     "power-supply": ("psu", "e9fee8572ae99f9dad5cee37d5f4bdb32e80d92e3f2783912d6e55ff62ecf261"),
     "case": ("case", "a925fb93039d5db492bc35ba08bde445b4d855dbd3d2c9ce9cae4f2fe35e68ac"),
     "cpu-cooler": ("cooler", "c06fa7387cf1accff1ed6889cfe6e9bcec358d3a6eac014448877dd2aa680798"),
+    "case-fan": ("cooler", "502c52c06c13e048d503f66f0471a629ec37bf37c679cb468c7b76e4b8841f41"),
 }
 BRANDS = (
     "Cooler Master",
@@ -152,7 +153,8 @@ def prepare_parts(
     parts, counts = {}, {}
     for slug, rows in snapshot.items():
         category, _ = FILES[slug]
-        stats = counts[category] = Counter(source_rows=len(rows))
+        stats = counts.setdefault(category, Counter())
+        stats["source_rows"] += len(rows)
         for raw in rows:
             usd = price_value(raw.get("price"))
             if usd is None:
@@ -167,6 +169,9 @@ def prepare_parts(
                 stats["skipped_name"] += 1
                 continue
             specs = specs_for(category, raw)
+            if slug == "case-fan":
+                specs["cooling_type"] = "case_fan"
+                specs["fan_size_mm"] = specs.pop("radiator_size_mm", None)
             brand = next(
                 (b for b in BRANDS if name.casefold().startswith(b.casefold() + " ")), "Unknown"
             )

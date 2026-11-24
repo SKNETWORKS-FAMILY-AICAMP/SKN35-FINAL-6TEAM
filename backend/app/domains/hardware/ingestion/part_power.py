@@ -109,6 +109,8 @@ def resolve_catalog_power(part, reviews, gpu_estimates):
     if power is not None or gpu_estimates is None:
         return specs, power
     category = part["category"]
+    if specs.get("cooling_type") == "case_fan":
+        return specs, rated_watts(specs.get("fan_w"))
     if category == "gpu":
         chipset = specs.get("chipset")
         reference = gpu_estimates.get(chipset)

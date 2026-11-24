@@ -1,0 +1,92 @@
+[
+  {
+    "aliases": ["오버워치", "overwatch"],
+    "source": {
+      "chunk_key": "AMD:RX7000:1440P:OVERWATCH2",
+      "title": "AMD Radeon RX 7000 시리즈 게임별 1440p 실측",
+      "url": "https://www.amd.com/ko/products/graphics/desktops/radeon/7000-series.html",
+      "text": "AMD의 Ryzen 9 7900X, DDR5 32GB, 1440p 최고 설정 시험에서 오버워치 2 평균은 RX 7700 XT 208 FPS, RX 7800 XT 251 FPS였다. 두 모델 모두 이 게임의 144 FPS 목표를 넘겼다. 같은 시험의 스타워즈 제다이 서바이버 평균은 각각 63 FPS와 77 FPS였다. 결과는 게임·설정·시험 시스템에 한정된다.",
+      "origin": "GPU 제조사 공개 실측"
+    }
+  },
+  {
+    "aliases": [
+      "배틀필드",
+      "battlefield"
+    ],
+    "source": {
+      "chunk_key": "BW20261119FIT:CHK-FIT-001",
+      "title": "Get Ready for Battlefield 6 - Launch Times, Secure Boot and PC Specs",
+      "url": "https://www.ea.com/games/battlefield/battlefield-6/news/get-ready-for-battlefield-6",
+      "text": "배틀필드 6 네이티브 1440p 144 FPS 권장 설정은 Medium이다. RTX 4080 또는 RX 7900 XTX, i9-12900 또는 Ryzen 7 7800X3D, RAM 32GB가 제시됐다.",
+      "origin": "게임 배급사 공개 자료"
+    }
+  },
+  {
+    "aliases": [
+      "배틀필드",
+      "battlefield"
+    ],
+    "source": {
+      "chunk_key": "BW20261119FIT:CHK-FIT-002",
+      "title": "Get Ready for Battlefield 6 - Launch Times, Secure Boot and PC Specs",
+      "url": "https://www.ea.com/games/battlefield/battlefield-6/news/get-ready-for-battlefield-6",
+      "text": "배틀필드 6의 네이티브 4K 60 FPS Ultra 권장 구성은 RTX 4080 또는 RX 7900 XTX와 i9-12900 또는 Ryzen 7 7800X3D이며 RAM은 32GB다.",
+      "origin": "게임 배급사 공개 자료"
+    }
+  },
+  {
+    "aliases": [
+      "배틀필드",
+      "battlefield"
+    ],
+    "source": {
+      "chunk_key": "BW20261119FIT:CHK-FIT-003",
+      "title": "Get Ready for Battlefield 6 - Launch Times, Secure Boot and PC Specs",
+      "url": "https://www.ea.com/games/battlefield/battlefield-6/news/get-ready-for-battlefield-6",
+      "text": "배틀필드 6의 4K Ultra 240 FPS 이상 목표는 RTX 5080의 DLSS 초해상도와 멀티 프레임 생성을 사용한다. EA가 제시한 CPU는 Core Ultra 9 285K 또는 Ryzen 7 9800X3D이고 RAM은 32 GB다.",
+      "origin": "게임 배급사 공개 자료"
+    }
+  },
+  {
+    "aliases": [
+      "스파이더맨",
+      "spider-man",
+      "spiderman"
+    ],
+    "source": {
+      "chunk_key": "BW20261119FIT:CHK-FIT-004",
+      "title": "Marvel's Spider-Man 2 for PC",
+      "url": "https://www.playstation.com/en-us/games/marvels-spider-man-2/marvels-spider-man-2-pc/",
+      "text": "스파이더맨 2의 1440p 평균 60 FPS, High·RT High 사양은 RTX 4070 또는 RX 7900 XT, i5-11600K 또는 Ryzen 5 5600X, RAM 16GB다. 업스케일링 조건은 표에 없다.",
+      "origin": "게임 배급사 공개 자료"
+    }
+  },
+  {
+    "aliases": [
+      "스파이더맨",
+      "spider-man",
+      "spiderman"
+    ],
+    "source": {
+      "chunk_key": "BW20261119FIT:CHK-FIT-005",
+      "title": "Marvel's Spider-Man 2 for PC",
+      "url": "https://www.playstation.com/en-us/games/marvels-spider-man-2/marvels-spider-man-2-pc/",
+      "text": "스파이더맨 2의 4K 평균 60 FPS, Very High·RT Ultimate 사양은 RTX 4090, i9-12900K 또는 Ryzen 7 7800X3D, RAM 32GB다. 업스케일링 조건은 표에 없다.",
+      "origin": "게임 배급사 공개 자료"
+    }
+  },
+  {
+    "aliases": [
+      "어쌔신크리드",
+      "assassin"
+    ],
+    "source": {
+      "chunk_key": "BW20261119FIT:CHK-FIT-006",
+      "title": "Assassin's Creed Shadows: PC Specs Revealed, Pre-Orders Open",
+      "url": "https://news.ubisoft.com/en-us/article/5dWbPvxtnNdQQVI3cb2m3p/assassins-creed-shadows-pc-specs-revealed-preorders-open",
+      "text": "어쌔신 크리드 섀도우스 1440p 60 FPS, High·표준 RT는 동적 해상도와 업스케일링 조건이다. RTX 4070 SUPER 또는 RX 7800 XT, i5-11600K 또는 Ryzen 5 5600X를 제시한다.",
+      "origin": "게임 배급사 공개 자료"
+    }
+  }
+]

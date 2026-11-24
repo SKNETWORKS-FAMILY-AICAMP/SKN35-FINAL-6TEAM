@@ -1,11 +1,979 @@
 [
   {
+    "category": "gpu",
+    "source_key": "docyx:4c29ae4b6ac77cd3baf7a7177e73eaa7dd67498fbae801c3d9a62a991f701b52",
+    "raw_name": "ASRock Challenger OC",
+    "source_url": "https://www.asrock.com/Graphics-Card/AMD/Radeon%20RX%207700%20XT%20Challenger%2012GB%20OC/",
+    "specs": {
+      "chipset": "Radeon RX 7700 XT",
+      "vram_gb": 12,
+      "boost_clock_mhz": 2584,
+      "installation_length_mm": 267,
+      "recommended_psu_w": 750,
+      "required_pcie_8pin": 2
+    }
+  },
+  {
+    "category": "psu",
+    "source_key": "docyx:1b097b89011778e4b292f08c6498836d23a41386b1f4572a9c04cd7173480d95",
+    "raw_name": "Montech APX",
+    "source_url": "https://www.montechpc.com/apx-750w",
+    "specs": {
+      "wattage_w": 750,
+      "form_factor": "ATX",
+      "length_mm": 140,
+      "pcie_8pin_available": 4
+    }
+  },
+  {
+    "category": "case",
+    "source_key": "case-nzxt-h5-flow-2024-black",
+    "raw_name": "NZXT H5 Flow (2024)",
+    "match_model": "H5 Flow (2024) Black",
+    "source_url": "https://support.nzxt.com/hc/en-us/articles/40225168535451-H5-Flow-2024-Specs",
+    "field_sources": {
+      "psu_sizes": "https://nzxt.com/products/h5-flow",
+      "front_radiator_standard_stack_mm": "https://support.nzxt.com/hc/en-us/articles/47060012674203-What-radiator-sizes-does-the-H5-Flow-2024-support"
+    },
+    "specs": {
+      "board_sizes": [
+        "ATX",
+        "Micro ATX",
+        "Mini ITX"
+      ],
+      "psu_sizes": [
+        "ATX"
+      ],
+      "max_gpu_length_mm": 410,
+      "max_cpu_cooler_mm": 170,
+      "max_psu_length_mm": 200,
+      "supports_back_connect": false,
+      "free_fan_bays": [
+        {
+          "position": "front",
+          "count": 2,
+          "diameter_mm": 120,
+          "thickness_mm": 25
+        },
+        {
+          "position": "top",
+          "count": 2,
+          "diameter_mm": 120,
+          "thickness_mm": 25
+        },
+        {
+          "position": "bottom",
+          "count": 2,
+          "diameter_mm": 120,
+          "thickness_mm": 25
+        }
+      ],
+      "front_radiator_sizes_mm": [
+        120,
+        240,
+        360,
+        140,
+        280
+      ],
+      "front_radiator_standard_stack_mm": 56
+    }
+  },
+  {
+    "category": "case",
+    "source_key": "case-nzxt-h5-flow-2024-white",
+    "raw_name": "NZXT H5 Flow (2024)",
+    "match_model": "H5 Flow (2024) White",
+    "source_url": "https://support.nzxt.com/hc/en-us/articles/40225168535451-H5-Flow-2024-Specs",
+    "field_sources": {
+      "psu_sizes": "https://nzxt.com/products/h5-flow",
+      "front_radiator_standard_stack_mm": "https://support.nzxt.com/hc/en-us/articles/47060012674203-What-radiator-sizes-does-the-H5-Flow-2024-support"
+    },
+    "specs": {
+      "board_sizes": [
+        "ATX",
+        "Micro ATX",
+        "Mini ITX"
+      ],
+      "psu_sizes": [
+        "ATX"
+      ],
+      "max_gpu_length_mm": 410,
+      "max_cpu_cooler_mm": 170,
+      "max_psu_length_mm": 200,
+      "supports_back_connect": false,
+      "free_fan_bays": [
+        {
+          "position": "front",
+          "count": 2,
+          "diameter_mm": 120,
+          "thickness_mm": 25
+        },
+        {
+          "position": "top",
+          "count": 2,
+          "diameter_mm": 120,
+          "thickness_mm": 25
+        },
+        {
+          "position": "bottom",
+          "count": 2,
+          "diameter_mm": 120,
+          "thickness_mm": 25
+        }
+      ],
+      "front_radiator_sizes_mm": [
+        120,
+        240,
+        360,
+        140,
+        280
+      ],
+      "front_radiator_standard_stack_mm": 56
+    }
+  },
+  {
+    "category": "cooler",
+    "source_key": "docyx:bc4ec98849f0fc359e52d90f34b8c6cd1cee014808898333c0881c597b5a3dc9",
+    "raw_name": "Noctua NH-D12L",
+    "source_url": "https://www.noctua.at/en/products/nh-d12l/specifications",
+    "specs": {
+      "height_mm": 145
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-05e81872a7848e5a",
+    "raw_name": "Asus ROG CROSSHAIR X870E APEX",
+    "match_model": "ROG CROSSHAIR X870E APEX",
+    "source_url": "https://rog.asus.com/motherboards/rog-crosshair/rog-crosshair-x870e-apex/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-0fbf09a3bc6ce1dd",
+    "raw_name": "Asus ROG STRIX B850-E GAMING WIFI",
+    "match_model": "ROG STRIX B850-E GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-b850-e-gaming-wifi/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_5",
+          "pcie": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-19d9b7fb01276c66",
+    "raw_name": "Asus ROG STRIX Z790-H GAMING WIFI",
+    "match_model": "ROG STRIX Z790-H GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-h-gaming-wifi-model/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280",
+            "22110"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ],
+          "sata": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-2160a46600e86fb2",
+    "raw_name": "Asus ROG STRIX Z790-F GAMING WIFI",
+    "match_model": "ROG STRIX Z790-F GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-f-gaming-wifi-model/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280",
+            "22110"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ],
+          "sata": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-3fd5f83ffc618fc8",
+    "raw_name": "Asus TUF GAMING X870E-PLUS WIFI7",
+    "match_model": "TUF GAMING X870E-PLUS WIFI7",
+    "source_url": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-x870e-plus-wifi7/techspec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-412698d4f553c8ce",
+    "raw_name": "Asus ROG STRIX X870E-E GAMING WIFI",
+    "match_model": "ROG STRIX X870E-E GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x870e-e-gaming-wifi/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_5",
+          "pcie": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-581b3e40bce0934f",
+    "raw_name": "Asus ROG STRIX B850-I GAMING WIFI",
+    "match_model": "ROG STRIX B850-I GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-b850-i-gaming-wifi/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 2
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-679b58a694c79840",
+    "raw_name": "Asus ROG CROSSHAIR X870E EXTREME",
+    "match_model": "ROG CROSSHAIR X870E EXTREME",
+    "source_url": "https://rog.asus.com/motherboards/rog-crosshair/rog-crosshair-x870e-extreme/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280",
+            "22110"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-6e701fba0a952e1a",
+    "raw_name": "Asus ROG STRIX X870-A GAMING WIFI",
+    "match_model": "ROG STRIX X870-A GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x870-a-gaming-wifi/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 2
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-8058b74b8fc751e4",
+    "raw_name": "Asus ROG STRIX Z790-A GAMING WIFI II",
+    "match_model": "ROG STRIX Z790-A GAMING WIFI II",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-a-gaming-wifi-ii/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280",
+            "22110"
+          ]
+        },
+        {
+          "name": "M.2_5",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ],
+          "sata": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-9580299415bb4120",
+    "raw_name": "Asus ROG MAXIMUS Z790 EXTREME",
+    "match_model": "ROG MAXIMUS Z790 EXTREME",
+    "source_url": "https://rog.asus.com/motherboards/rog-maximus/rog-maximus-z790-extreme-model/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2280"
+          ],
+          "sata": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 6
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-98f6b92a297f8751",
+    "raw_name": "Asus ROG CROSSHAIR X870E HERO",
+    "match_model": "ROG CROSSHAIR X870E HERO",
+    "source_url": "https://rog.asus.com/motherboards/rog-crosshair/rog-crosshair-x870e-hero/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_5",
+          "pcie": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-af3bd865bcf0175f",
+    "raw_name": "Asus ROG MAXIMUS Z790 DARK HERO",
+    "match_model": "ROG MAXIMUS Z790 DARK HERO",
+    "source_url": "https://rog.asus.com/motherboards/rog-maximus/rog-maximus-z790-dark-hero/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_5",
+          "pcie": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-b47e1c3ddbfa3c0a",
+    "raw_name": "Asus ROG STRIX B850-F GAMING WIFI",
+    "match_model": "ROG STRIX B850-F GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-b850-f-gaming-wifi/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2280",
+            "22110"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 2
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-b641ad5968b7ddd4",
+    "raw_name": "Asus ROG STRIX Z790-F GAMING WIFI II",
+    "match_model": "ROG STRIX Z790-F GAMING WIFI II",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-f-gaming-wifi-ii/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280",
+            "22110"
+          ]
+        },
+        {
+          "name": "M.2_5",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ],
+          "sata": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-c565838a5f5f639e",
+    "raw_name": "Asus ProArt Z790-CREATOR WIFI",
+    "match_model": "ProArt Z790-CREATOR WIFI",
+    "source_url": "https://www.asus.com/motherboards-components/motherboards/proart/proart-z790-creator-wifi/techspec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280",
+            "22110"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 8
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-d85db3efbf235eb9",
+    "raw_name": "Asus ROG STRIX X870-I GAMING WIFI",
+    "match_model": "ROG STRIX X870-I GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x870-i-gaming-wifi/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 2
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-da6d272d7739de61",
+    "raw_name": "Asus TUF GAMING Z790-BTF WIFI",
+    "match_model": "TUF GAMING Z790-BTF WIFI",
+    "source_url": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-z790-btf-wifi/techspec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280",
+            "22110"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ],
+          "sata": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "back_connect": true,
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 4
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-db1d516cddb7410a",
+    "raw_name": "Asus ROG STRIX X870-F GAMING WIFI",
+    "match_model": "ROG STRIX X870-F GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x870-f-gaming-wifi/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 2
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-f2eebc4383a49674",
+    "raw_name": "Asus ROG STRIX B850-A GAMING WIFI",
+    "match_model": "ROG STRIX B850-A GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-b850-a-gaming-wifi/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2280",
+            "22110"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slot_present": true,
+      "storage_ports": {
+        "sata_6g_ports": 2
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-3a8226385420dbb9",
+    "raw_name": "Asus ROG STRIX Z790-E GAMING WIFI",
+    "match_model": "ROG STRIX Z790-E GAMING WIFI",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-model/spec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_5",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ],
+          "sata": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slots": 3,
+      "ram_form_factor": "DIMM",
+      "storage_ports": {
+        "sata_6g_ports": 4,
+        "m2_sata": true,
+        "m2_sata_slot": "M.2_5"
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "mb-asus-tuf-gaming-b850-plus-wifi",
+    "raw_name": "Asus TUF GAMING B850-PLUS WIFI",
+    "match_model": "TUF GAMING B850-PLUS WIFI",
+    "source_url": "https://www.asus.com/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b850-plus-wifi/techspec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_1",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280",
+            "22110"
+          ]
+        }
+      ],
+      "pcie_x16_slots": 2,
+      "ram_form_factor": "DIMM",
+      "storage_ports": {
+        "sata_6g_ports": 4,
+        "m2_sata": false
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-3d03f467c93e8420",
+    "raw_name": "Asus TUF GAMING B760M-BTF WIFI",
+    "match_model": "TUF GAMING B760M-BTF WIFI",
+    "source_url": "https://www.asus.com/in/motherboards-components/motherboards/tuf-gaming/tuf-gaming-b760m-btf-wifi/techspec/",
+    "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_2",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "back_connect": true,
+      "pcie_x16_slots": 2,
+      "ram_form_factor": "DIMM",
+      "storage_ports": {
+        "sata_6g_ports": 4,
+        "m2_sata": false
+      }
+    }
+  },
+  {
     "category": "motherboard",
     "source_key": "verified-motherboard-4f31545f81984c33",
     "raw_name": "Asus ROG STRIX Z790-E GAMING WIFI II",
     "match_model": "ROG STRIX Z790-E GAMING WIFI II",
     "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-ii/spec/",
     "specs": {
+      "m2_storage_slots": [
+        {
+          "name": "M.2_3",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_4",
+          "pcie": [
+            "2280"
+          ]
+        },
+        {
+          "name": "M.2_5",
+          "pcie": [
+            "2242",
+            "2260",
+            "2280"
+          ],
+          "sata": [
+            "2242",
+            "2260",
+            "2280"
+          ]
+        }
+      ],
+      "pcie_x16_slots": 3,
       "form_factor": "ATX",
       "ram_form_factor": "DIMM",
       "storage_ports": {
@@ -228,5 +1196,52 @@
       "pcie_8pin_available",
       "length_mm"
     ]
+  },
+  {
+    "source_key": "docyx:fe38397f9dfb6a5946b46017688fe47570ada08946112b44151af63263be6e09",
+    "category": "cooler",
+    "raw_name": "Noctua NF-A12x25 PWM chromax.black.swap",
+    "source_url": "https://www.noctua.at/en/products/nf-a12x25-pwm-chromax-black-swap/specifications",
+    "specs": {
+      "fan_w": 1.68,
+      "thickness_mm": 25,
+      "fans_per_item": 1
+    }
+  },
+  {
+    "source_key": "docyx:73a86a7f59f214edf1d54de45a52e0fb6610d0c549178cd387afaa9d88f69fe0",
+    "category": "cooler",
+    "raw_name": "ARCTIC P12 PWM PST",
+    "source_url": "https://www.arctic.de/en/P12-PWM-PST/ACFAN00120A",
+    "specs": {
+      "fan_w": 1.2,
+      "thickness_mm": 25,
+      "fans_per_item": 1
+    }
+  },
+  {
+    "source_key": "docyx:ce8930a8491c52d34f8ea8916231498aeb320e79e73692f37b612033463d4034",
+    "category": "cooler",
+    "raw_name": "ID-COOLING FX360 PRO",
+    "source_url": "https://www.idcooling.com/product/detail?id=497",
+    "specs": {
+      "sockets": [
+        "LGA1700",
+        "LGA1851",
+        "LGA1200",
+        "LGA2066",
+        "LGA2011",
+        "AM5",
+        "AM4"
+      ],
+      "radiator_stack_mm": 52,
+      "manufacturer_max_tdp_w": 350,
+      "thermal_test_cpus": [
+        "Intel Core i7-13700K"
+      ]
+    },
+    "field_sources": {
+      "thermal_test_cpus": "https://www.tomshardware.com/pc-components/liquid-cooling/id-cooling-fx360-pro-review/2"
+    }
   }
 ]

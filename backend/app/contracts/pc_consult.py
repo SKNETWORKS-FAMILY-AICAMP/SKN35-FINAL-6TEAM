@@ -47,7 +47,24 @@ class PlanIn(Input):
     survey: Survey
 
 
+class FanLine(Input):
+    part_id: PositiveId
+    quantity: Annotated[int, Field(strict=True, ge=1, le=32)]
+
+
+class Cooling(Input):
+    mode: Literal["purchase", "bundled", "reuse"] = "purchase"
+    fans: list[FanLine] = Field(default_factory=list, max_length=32)
+
+    @model_validator(mode="after")
+    def unique_fans(self):
+        if len({line.part_id for line in self.fans}) != len(self.fans):
+            raise ValueError("같은 팬은 한 항목에서 수량을 선택하세요.")
+        return self
+
+
 class SelectionIn(PlanIn):
+    cooling: Cooling | None = None
     selected: Selection
 
 
@@ -72,6 +89,7 @@ class ConfirmIn(Input):
 
 
 class MessageIn(Input):
+    cooling: Cooling | None = None
     text: str = Field(min_length=1, max_length=2000)
     survey: Survey | None = None
     selected: Selection = Field(default_factory=dict)
@@ -131,11 +149,13 @@ class ValidationOut(BaseModel):
 class Candidate(BaseModel):
     part: Part
     validation: ValidationOut
+    cooling_mode: Literal["purchase", "bundled", "reuse"] = "purchase"
     recommended: bool
     reason: str
 
 
 class CandidatesOut(BaseModel):
+    fans: list[Part] = Field(default_factory=list)
     passed: list[Candidate]
     needsReview: list[Candidate]
     rejectedCount: int

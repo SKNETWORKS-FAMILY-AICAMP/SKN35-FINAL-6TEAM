@@ -32,6 +32,22 @@ def document(key: str) -> dict:
     return {k: row[k] for k in ("chunk_key", "title", "url", "text")} | {"origin": ORIGIN}
 
 
+@cache
+def _cooler_pairs():
+    return {
+        (row["model"].casefold(), row["socket"], cooler.casefold()): key
+        for key, row in _documents().items()
+        for cooler in row.get("compatible_coolers", ())
+    }
+
+
+def cooling_evidence(cpu, cooler):
+    key = _cooler_pairs().get(
+        (cpu["name"].casefold(), cpu["specs"].get("socket"), cooler["name"].casefold())
+    )
+    return document(key) if key else None
+
+
 def manufacturer_points() -> list[Point]:
     points = []
     for key, row in _documents().items():
