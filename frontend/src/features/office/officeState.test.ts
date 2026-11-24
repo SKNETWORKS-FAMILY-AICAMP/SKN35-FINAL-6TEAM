@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AgentEvent } from "../../api/client";
-import { buildMockEvents } from "../../events/mockEventStream";
+import { buildMockEvents } from "./officeEvent.fixture";
 import { initialOfficeState, officeReducer } from "./officeState";
 
 function event(overrides: Partial<AgentEvent>): AgentEvent {
@@ -85,5 +85,18 @@ describe("officeReducer", () => {
     const state = buildMockEvents().reduce(officeReducer, initialOfficeState());
     expect(state.runStatus).toBe("completed");
     expect(Object.values(state.teams).every((team) => team.status === "completed")).toBe(true);
+  });
+
+  it("마지막 run 이벤트를 기억하고 새 요구사항 버전이 오면 비운다", () => {
+    const events = buildMockEvents();
+    const started = events.slice(0, 2).reduce(officeReducer, initialOfficeState());
+    expect(started.runEvent?.type).toBe("run.started");
+    const done = events.reduce(officeReducer, initialOfficeState());
+    expect(done.runEvent?.type).toBe("run.completed");
+    const next = officeReducer(
+      done,
+      event({ seq: 20, requirement_version: 2, team: "consultation" }),
+    );
+    expect(next.runEvent).toBeNull();
   });
 });

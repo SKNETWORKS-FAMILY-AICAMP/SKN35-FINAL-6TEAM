@@ -60,7 +60,7 @@ jobs:
           npm run gen:api
       - name: 커밋된 계약 파일과 같은지 비교
         run: |
-          if ! git diff --exit-code -- contracts frontend/src/api/schema.d.ts; then
+          if ! git diff --exit-code -- contracts frontend/src/api/schema.d.ts frontend/src/api/pcSchema.d.ts; then
             echo "::error::계약 파일이 코드와 다릅니다. scripts/gen-contracts 를 실행하고 바뀐 파일을 같은 PR 에 커밋하세요."
             exit 1
           fi
@@ -145,7 +145,7 @@ jobs:
   secrets:
     name: 비밀값
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:

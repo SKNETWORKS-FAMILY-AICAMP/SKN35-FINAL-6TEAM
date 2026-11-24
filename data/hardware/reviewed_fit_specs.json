@@ -1,0 +1,232 @@
+[
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-4f31545f81984c33",
+    "raw_name": "Asus ROG STRIX Z790-E GAMING WIFI II",
+    "match_model": "ROG STRIX Z790-E GAMING WIFI II",
+    "source_url": "https://rog.asus.com/motherboards/rog-strix/rog-strix-z790-e-gaming-wifi-ii/spec/",
+    "specs": {
+      "form_factor": "ATX",
+      "ram_form_factor": "DIMM",
+      "storage_ports": {
+        "sata_6g_ports": 4,
+        "m2_sata": true,
+        "m2_sata_slot": "M.2_5"
+      }
+    }
+  },
+  {
+    "category": "gpu",
+    "source_key": "docyx:1f0259ab739960ce2cd18c2db493b054a490d11c2844039f53794776dad2487f",
+    "raw_name": "Sparkle ELF",
+    "source_url": "https://www.sparkle.com.tw/files/20240202124124576.pdf",
+    "specs": {
+      "gpu_power_w": 75,
+      "recommended_psu_w": 350
+    }
+  },
+  {
+    "category": "cpu",
+    "source_key": "verified-cpu-8b5bcbb398c9ff82",
+    "raw_name": "Intel Core i5-14400F",
+    "source_url": "https://www.intel.com/content/www/us/en/products/sku/236777/intel-core-i5-processor-14400f-20m-cache-up-to-4-70-ghz/specifications.html",
+    "specs": {
+      "socket": "LGA1700",
+      "cpu_power_limit_w": 148
+    }
+  },
+  {
+    "category": "cooler",
+    "source_key": "docyx:3766b428ae8431bc24dc3684295226f3ebdd0e33fc32022814be84453a455ea3",
+    "raw_name": "Iceberg Thermal IceFLOE T95",
+    "source_url": "https://www.iceberg-thermal.com/product/consumer/cooler/icefloe-t95/",
+    "specs": {
+      "sockets": [
+        "LGA1200",
+        "LGA1150",
+        "LGA1151",
+        "LGA1155",
+        "LGA1156",
+        "LGA1366",
+        "LGA775",
+        "AM5",
+        "AM4",
+        "AM3+",
+        "AM3",
+        "AM2+",
+        "AM2",
+        "FM2+",
+        "FM2",
+        "FM1"
+      ],
+      "height_mm": 78.5,
+      "manufacturer_max_tdp_w": 95
+    },
+    "unverified": [
+      "cooling_limit_w"
+    ]
+  },
+  {
+    "category": "cooler",
+    "source_key": "docyx:9a2160a4688965c3cc52405aa271777629b473b2ee8a9d4b8486e0cb5d1eeaef",
+    "raw_name": "ARCTIC Alpine 17",
+    "source_url": "https://www.arctic.de/media/b4/21/54/1690270233/Spec_Sheet_Alpine_17_EN.pdf",
+    "specs": {
+      "height_mm": 66.25,
+      "sockets": [
+        "LGA1700",
+        "LGA1851"
+      ]
+    },
+    "field_sources": {
+      "sockets": "https://www.arctic.de/en/Alpine-17/ACALP00040A"
+    },
+    "unverified": [
+      "cooling_limit_w"
+    ]
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-ec029cb123bdcd2e",
+    "raw_name": "ASRock H610M-HDV/M.2+ D5",
+    "source_url": "https://www.asrock.com/MB/Intel/H610M-HDVM.2%2B%20D5/index.asp#Specification",
+    "specs": {
+      "form_factor": "Micro ATX",
+      "storage_ports": {
+        "sata_6g_ports": 4,
+        "m2_pcie": "Gen3 x4",
+        "m2_lengths": [
+          2242,
+          2260,
+          2280
+        ],
+        "m2_sata": false
+      }
+    }
+  },
+  {
+    "category": "motherboard",
+    "source_key": "verified-motherboard-2fdbf54ec467fbc5",
+    "raw_name": "ASRock H610M/ac",
+    "source_url": "https://www.asrock.com/mb/Intel/H610Mac/index.asp#Specification",
+    "specs": {
+      "form_factor": "Micro ATX",
+      "storage_ports": {
+        "sata_6g_ports": 4,
+        "m2_pcie": "Gen3 x4",
+        "m2_lengths": [
+          2260,
+          2280
+        ],
+        "m2_sata": true,
+        "shared_port": "M2_2 SATA disables SATA3_3"
+      }
+    }
+  },
+  {
+    "category": "ram",
+    "source_key": "docyx:cee6a3c540689e2d251b2bc9a7dc7cd447bc351e6702172a5fa5baf23e767907",
+    "raw_name": "Patriot Signature Line 32 GB",
+    "source_url": "https://assets-global.website-files.com/62d47b34a77cc14cdd139230/650d3ee71dab21b41d30b6b9_Patriot_Product_Sheet_Signature_Line_DDR5_4800UDIMM.pdf",
+    "specs": {
+      "capacity_gb": 32,
+      "modules_per_item": 2,
+      "module_capacity_gb": 16,
+      "speed_mtps": 4800
+    },
+    "match_model": "PSD532G4800K"
+  },
+  {
+    "category": "gpu",
+    "source_key": "docyx:653ad128add2d2170ec19191f258b301d9921274417c5b5d4b9e84bba2816dc2",
+    "raw_name": "ASRock Intel Arc A380 Challenger ITX",
+    "source_url": "https://www.asrock.com/Graphics-Card/Intel/Intel%20Arc%20A380%20Challenger%20ITX%206GB%20OC/#Specification",
+    "specs": {
+      "length_mm": 190,
+      "recommended_psu_w": 500,
+      "required_pcie_8pin": 1
+    },
+    "match_model": "A380 CLI 6GO"
+  },
+  {
+    "category": "case",
+    "source_key": "docyx:c7a6b71968e9c011ae975d25eb43e92aeda455de5fbe613acb6f35829ec2bc49",
+    "raw_name": "Cooler Master MasterBox Q300L",
+    "source_url": "https://www.coolermaster.com/en-us/products/masterbox-q300l-white.html",
+    "specs": {
+      "board_sizes": [
+        "Mini ITX",
+        "Micro ATX"
+      ],
+      "psu_sizes": [
+        "ATX"
+      ],
+      "max_cpu_cooler_mm": 159,
+      "max_gpu_length_mm": 360,
+      "max_psu_length_mm": 160
+    },
+    "match_model": "MCB-Q300L-WANN-S00"
+  },
+  {
+    "category": "case",
+    "source_key": "docyx:e1150ddf44e80352aefb6b3a63a916c4f1fee5286a7346bbb259b9abc9a6c01b",
+    "raw_name": "Zalman T3 PLUS",
+    "source_url": "https://www.zalman.com/EN/Product/ProductDetail.do?productSeq=1426",
+    "specs": {
+      "board_sizes": [
+        "Micro ATX",
+        "Mini ITX"
+      ],
+      "max_cpu_cooler_mm": 150,
+      "max_gpu_length_mm": 290,
+      "max_psu_length_mm": 140,
+      "max_psu_length_without_hdd_bay_mm": 290
+    },
+    "unverified": [
+      "psu_sizes"
+    ]
+  },
+  {
+    "category": "case",
+    "source_key": "docyx:71a4c5489e25010fcd8e83fe5e00dec2961eb83c1931ed13581d3d689737b0b5",
+    "raw_name": "Zalman T8",
+    "source_url": "https://www.zalman.com/EN/Product/ProductDetail.do?pageIndex=1&pageSize=10&pageUnit=12&productSeq=1086&searchCategory1=5&searchCategory2=-99&searchCategory3=-99&searchWord=t8",
+    "specs": {
+      "board_sizes": [
+        "ATX",
+        "Micro ATX",
+        "Mini ITX"
+      ],
+      "max_cpu_cooler_mm": 160,
+      "max_gpu_length_mm": 295,
+      "max_psu_length_mm": 140
+    },
+    "unverified": [
+      "psu_sizes"
+    ]
+  },
+  {
+    "category": "storage",
+    "source_key": "docyx:869c48b943aa46796c8dbfe3d77b2cc1c541c93cb9389ca18651a90731acb888",
+    "raw_name": "Samsung Spinpoint M8",
+    "source_url": "https://www.seagate.com/files/www-content/support-content/internal-products/spinpoint-m-series/en-us/100698122e.pdf",
+    "specs": {
+      "drive_protocol": "SATA"
+    },
+    "unverified": [
+      "model_number"
+    ]
+  },
+  {
+    "category": "psu",
+    "source_key": "docyx:0bd64d0dbb4e754398ad046289b420c83138d600e9ac36d94cdf975192e51a76",
+    "raw_name": "Thermaltake Smart",
+    "source_url": "https://file.thermaltake.com/file/qig/SMART_500W600W700W_Manual.pdf",
+    "specs": {},
+    "unverified": [
+      "model_number",
+      "pcie_8pin_available",
+      "length_mm"
+    ]
+  }
+]
