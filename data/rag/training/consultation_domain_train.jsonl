@@ -1,0 +1,150 @@
+{"id":"domain-01-1","type":"symptom","question":"Transformers에서 8B 모델을 그냥 올리니 메모리가 모자라요. 적은 비트로 읽어 들이는 설정 예제가 있을까요?","gold":["JINBONG:CHK-HF-001"]}
+{"id":"domain-01-2","type":"constraints","question":"8B 가중치를 4비트로 읽으면서 장치 배치를 자동으로 맡길 때 어느 옵션을 같이 줘야 하나요?","gold":["JINBONG:CHK-HF-001"]}
+{"id":"domain-01-3","type":"contrast","question":"모델 파일은 그대로 두고 로딩 시점에 4비트를 지정하고 싶어요. Transformers에서 무슨 설정 객체를 쓰죠?","gold":["JINBONG:CHK-HF-001"]}
+{"id":"domain-02-1","type":"symptom","question":"GGUF 파일만 받았는데 설정이랑 토크나이저 파일이 안 보여요. 원래 한 파일에 들어 있나요?","gold":["JINBONG:CHK-HF-002"]}
+{"id":"domain-02-2","type":"constraints","question":"Transformers에 읽을 GGUF 파일 이름을 직접 넘기는 인자가 뭐예요?","gold":["JINBONG:CHK-HF-002"]}
+{"id":"domain-02-3","type":"contrast","question":"양자화 옵션을 고르는 게 아니라 이미 가진 GGUF를 지정하려고 해요. 어느 매개변수에 넣죠?","gold":["JINBONG:CHK-HF-002"]}
+{"id":"domain-03-1","type":"symptom","question":"애플 실리콘 맥에서 파이토치가 GPU를 안 쓰는 것 같아요. 어떤 백엔드로 가속하는지 알고 싶어요.","gold":["JINBONG:CHK-APL-001"]}
+{"id":"domain-03-2","type":"constraints","question":"Mac용 PyTorch 안정판을 준비하는데 파이썬과 macOS 최소 버전, 설치할 개발 도구가 궁금해요.","gold":["JINBONG:CHK-APL-001"]}
+{"id":"domain-03-3","type":"contrast","question":"애플 칩에서는 쿠다를 찾고 있었는데 Metal 쪽과 연결되는 파이토치 가속 경로 이름이 뭔가요?","gold":["JINBONG:CHK-APL-001"]}
+{"id":"domain-04-1","type":"symptom","question":"윈도우 PC에 엔비디아 카드는 있는데 CUDA 개발 환경 구성이 막혔어요. 그래픽카드 말고 뭘 갖춰야 해요?","gold":["JINBONG:CHK-NV-001"]}
+{"id":"domain-04-2","type":"constraints","question":"Windows용 CUDA Toolkit을 깔기 전에 운영체제랑 Visual Studio도 지원 범위를 확인해야 하나요?","gold":["JINBONG:CHK-NV-001"]}
+{"id":"domain-04-3","type":"contrast","question":"그래픽카드만 CUDA 대응이면 윈도우용 개발 준비가 끝난 건가요, 별도로 설치할 개발 키트도 있나요?","gold":["JINBONG:CHK-NV-001"]}
+{"id":"domain-05-1","type":"symptom","question":"라데온 드라이버 교체 후 ROCm 연산이 안 잡혀요. 드라이버 이외에 함께 대조할 버전이 뭔가요?","gold":["JINBONG:CHK-AMD-001"]}
+{"id":"domain-05-2","type":"constraints","question":"AMD 연산 서버에서 커널만 올리기 전에 GPU 펌웨어까지 호환 조합에 포함되는지 알고 싶어요.","gold":["JINBONG:CHK-AMD-001"]}
+{"id":"domain-05-3","type":"contrast","question":"ROCm 환경을 옮길 때 같은 GPU면 충분한가요, OS와 커널까지 한 세트로 확인해야 하나요?","gold":["JINBONG:CHK-AMD-001"]}
+{"id":"domain-06-1","type":"symptom","question":"OpenVINO 설치가 다른 PC에서만 실패해요. 배포 방식이 달라지면 파이썬이나 컴파일러 요구사항도 바뀌나요?","gold":["JINBONG:CHK-INT-001"]}
+{"id":"domain-06-2","type":"constraints","question":"OpenVINO를 GPU 대상으로 배포하려는데 OS와 개발 도구 외에 장치용 드라이버도 챙겨야 하나요?","gold":["JINBONG:CHK-INT-001"]}
+{"id":"domain-06-3","type":"contrast","question":"OpenVINO CPU 환경의 설치 조건을 GPU 배포에도 그대로 적용해도 되나요?","gold":["JINBONG:CHK-INT-001"]}
+{"id":"domain-07-1","type":"symptom","question":"OpenVINO에서 NPU가 사라졌어요. 리눅스 쪽에서 드라이버 외에 어떤 시스템 조건을 확인하죠?","gold":["JINBONG:CHK-INT-002"]}
+{"id":"domain-07-2","type":"constraints","question":"인텔 NPU용 추론 PC를 준비 중인데 리눅스 배포판과 커널도 지원 범위에 들어야 하나요?","gold":["JINBONG:CHK-INT-002"]}
+{"id":"domain-07-3","type":"contrast","question":"같은 NPU를 Windows와 Linux 양쪽에서 점검할 때 장치 확인 위치와 커널 조건은 어떻게 나눠 봐요?","gold":["JINBONG:CHK-INT-002"]}
+{"id":"domain-08-1","type":"symptom","question":"DirectML을 쓰려는데 제 그래픽카드가 대상인지 모르겠어요. 어떤 DirectX 버전을 지원해야 하죠?","gold":["JINBONG:CHK-MS-001"]}
+{"id":"domain-08-2","type":"constraints","question":"기계학습 프로그램을 DirectML로 돌릴 GPU의 기본 호환 조건이 궁금해요.","gold":["JINBONG:CHK-MS-001"]}
+{"id":"domain-08-3","type":"contrast","question":"DirectML은 특정 카드 모델 이름인가요, DirectX 그래픽 장치 위의 소프트웨어 계층인가요?","gold":["JINBONG:CHK-MS-001"]}
+{"id":"domain-09-1","type":"symptom","question":"WSL에서 GPU 가속이 안 떠요. NVIDIA 카드를 쓰면 Windows 쪽 환경과 드라이버를 같이 점검해야 하나요?","gold":["JINBONG:CHK-MS-002"]}
+{"id":"domain-09-2","type":"constraints","question":"AMD 그래픽이 달린 Windows PC에서 리눅스 하위 시스템용 머신러닝을 알아봐요. 어떤 가속 경로가 안내돼 있나요?","gold":["JINBONG:CHK-MS-002"]}
+{"id":"domain-09-3","type":"contrast","question":"WSL 머신을 엔비디아에서 인텔 그래픽으로 바꾸면 CUDA와 DirectML 중 어느 쪽 안내를 봐야 하죠?","gold":["JINBONG:CHK-MS-002"]}
+{"id":"domain-10-1","type":"symptom","question":"인터넷에서 복사한 파이토치 설치 명령이 제 환경과 달라요. 우리 OS와 연산 장치에 맞춰 다시 고를 수 있나요?","gold":["JINBONG:CHK-PT-001"]}
+{"id":"domain-10-2","type":"constraints","question":"GPU 없는 PC용 PyTorch 설치 명령을 뽑으려면 계산 플랫폼에서 무엇을 선택해야 하나요?","gold":["JINBONG:CHK-PT-001"]}
+{"id":"domain-10-3","type":"contrast","question":"같은 파이토치라도 라데온과 엔비디아에 설치할 때 어떤 플랫폼 선택지가 갈리나요?","gold":["JINBONG:CHK-PT-001"]}
+{"id":"domain-11-1","type":"symptom","question":"델 노트북을 열어도 램을 꽂을 자리가 안 보여요. 보드에 붙어 있어 교체가 안 되는 모델도 있나요?","gold":["JINBONG:CHK-DELL-001"]}
+{"id":"domain-11-2","type":"constraints","question":"Dell 랩탑에 메모리를 주문하기 전에 DDR 세대랑 슬롯 개수, 용량 한도를 어디 기준으로 보죠?","gold":["JINBONG:CHK-DELL-001"]}
+{"id":"domain-11-3","type":"contrast","question":"같은 델 노트북이라도 일체형 RAM인지 소켓형인지에 따라 업그레이드 가능 여부가 다른가요?","gold":["JINBONG:CHK-DELL-001"]}
+{"id":"domain-12-1","type":"symptom","question":"HP 랩탑에 맞는 램 용량을 모르겠어요. 구매 전에 모델 기준으로 어떤 세 가지를 확인할까요?","gold":["JINBONG:CHK-HP-001"]}
+{"id":"domain-12-2","type":"constraints","question":"HP 메모리를 직접 설치하려는데 제 기종의 슬롯 구성하고 설치 절차를 같이 확인할 자료가 있을까요?","gold":["JINBONG:CHK-HP-001"]}
+{"id":"domain-12-3","type":"contrast","question":"HP에서 최대 램만 확인하면 되는 줄 알았어요. 설치 전에 메모리 유형과 서비스 문서도 봐야 하나요?","gold":["JINBONG:CHK-HP-001"]}
+{"id":"domain-13-1","type":"symptom","question":"레노버 노트북의 램 일부가 붙박이 같아요. 납땜 여부를 확인할 공식 설명서 이름이 뭐죠?","gold":["JINBONG:CHK-LNV-001"]}
+{"id":"domain-13-2","type":"constraints","question":"Lenovo 장비의 메모리 용량 상한을 확인하려는데 사용자 설명서 외에 볼 만한 정비 문서가 있나요?","gold":["JINBONG:CHK-LNV-001"]}
+{"id":"domain-13-3","type":"contrast","question":"레노버에서 호환 부품을 주문할 때 쓰는 조회 도구랑 메모리 구조가 적힌 매뉴얼을 구분해 주세요.","gold":["JINBONG:CHK-LNV-001"]}
+{"id":"domain-14-1","type":"symptom","question":"ASUS 노트북 사양표에서 램이 두 종류처럼 보여요. 보드에 붙은 부분과 추가 가능한 부분을 어떻게 읽죠?","gold":["JINBONG:CHK-ASUS-001"]}
+{"id":"domain-14-2","type":"constraints","question":"아수스 랩탑의 메모리와 SSD를 같이 늘릴 때 정확한 모델명으로 어느 사양 페이지를 확인해요?","gold":["JINBONG:CHK-ASUS-001"]}
+{"id":"domain-14-3","type":"contrast","question":"ASUS 사양에 온보드와 SO-DIMM이 함께 적혀 있으면 어느 쪽이 교체 가능한 부분인가요?","gold":["JINBONG:CHK-ASUS-001"]}
+{"id":"domain-15-1","type":"symptom","question":"에이서 노트북에 사제 부품을 끼우다가 손상됐어요. 이런 경우 보증 기준이 어떻게 되죠?","gold":["JINBONG:CHK-ACR-001"]}
+{"id":"domain-15-2","type":"constraints","question":"Acer 랩탑의 내부 부품 중 일반적으로 사용자가 확장할 수 있다고 안내하는 종류는 뭐예요?","gold":["JINBONG:CHK-ACR-001"]}
+{"id":"domain-15-3","type":"contrast","question":"에이서에서 램이나 SSD를 바꾸는 것과 다른 내부 부품을 교체하는 건 지원 범위가 같은가요?","gold":["JINBONG:CHK-ACR-001"]}
+{"id":"domain-16-1","type":"symptom","question":"MSI 노트북 SSD 두 개로 RAID를 만들었는데 용량과 브랜드가 달라요. 안정성을 보장받을 수 있나요?","gold":["JINBONG:CHK-MSI-001"]}
+{"id":"domain-16-2","type":"constraints","question":"MSI에서 M.2 PCIe 드라이브를 살 때 기종별로 어느 슬롯 정보와 세대를 봐야 하나요?","gold":["JINBONG:CHK-MSI-001"]}
+{"id":"domain-16-3","type":"contrast","question":"같은 용량으로 맞추는 것과 다른 인터페이스를 섞는 게 MSI의 RAID 호환성에서 차이가 있나요?","gold":["JINBONG:CHK-MSI-001"]}
+{"id":"domain-17-1","type":"symptom","question":"올해형 LG 노트북인데 램을 꽂는 곳이 없어요. 온보드 전용이면 더 늘릴 방법이 있나요?","gold":["JINBONG:CHK-LG-001"]}
+{"id":"domain-17-2","type":"constraints","question":"2026년 LG 랩탑을 열기 전에 SSD 규격이랑 장착 자리를 기종별로 확인해야 할까요?","gold":["JINBONG:CHK-LG-001"]}
+{"id":"domain-17-3","type":"contrast","question":"LG 노트북에 맞는 부품을 찾는 것과 직접 교체하는 건 별개인가요? 제조사 권고가 궁금해요.","gold":["JINBONG:CHK-LG-001"]}
+{"id":"domain-18-1","type":"symptom","question":"서피스에서 작은 SSD를 교체하려는데 제 모델이 대상인지 못 찾겠어요. 어떤 목록을 봐야 해요?","gold":["JINBONG:CHK-SUR-001"]}
+{"id":"domain-18-2","type":"constraints","question":"Surface를 자가 수리할 때 서비스 가이드 외에 작업자 기술이나 도구 조건도 있나요?","gold":["JINBONG:CHK-SUR-001"]}
+{"id":"domain-18-3","type":"contrast","question":"다른 서피스에서 빠진 rSSD를 봤는데 제 기종도 같은 부품을 교체할 수 있다고 봐도 될까요?","gold":["JINBONG:CHK-SUR-001"]}
+{"id":"domain-19-1","type":"symptom","question":"킹스톤 램을 고르는데 PC의 시스템 부품 번호만 알아요. 이 번호로 맞는 메모리를 검색할 수 있나요?","gold":["JINBONG:CHK-CMP-001"]}
+{"id":"domain-19-2","type":"constraints","question":"Kingston 메모리 파인더에서 제조사를 고른 다음 어떤 모델 정보를 넣으면 되나요?","gold":["JINBONG:CHK-CMP-001"]}
+{"id":"domain-19-3","type":"contrast","question":"램 자체의 품번을 몰라도 컴퓨터 모델 번호로 Kingston 호환 메모리를 역으로 찾을 수 있을까요?","gold":["JINBONG:CHK-CMP-001"]}
+{"id":"domain-20-1","type":"symptom","question":"인텔 데스크톱 CPU만 먼저 샀어요. 여기에 맞는 메인보드 목록을 공식 도구에서 찾을 수 있나요?","gold":["JINBONG:CHK-CMP-002"]}
+{"id":"domain-20-2","type":"constraints","question":"Intel 소매 제품의 조합을 확인하려면 데스크톱 프로세서부터 골라 조회해도 되나요?","gold":["JINBONG:CHK-CMP-002"]}
+{"id":"domain-20-3","type":"contrast","question":"보드 하나를 고르고 CPU를 찾는 방식과 반대로 인텔 CPU 기준으로 보드를 추천받을 곳이 있나요?","gold":["JINBONG:CHK-CMP-002"]}
+{"id":"domain-21-1","type":"symptom","question":"AM5 600번대 보드에 라이젠을 바꾸고 부팅이 안 돼요. 펌웨어 갱신이 필요한 조합도 있나요?","gold":["JINBONG:CHK-CMP-003"]}
+{"id":"domain-21-2","type":"constraints","question":"라이젠 9000용 AM5 메인보드를 찾을 때 600 시리즈와 800 시리즈가 모두 플랫폼 호환 안내에 들어가나요?","gold":["JINBONG:CHK-CMP-003"]}
+{"id":"domain-21-3","type":"contrast","question":"AM5 소켓이 같으면 600번대 보드도 모든 지원 CPU를 바이오스 업데이트 없이 쓸 수 있나요?","gold":["JINBONG:CHK-CMP-003"]}
+{"id":"domain-22-1","type":"symptom","question":"B450 보드에서 다른 CPU로 바꾸니 시작이 안 돼요. AM4 호환표에 BIOS 조건도 나와 있나요?","gold":["JINBONG:CHK-CMP-004"]}
+{"id":"domain-22-2","type":"constraints","question":"X370에 라이젠을 얹으려는데 AMD 표에서 프로세서 시리즈하고 무엇을 교차해서 보면 될까요?","gold":["JINBONG:CHK-CMP-004"]}
+{"id":"domain-22-3","type":"contrast","question":"A320과 A520이 둘 다 AM4면 CPU 지원도 같다고 보면 되나요, 칩셋별 표가 따로 있나요?","gold":["JINBONG:CHK-CMP-004"]}
+{"id":"domain-23-1","type":"symptom","question":"아수스 보드 메모리 목록에 제가 산 램이 없어요. 이게 테스트를 안 했다는 뜻일 수도 있나요?","gold":["JINBONG:CHK-CMP-005"]}
+{"id":"domain-23-2","type":"constraints","question":"ASUS 지원 목록으로 CPU를 고를 때 제품명 옆의 어떤 펌웨어 조건까지 확인해야 하나요?","gold":["JINBONG:CHK-CMP-005"]}
+{"id":"domain-23-3","type":"contrast","question":"아수스 QVL에서 램 검증 여부를 보는 것과 새 CPU가 요구하는 바이오스를 보는 걸 구분해 주세요.","gold":["JINBONG:CHK-CMP-005"]}
+{"id":"domain-24-1","type":"symptom","question":"구형 인텔 맥인데 macOS 27 설치 대상인지 헷갈려요. 기종 이름을 어디와 대조해야 하죠?","gold":["JINBONG:CHK-MAC-001"]}
+{"id":"domain-24-2","type":"constraints","question":"애플 실리콘 맥에서 macOS 27로 올릴 때 칩 제품군 때문에 제외되는 모델이 있나요?","gold":["JINBONG:CHK-MAC-001"]}
+{"id":"domain-24-3","type":"contrast","question":"macOS 27 지원을 판단할 때 Intel Mac과 Apple silicon Mac에 같은 기준을 적용하나요?","gold":["JINBONG:CHK-MAC-001"]}
+{"id":"domain-25-1","type":"symptom","question":"맥 미니에서 모니터를 더 달고 싶어요. 외부 화면은 최대 몇 대까지 안내돼 있나요?","gold":["JINBONG:CHK-MAC-003"]}
+{"id":"domain-25-2","type":"constraints","question":"Mac mini에 여러 모니터를 꽂으려는데 HDMI 외에 어떤 포트를 쓸 수 있고 주사율은 어디서 확인하죠?","gold":["JINBONG:CHK-MAC-003"]}
+{"id":"domain-25-3","type":"contrast","question":"맥 미니의 화면 개수 상한만 알면 해상도 조합도 정해지나요, 기종별 사양까지 봐야 하나요?","gold":["JINBONG:CHK-MAC-003"]}
+{"id":"domain-26-1","type":"symptom","question":"메이트북 그래픽 성능을 올리려고 열어 봤는데 카드가 안 보여요. 교체할 수 있는 구조인가요?","gold":["JINBONG:CHK-HUAWEI-001"]}
+{"id":"domain-26-2","type":"constraints","question":"Huawei MateBook에서 SSD 교체나 HDD 업그레이드가 지원되는지 알고 싶어요.","gold":["JINBONG:CHK-HUAWEI-001"]}
+{"id":"domain-26-3","type":"contrast","question":"메이트북 저장장치는 바꿀 수 있다는데 램하고 그래픽도 똑같이 교체 대상인가요?","gold":["JINBONG:CHK-HUAWEI-001"]}
+{"id":"domain-27-1","type":"symptom","question":"MSI 보드에 꽂을 램의 정확한 모델이 검증됐는지 못 찾겠어요. 지원 페이지 어디로 들어가죠?","gold":["JINBONG:CHK-MSI-QVL-001"]}
+{"id":"domain-27-2","type":"constraints","question":"MSI에서 메모리 모듈을 주문하기 전 제품 지원 페이지에서 어떤 호환성 항목을 열어야 하나요?","gold":["JINBONG:CHK-MSI-QVL-001"]}
+{"id":"domain-27-3","type":"contrast","question":"MSI 보드용 부품표가 여러 개예요. 프로세서 말고 DIMM 품번을 대조하는 메뉴 이름이 뭐죠?","gold":["JINBONG:CHK-MSI-QVL-001"]}
+{"id":"domain-28-1","type":"symptom","question":"MSI 보드에서 CPU만 갈았는데 전원이 켜져도 시작을 못 해요. CPU 지원 여부와 업데이트 필요성을 어디서 보죠?","gold":["JINBONG:CHK-MSI-QVL-002"]}
+{"id":"domain-28-2","type":"constraints","question":"MSI 메인보드에 검증된 프로세서를 고를 때 현재 바이오스 버전도 조건이 될 수 있나요?","gold":["JINBONG:CHK-MSI-QVL-002"]}
+{"id":"domain-28-3","type":"contrast","question":"MSI에서 보드 모델이 같아도 구입할 CPU에 따라 필요한 BIOS가 달라질 수 있는지 확인하고 싶어요.","gold":["JINBONG:CHK-MSI-QVL-002"]}
+{"id":"domain-29-1","type":"symptom","question":"기가바이트 B650EM DS3H WIFI6E 램 목록을 찾았는데 제 보드 리비전과 달라요. 뭘 맞춰 봐야 하죠?","gold":["JINBONG:CHK-GIGA-QVL-001"]}
+{"id":"domain-29-2","type":"constraints","question":"B650EM DS3H WIFI6E에 쓸 메모리를 고를 때 기가바이트 표에서 장착 구성도 구분하나요?","gold":["JINBONG:CHK-GIGA-QVL-001"]}
+{"id":"domain-29-3","type":"contrast","question":"B650EM DS3H WIFI6E의 CPU 지원 여부하고 램 검증 여부는 각각 어떤 목록에 나오나요?","gold":["JINBONG:CHK-GIGA-QVL-001"]}
+{"id":"domain-30-1","type":"symptom","question":"애즈락 램 호환표에서 제 보드가 안 보여요. 우선 소켓하고 칩셋으로 제품을 좁혀야 하나요?","gold":["JINBONG:CHK-ASROCK-QVL-001"]}
+{"id":"domain-30-2","type":"constraints","question":"ASRock의 검증 메모리를 찾으려면 인텔용인지 AMD용인지 외에 어느 보드 정보가 필요하죠?","gold":["JINBONG:CHK-ASROCK-QVL-001"]}
+{"id":"domain-30-3","type":"contrast","question":"애즈락 같은 칩셋 보드면 검증 램도 공통인가요, Memory QVL에서 보드 모델까지 골라야 하나요?","gold":["JINBONG:CHK-ASROCK-QVL-001"]}
+{"id":"domain-31-1","type":"symptom","question":"맥북 프로에 외장 화면을 더 연결했는데 출력이 안 돼요. 칩이랑 연결 포트에 따라 가능한 조합이 다른가요?","gold":["JINBONG:CHK-MAC-004"]}
+{"id":"domain-31-2","type":"constraints","question":"M5 MacBook Pro 내장 패널을 켜 둔 채 별도 모니터를 몇 대 쓸 수 있어요?","gold":["JINBONG:CHK-MAC-004"]}
+{"id":"domain-31-3","type":"contrast","question":"맥북 프로에서 HDMI와 썬더볼트를 바꿔 꽂을 때도 지원 해상도와 주사율이 같다고 봐도 돼요?","gold":["JINBONG:CHK-MAC-004"]}
+{"id":"domain-32-1","type":"symptom","question":"맥북 에어에서 두 번째 외부 화면을 붙인 뒤 원하는 주사율을 못 골라요. 연결 대수도 영향을 주나요?","gold":["JINBONG:CHK-MAC-005"]}
+{"id":"domain-32-2","type":"constraints","question":"M4 Air 내장 화면을 계속 쓰면서 책상에 추가할 수 있는 모니터 수가 궁금해요.","gold":["JINBONG:CHK-MAC-005"]}
+{"id":"domain-32-3","type":"contrast","question":"M4에서 M5 맥북 에어로 바꾸면 내장 화면과 함께 쓸 수 있는 외장 모니터 대수 상한도 바뀌나요?","gold":["JINBONG:CHK-MAC-005"]}
+{"id":"domain-33-1","type":"symptom","question":"맥 스튜디오에 여러 화면을 연결했더니 일부만 떠요. 포트가 어느 그룹인지도 확인해야 하나요?","gold":["JINBONG:CHK-MAC-006"]}
+{"id":"domain-33-2","type":"constraints","question":"M4 Max Mac Studio로 외장 모니터를 최대 몇 대 구성할 수 있나요?","gold":["JINBONG:CHK-MAC-006"]}
+{"id":"domain-33-3","type":"contrast","question":"같은 Mac Studio 이름이면 포트별 화면 조합도 같나요, 칩과 출시 연도별로 따로 봐야 하나요?","gold":["JINBONG:CHK-MAC-006"]}
+{"id":"domain-34-1","type":"symptom","question":"지금 설치된 SSD 모델을 잘 모르겠어요. 킹스톤에서 PC를 분석해서 저장장치 교체 후보를 보여 주는 도구가 있나요?","gold":["JINBONG:CHK-CMP-006"]}
+{"id":"domain-34-2","type":"constraints","question":"Kingston에서 램과 저장장치 업그레이드를 함께 찾을 때 자동 분석 외에 수동으로 입력할 정보는 뭐죠?","gold":["JINBONG:CHK-CMP-006"]}
+{"id":"domain-34-3","type":"contrast","question":"메모리만 검색하는 대신 SSD까지 같이 조회하려면 Kingston에서 어떤 스캐너를 써요?","gold":["JINBONG:CHK-CMP-006"]}
+{"id":"domain-35-1","type":"symptom","question":"커세어 램 키트를 사고 싶은데 제 보드와 맞는 조합을 못 찾겠어요. 공식 검색 도구가 있나요?","gold":["JINBONG:CHK-CMP-007"]}
+{"id":"domain-35-2","type":"constraints","question":"CORSAIR 메모리를 찾을 때 완제품 PC 모델 대신 메인보드 모델을 기준으로 찾아도 되나요?","gold":["JINBONG:CHK-CMP-007"]}
+{"id":"domain-35-3","type":"contrast","question":"커세어에서 보드 모델로 직접 찾는 방법과 시스템을 스캔해서 램을 찾는 방법 이름을 알려주세요.","gold":["JINBONG:CHK-CMP-007"]}
+{"id":"domain-36-1","type":"symptom","question":"프레임워크 16에 긴 SSD가 보조 자리에 안 들어가요. 기본 슬롯과 보조 슬롯의 길이가 다른가요?","gold":["JINBONG:CHK-FW16-004"]}
+{"id":"domain-36-2","type":"constraints","question":"Framework Laptop 16에서 두 번째 NVMe를 부팅용으로 쓰고 싶은데 가능한가요?","gold":["JINBONG:CHK-FW16-004"]}
+{"id":"domain-36-3","type":"contrast","question":"Framework 16용 SSD를 고를 때 2280인지 확인한 뒤에도 양면 모듈이면 높이를 더 봐야 하나요?","gold":["JINBONG:CHK-FW16-004"]}
+{"id":"domain-37-1","type":"symptom","question":"5090 파운더스 에디션을 넣으려는데 옆판 쪽 배선이 빠듯해요. 카드 길이 외에 케이블 공간도 봐야 하나요?","gold":["JINBONG:CHK-GPU-PSU-001"]}
+{"id":"domain-37-2","type":"constraints","question":"RTX 5090 FE에 필요한 시스템 전력과 PCIe 8핀 케이블 개수를 알고 싶어요.","gold":["JINBONG:CHK-GPU-PSU-001"]}
+{"id":"domain-37-3","type":"contrast","question":"5090 FE 전원선을 8핀 여러 개로 연결하는 방법과 Gen 5 케이블 하나로 연결하는 조건은 어떻게 달라요?","gold":["JINBONG:CHK-GPU-PSU-001"]}
+{"id":"domain-38-1","type":"symptom","question":"RX 9070 XT 장착 중에 보조전원 선이 모자라요. 8핀을 몇 개 준비해야 하죠?","gold":["JINBONG:CHK-GPU-PSU-002"]}
+{"id":"domain-38-2","type":"constraints","question":"라데온 9070 XT에 맞출 파워서플라이 최소 용량과 PCIe 버스 구성이 궁금해요.","gold":["JINBONG:CHK-GPU-PSU-002"]}
+{"id":"domain-38-3","type":"contrast","question":"RX 9070 XT에서 슬롯의 x16 표기랑 파워 쪽 8핀 표기는 각각 어떤 연결 조건인가요?","gold":["JINBONG:CHK-GPU-PSU-002"]}
+{"id":"domain-39-1","type":"symptom","question":"인텔 아크 B580 링크가 x8로 보이는데 원래 이 카드의 PCIe 구성이 어떻게 돼요?","gold":["JINBONG:CHK-GPU-PSU-003"]}
+{"id":"domain-39-2","type":"constraints","question":"Arc B580을 달 PC에서 전원공급장치 용량과 필요한 8핀 선 수를 체크해 주세요.","gold":["JINBONG:CHK-GPU-PSU-003"]}
+{"id":"domain-39-3","type":"contrast","question":"B580 살 때 PCIe 슬롯의 레인 요구사항하고 보조전원 커넥터 요구사항을 따로 알려 주세요.","gold":["JINBONG:CHK-GPU-PSU-003"]}
+{"id":"domain-40-1","type":"symptom","question":"R760에서 B쪽에 꽂은 메모리만 안 보여요. 프로세서를 하나만 쓴 것과 관계있을까요?","gold":["BW20261119:CHK-HW19-010"]}
+{"id":"domain-40-2","type":"constraints","question":"PowerEdge R760에 소켓 하나만 채울 때 램을 배치할 수 있는 슬롯 번호 범위가 어떻게 돼요?","gold":["BW20261119:CHK-HW19-010"]}
+{"id":"domain-40-3","type":"contrast","question":"Dell R760을 듀얼 CPU로 바꾸면 싱글 구성과 비교해서 어느 쪽 DIMM 뱅크를 더 쓸 수 있죠?","gold":["BW20261119:CHK-HW19-010"]}
+{"id":"domain-41-1","type":"symptom","question":"R760에 램 용량을 섞어 꽂았더니 구성이 안 맞는다고 해요. 이 서버가 서로 다른 DIMM 용량을 지원하나요?","gold":["BW20261119:CHK-HW19-011"]}
+{"id":"domain-41-2","type":"constraints","question":"PowerEdge R760용 DDR5를 살 때 x4 DRAM과 x8 DRAM을 한 구성에 섞어도 돼요?","gold":["BW20261119:CHK-HW19-011"]}
+{"id":"domain-41-3","type":"contrast","question":"R760에서 같은 RDIMM 이름이면 3DS 모듈과 일반 모듈도 함께 쓸 수 있나요?","gold":["BW20261119:CHK-HW19-011"]}
+{"id":"domain-42-1","type":"symptom","question":"새 DDR5 램의 홈이 예전 DDR4 보드 슬롯하고 안 맞아요. 두 세대의 커넥터가 원래 다른가요?","gold":["BW20261119:CHK-HW19-012"]}
+{"id":"domain-42-2","type":"constraints","question":"시스템을 DDR5로 옮길 때 메인보드뿐 아니라 프로세서도 DDR5를 지원해야 하나요?","gold":["BW20261119:CHK-HW19-012"]}
+{"id":"domain-42-3","type":"contrast","question":"DDR4와 DDR5가 물리적인 홈만 다른 건가요, 메모리 전기 규격에도 차이가 있나요?","gold":["BW20261119:CHK-HW19-012"]}
+{"id":"domain-43-1","type":"symptom","question":"SATA M.2를 끼웠는데 슬롯에서 인식하지 않아요. 길이가 맞아도 소켓이 어떤 신호를 받아야 하죠?","gold":["BW20261119:CHK-HW19-015"]}
+{"id":"domain-43-2","type":"constraints","question":"SATA 방식 M.2를 사려는데 B+M 같은 홈 표기하고 나사 고정 위치까지 확인해야 하나요?","gold":["BW20261119:CHK-HW19-015"]}
+{"id":"domain-43-3","type":"contrast","question":"M.2 모듈의 80 mm 표기와 SATA 표기가 각각 길이와 신호 지원 중 무엇을 뜻하는지 알려주세요.","gold":["BW20261119:CHK-HW19-015"]}
+{"id":"domain-44-1","type":"symptom","question":"Z590-A GAMING WIFI II에 M.2 SATA를 꽂은 뒤 케이블로 연결한 디스크가 사라졌어요. 어느 포트가 겹치나요?","gold":["BW20261119:CHK-HW19-016"]}
+{"id":"domain-44-2","type":"constraints","question":"ROG STRIX Z590-A GAMING WIFI II에서 SATA6G_6을 계속 쓰려면 M.2_3에 어떤 방식의 SSD를 써야 하죠?","gold":["BW20261119:CHK-HW19-016"]}
+{"id":"domain-44-3","type":"contrast","question":"Z590-A GAMING WIFI II의 같은 M.2_2에 PCIe와 SATA SSD를 달 때 SATA6G_2 사용 여부도 달라요?","gold":["BW20261119:CHK-HW19-016"]}
+{"id":"domain-45-1","type":"symptom","question":"Z590-A GAMING WIFI II용 긴 SSD가 맞는지 모르겠어요. M.2_2와 M.2_3에 22110 길이가 들어가나요?","gold":["BW20261119:CHK-HW19-017"]}
+{"id":"domain-45-2","type":"constraints","question":"ROG STRIX Z590-A GAMING WIFI II 두 번째 M.2 소켓의 키 종류와 PCIe 링크 규격이 궁금해요.","gold":["BW20261119:CHK-HW19-017"]}
+{"id":"domain-45-3","type":"contrast","question":"Z590-A GAMING WIFI II에서 M.2_2와 M.2_3 중 하나만 SATA 방식을 받나요, 둘 다 되나요?","gold":["BW20261119:CHK-HW19-017"]}
+{"id":"domain-46-1","type":"symptom","question":"NH-D15S 업그레이드용 AM5 바를 고르는데 부품 번호가 헷갈려요. 어떤 걸 주문하죠?","gold":["BW20261119:CHK-HW19-022"]}
+{"id":"domain-46-2","type":"constraints","question":"녹투아 D15 G2의 HBC판과 LBC판에 맞는 오프셋 바 모델을 확인해 주세요.","gold":["BW20261119:CHK-HW19-022"]}
+{"id":"domain-46-3","type":"contrast","question":"NH-D15에서 G2로 바꾸면 기존 AM5 오프셋 바를 옮겨 쓸 수 있나요, 부품 번호가 바뀌나요?","gold":["BW20261119:CHK-HW19-022"]}
+{"id":"domain-47-1","type":"symptom","question":"NH-U12A 검정판용 AM5 장착 바를 못 찾겠어요. 기본 색상과 같은 번호로 찾으면 되나요?","gold":["BW20261119:CHK-HW19-023"]}
+{"id":"domain-47-2","type":"constraints","question":"녹투아 NH-D12L에 쓸 AM5 오프셋 브래킷의 정확한 품번이 필요해요.","gold":["BW20261119:CHK-HW19-023"]}
+{"id":"domain-47-3","type":"contrast","question":"U12A와 D12L이 같은 AM5 소켓에 들어가면 오프셋 바도 하나로 공용인가요?","gold":["BW20261119:CHK-HW19-023"]}
+{"id":"domain-48-1","type":"symptom","question":"D15 G2를 동봉 바로 설치했더니 베이스가 소켓 한가운데에서 비껴 있어요. 어느 쪽으로 얼마나 이동하는 설계인가요?","gold":["BW20261119:CHK-HW19-024"]}
+{"id":"domain-48-2","type":"constraints","question":"NH-D15 G2에서 AM5용 동봉 바를 쓰면 CPU 기준 설치 위치가 몇 mm 바뀌나요?","gold":["BW20261119:CHK-HW19-024"]}
+{"id":"domain-48-3","type":"contrast","question":"D15 G2를 중앙에 놓는 대신 남쪽으로 치우치게 장착하면 CCD와의 접촉에 어떤 이점이 있나요?","gold":["BW20261119:CHK-HW19-024"]}
+{"id":"domain-49-1","type":"symptom","question":"델 모니터 두 대를 DP로 이었는데 확장 화면이 안 떠요. 첫 모니터 설정에서 켜야 하는 기능이 뭐죠?","gold":["BW20261119:CHK-HW19-025"]}
+{"id":"domain-49-2","type":"constraints","question":"Windows에서 델 화면을 데이지체인하려면 첫 모니터가 최소 어느 DP 버전과 기능을 지원해야 해요?","gold":["BW20261119:CHK-HW19-025"]}
+{"id":"domain-49-3","type":"contrast","question":"델 모니터 연쇄 연결에서 HDMI 케이블로 시작해도 되는지 DP 연결과 비교해 주세요.","gold":["BW20261119:CHK-HW19-025"]}
+{"id":"domain-50-1","type":"symptom","question":"델 모니터 두 대를 직렬로 묶었는데 DP IN과 OUT을 바꿔 꽂은 것 같아요. PC부터 순서대로 알려주세요.","gold":["BW20261119:CHK-HW19-026"]}
+{"id":"domain-50-2","type":"constraints","question":"첫 Dell 화면에서 두 번째 화면으로 넘기는 DP 케이블은 각각 어느 단자에 꽂아야 하나요?","gold":["BW20261119:CHK-HW19-026"]}
+{"id":"domain-50-3","type":"contrast","question":"PC의 DP 출력선을 첫 화면의 출력에 맞추는 건가요, 입력으로 받아서 다음 화면에 다시 보내나요?","gold":["BW20261119:CHK-HW19-026"]}

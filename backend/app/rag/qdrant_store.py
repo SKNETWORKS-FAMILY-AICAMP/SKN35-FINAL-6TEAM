@@ -3,7 +3,7 @@
 import hashlib
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
-from uuid import uuid5
+from uuid import UUID, uuid5
 
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -61,9 +61,16 @@ def _query_filter(filters: Mapping[str, str | Sequence[str]] | None) -> models.F
 class QdrantStore:
     """Use a caller-owned local or server client and one model-specific collection."""
 
-    def __init__(self, client: QdrantClient, collection: str = DEFAULT_COLLECTION):
+    def __init__(
+        self,
+        client: QdrantClient,
+        collection: str = DEFAULT_COLLECTION,
+        *,
+        model_schema: dict | None = None,
+    ):
         self.client = client
         self.collection = collection
+        self.model_schema = dict(_SCHEMA if model_schema is None else model_schema)
 
     def _check_collection(self) -> None:
         config = self.client.get_collection(self.collection).config
@@ -76,7 +83,7 @@ class QdrantStore:
             or dense.distance != models.Distance.COSINE
             or sparse is None
             or sparse.modifier != models.Modifier.IDF
-            or (config.metadata or {}).get("buildwise") != _SCHEMA
+            or (config.metadata or {}).get("buildwise") != self.model_schema
         ):
             raise ValueError(
                 f"Incompatible model or vector configuration in collection {self.collection!r}"
@@ -93,7 +100,7 @@ class QdrantStore:
                     sparse_vectors_config={
                         _SPARSE: models.SparseVectorParams(modifier=models.Modifier.IDF)
                     },
-                    metadata={"buildwise": _SCHEMA},
+                    metadata={"buildwise": self.model_schema},
                 )
             except ValueError, UnexpectedResponse:
                 # A concurrent indexer may have just created it. Validate its schema below.
@@ -136,6 +143,25 @@ class QdrantStore:
         if batch:
             self.client.upsert(self.collection, batch, wait=True)
         return self.client.count(self.collection, exact=True).count
+
+    def evidence_points(self, filters: Mapping[str, str | Sequence[str]] | None) -> list[Point]:
+        """Read only eligible evidence from the selected index, including legacy collections."""
+        self._check_collection()
+        condition = _query_filter(filters)
+        points = []
+        offset = None
+        while True:
+            records, offset = self.client.scroll(
+                self.collection,
+                scroll_filter=condition,
+                offset=offset,
+                limit=128,
+                with_payload=models.PayloadSelectorExclude(exclude=[_FILTER]),
+                with_vectors=False,
+            )
+            points.extend(Point(UUID(str(row.id)), row.payload, None) for row in records)
+            if offset is None:
+                return points
 
     def search(
         self,
