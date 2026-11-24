@@ -59,10 +59,27 @@ def test_native_ports_and_unidentified_power_supply():
     case = reviewed_part("Cooler Master MasterBox Q300L", 5)
     checks = checks_for(board, drive, gpu, psu, case)
     assert checks["STORAGE_INTERFACE"]["result"] == "PASS"
-    assert checks["GPU_POWER_CONNECTORS"]["result"] == "UNKNOWN"
+    assert "GPU_POWER_CONNECTORS" not in checks
     assert checks["PSU_CLEARANCE"]["result"] == "UNKNOWN"
     drive["specs"] = {"interface": "SAS 6.0 Gb/s"}
     assert checks_for(board, drive)["STORAGE_INTERFACE"]["result"] == "FAIL"
+
+
+def test_reviewed_aio_and_case_use_installed_stack_and_tested_cpu():
+    cooler = reviewed_part("ID-COOLING FX360 PRO", 1, {"radiator_size_mm": 360})
+    case = reviewed_part("NZXT H5 Flow (2024)", 2)
+    gpu = {"id": 3, "name": "가상 GPU", "category": "gpu", "specs": {"length_mm": 350}}
+    cpu = {
+        "id": 4,
+        "name": "Intel Core i7-13700K",
+        "category": "cpu",
+        "specs": {"socket": "LGA1700"},
+    }
+    checks = checks_for(cooler, case, gpu, cpu)
+    assert checks["COOLER_POWER"]["result"] == checks["COOLER_CLEARANCE"]["result"] == "PASS"
+    assert checks["COOLER_POWER"]["sources"]
+    gpu["specs"]["length_mm"] = 380
+    assert checks_for(cooler, case, gpu, cpu)["GPU_CLEARANCE"]["result"] == "FAIL"
 
 
 def test_conflicting_review_stops_before_update():
@@ -70,3 +87,35 @@ def test_conflicting_review_stops_before_update():
     review = load_fit_reviews()[row["specs"]["_provenance"]["source_key"]]
     with pytest.raises(ValueError, match="socket"):
         fit_updates(row["specs"] | {"socket": "AM4"}, "cpu", row["model_number"], review)
+
+
+@pytest.mark.parametrize(
+    ("interface", "size", "expected"),
+    [
+        ("M.2 PCIe 5.0 X4", "M.2-2280", "PASS"),
+        ("M.2 PCIe 4.0 X4", "M.2-2230", "UNKNOWN"),
+        ("M.2 PCIe 4.0 X4", None, "UNKNOWN"),
+        ("M.2 SATA", "M.2-2280", "FAIL"),
+    ],
+)
+def test_m2_drive_requires_matching_socket_mode_and_size(interface, size, expected):
+    board = reviewed_part("Asus TUF GAMING B850-PLUS WIFI", 1)
+    drive = {
+        "id": 2,
+        "category": "storage",
+        "name": "가상 SSD",
+        "specs": {"interface": interface, "form_factor": size},
+    }
+    assert checks_for(board, drive)["STORAGE_INTERFACE"]["result"] == expected
+
+
+def test_documented_slot_presence_and_unknown_storage_mode():
+    board = reviewed_part("Asus ROG STRIX B850-E GAMING WIFI", 1)
+    gpu = reviewed_part("ASRock Intel Arc A380 Challenger ITX", 2)
+    check = checks_for(board, gpu)["GPU_BOARD"]
+    assert check["result"] == "PASS" and check["sources"]
+    board["specs"]["pcie_x16_slots"] = 0
+    assert checks_for(board, gpu)["GPU_BOARD"]["result"] == "FAIL"
+    drive = reviewed_part("Samsung Spinpoint M8", 3)
+    drive["specs"] = {"interface": "M.2 SATA"}
+    assert checks_for(board, drive)["STORAGE_INTERFACE"]["result"] == "UNKNOWN"

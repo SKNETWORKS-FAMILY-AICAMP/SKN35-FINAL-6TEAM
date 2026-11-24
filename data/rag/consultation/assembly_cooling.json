@@ -1,5 +1,61 @@
 [
   {
+    "chunk_key": "NOCTUA:CPU:amd-ryzen-9-7900x",
+    "title": "Noctua AMD Ryzen 9 7900X 쿨러 호환성 표",
+    "url": "https://www.noctua.at/en/compatibility/by-components/cpus/amd-ryzen-9-7900x",
+    "text": "Noctua는 Ryzen 9 7900X와 NH-D12L 및 NH-D12L chromax.black의 기본 장착을 지원하고 냉각 성능을 oc2로 평가한다. NH-D15 G2의 같은 조합은 oc3다.",
+    "model": "AMD Ryzen 9 7900X",
+    "publisher": "Noctua",
+    "topic": "CPU별 쿨러 장착 및 냉각 성능",
+    "socket": "AM5",
+    "compatible_coolers": ["Noctua NH-D12L", "Noctua NH-D12L chromax.black", "Noctua NH-D15 G2"]
+  },
+  {
+    "chunk_key": "NOCTUA:CPU:intel-core-i5-14400f",
+    "title": "Noctua Intel Core i5-14400F 쿨러 호환성 표",
+    "url": "https://www.noctua.at/en/compatibility/by-components/cpus/intel-core-i5-14400f",
+    "text": "Noctua는 Intel Core i5-14400F에서 NH-D12L, NH-D12L chromax.black, NH-D15 G2의 기본 장착을 지원하고 냉각 성능을 oc3로 평가한다. 이 등급은 해당 CPU와 쿨러 조합에 적용된다.",
+    "model": "Intel Core i5-14400F",
+    "publisher": "Noctua",
+    "topic": "CPU별 쿨러 장착 및 냉각 성능",
+    "socket": "LGA1700",
+    "compatible_coolers": [
+      "Noctua NH-D12L",
+      "Noctua NH-D12L chromax.black",
+      "Noctua NH-D15 G2"
+    ]
+  },
+  {
+    "chunk_key": "NOCTUA:CPU:intel-core-i7-13700f",
+    "title": "Noctua Intel Core i7-13700F 쿨러 호환성 표",
+    "url": "https://www.noctua.at/en/compatibility/by-components/cpus/intel-core-i7-13700f",
+    "text": "Noctua는 Intel Core i7-13700F에서 NH-D12L, NH-D12L chromax.black, NH-D15 G2의 기본 장착을 지원하고 냉각 성능을 oc3로 평가한다. 이 등급은 해당 CPU와 쿨러 조합에 적용된다.",
+    "model": "Intel Core i7-13700F",
+    "publisher": "Noctua",
+    "topic": "CPU별 쿨러 장착 및 냉각 성능",
+    "socket": "LGA1700",
+    "compatible_coolers": [
+      "Noctua NH-D12L",
+      "Noctua NH-D12L chromax.black",
+      "Noctua NH-D15 G2"
+    ]
+  },
+  {
+    "chunk_key": "NOCTUA:CPU:amd-ryzen-7-7700x",
+    "title": "Noctua AMD Ryzen 7 7700X 쿨러 호환성 표",
+    "url": "https://www.noctua.at/en/compatibility/by-components/cpus/amd-ryzen-7-7700x",
+    "text": "Noctua는 AMD Ryzen 7 7700X에서 NH-D12L, NH-D12L chromax.black, NH-D15 G2의 기본 장착을 지원하고 냉각 성능을 oc3로 평가한다. 이 등급은 해당 CPU와 쿨러 조합에 적용된다.",
+    "model": "AMD Ryzen 7 7700X",
+    "publisher": "Noctua",
+    "topic": "CPU별 쿨러 장착 및 냉각 성능",
+    "socket": "AM5",
+    "compatible_coolers": [
+      "Noctua NH-D12L",
+      "Noctua NH-D12L chromax.black",
+      "Noctua NH-D15 G2"
+    ]
+  },
+  {
     "chunk_key": "AMD:RYZEN-5-7600",
     "title": "AMD Ryzen 5 7600 공식 사양",
     "url": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-5-7600.html",

@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function enterPersonal(page: Page) {
   await page.goto("/");
-  await page.getByRole("button", { name: /개인.*부품 교체/ }).click();
+  await page.getByRole("button", { name: "개인용", exact: true }).click();
+  await page.getByRole("button", { name: "개인용 시연으로 시작" }).click();
 }
 
 test("기업 계정이 연결되지 않으면 고객과 판매 데이터가 노출되지 않는다", async ({ page }) => {
@@ -58,6 +59,20 @@ test("신규 조립 여덟 부품을 선택해 DB 가격과 RAG 근거가 있는
     }
     const endpoint = index === 7 ? "/quotes" : "/candidates";
     next = page.waitForResponse((res) => res.url().endsWith(endpoint));
+    if (candidate.part.category === "cooler" && result.passed.length) {
+      const cooling = page.getByRole("group", { name: "CPU 냉각 방식" });
+      await cooling.getByRole("radio").first().check();
+      if (result.fans.length) {
+        const fan = result.fans[0];
+        const count = page.getByRole("spinbutton", { name: fan.name + " 수량" });
+        await count.fill("2");
+        await expect(cooling).toBeVisible();
+        selected.push(fan.part_id);
+        total += fan.current_price * 2;
+      }
+      await page.getByRole("button", { name: "다음", exact: true }).click();
+      continue;
+    }
     const card = page
       .getByTestId("pc-candidate")
       .filter({ has: page.getByRole("heading", { name: candidate.part.name, exact: true }) })
@@ -75,6 +90,13 @@ test("신규 조립 여덟 부품을 선택해 DB 가격과 RAG 근거가 있는
   expect(quote.total_amount).toBe(total);
   expect(quote.validation.citations.length).toBeGreaterThan(0);
   await expect(page.locator(".pc-quote-screen")).toContainText("견적 v1");
+  await page.getByRole("button", { name: "이 견적으로 확정" }).click();
+  if (quote.validation.status !== "PASS")
+    await page.getByRole("dialog").getByRole("checkbox").check();
+  await page.getByRole("button", { name: "확인하고 견적 승인" }).click();
+  await page.getByRole("button", { name: "결제하기", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "결제가 되었습니다." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "어떤 PC가 필요하세요?" })).toBeVisible();
   expect(retired).toEqual([]);
 });
 
@@ -86,9 +108,9 @@ test("보유 CPU를 Ryzen으로 검색하고 교체 부품의 DB 가격으로 �
   await page.locator(".pc-owned summary").filter({ hasText: "CPU" }).click();
   const search = page.waitForResponse((response) => {
     const url = new URL(response.url());
-    return url.pathname.endsWith("/parts") && url.searchParams.get("query") === "Ryzen";
+    return url.pathname.endsWith("/parts") && url.searchParams.get("query") === "Ryzen 5 7600X";
   });
-  await page.locator("#pc-search-cpu").fill("Ryzen");
+  await page.locator("#pc-search-cpu").fill("Ryzen 5 7600X");
   const matches = await search;
   expect(matches.status()).toBe(200);
   const [cpu] = await matches.json();
@@ -99,6 +121,19 @@ test("보유 CPU를 Ryzen으로 검색하고 교체 부품의 DB 가격으로 �
     .getByText(`${cpu.brand} ${cpu.name}`, { exact: true })
     .first()
     .click();
+  // Verify the upgrade against the customer's current capacity and board interface.
+  for (const [category, label, query] of [
+    ["motherboard", "메인보드", "TUF GAMING B850-PLUS WIFI"],
+    ["storage", "저장장치", "Orico Y-20"],
+  ]) {
+    await page.locator(".pc-owned summary").filter({ hasText: label }).click();
+    await page.locator(`#pc-search-${category}`).fill(query);
+    await page
+      .getByRole("list", { name: `${label} 검색 결과` })
+      .getByRole("button", { name: new RegExp(query.replaceAll("+", "\\+"), "i") })
+      .first()
+      .click();
+  }
   await page.getByRole("checkbox", { name: "저장 공간이 부족해요" }).check();
   await page.locator(".pc-survey button[type=submit]").click();
   const candidates = page.waitForResponse((response) => response.url().endsWith("/candidates"));

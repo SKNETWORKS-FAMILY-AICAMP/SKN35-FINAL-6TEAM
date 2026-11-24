@@ -623,6 +623,30 @@
   color: var(--text);
   font-weight: 550;
 }
+.pc-cooling-picker {
+  display: grid;
+  gap: 1rem;
+}
+.pc-cooling-picker fieldset {
+  min-width: 0;
+  border: 1px solid var(--pc-line, #d6ddd4);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+.pc-cooling-picker legend {
+  padding: 0 0.4rem;
+  font-weight: 700;
+}
+.pc-cooling-option {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.6rem 0;
+}
+.pc-cooling-option > :last-child { margin-left: auto; }
+.pc-cooling-option input[type="number"] { width: 4rem; }
+.pc-cooling-option b { color: #24663c; }
 .pc-login {
   padding: 44px;
   align-self: center;

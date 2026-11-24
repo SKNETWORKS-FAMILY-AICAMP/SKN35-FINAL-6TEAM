@@ -43,8 +43,25 @@ function selectionIds(selected: SelectionMap) {
   );
 }
 
+function coolingBody(selected: SelectionMap) {
+  const cooling = selected.cooler?.cooling;
+  return cooling
+    ? {
+        cooling: {
+          mode: cooling.mode,
+          fans: cooling.fans.map(({ part, quantity }) => ({ part_id: part.part_id, quantity })),
+        },
+      }
+    : {};
+}
+
 function candidateBody(input: CandidateRequest) {
-  return { ...input, selected: selectionIds(input.selected), survey: surveyBody(input.survey) };
+  return {
+    ...input,
+    ...coolingBody(input.selected),
+    selected: selectionIds(input.selected),
+    survey: surveyBody(input.survey),
+  };
 }
 
 export function createApiSource(sessionId: string) {
@@ -66,7 +83,11 @@ export function createApiSource(sessionId: string) {
       result(
         api.POST(`${route}/validations`, {
           params,
-          body: { survey: surveyBody(survey), selected: selectionIds(selected) },
+          body: {
+            survey: surveyBody(survey),
+            selected: selectionIds(selected),
+            ...coolingBody(selected),
+          },
         }),
       ),
     rebalance: (input, amount) =>
@@ -75,7 +96,12 @@ export function createApiSource(sessionId: string) {
       result(
         api.POST(`${route}/quotes`, {
           params,
-          body: { version, survey: surveyBody(survey), selected: selectionIds(selected) },
+          body: {
+            version,
+            survey: surveyBody(survey),
+            selected: selectionIds(selected),
+            ...coolingBody(selected),
+          },
         }),
       ),
     confirmQuote: ({ quote_id, version, acceptConditions }) =>
@@ -99,6 +125,7 @@ export function createApiSource(sessionId: string) {
             text,
             survey: survey ? surveyBody(survey) : undefined,
             selected: selectionIds(selected),
+            ...coolingBody(selected),
           },
         }),
       );

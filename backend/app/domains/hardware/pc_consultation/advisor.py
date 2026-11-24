@@ -1,12 +1,14 @@
 """Consult on selected hardware using local evidence or an explicitly enabled model."""
 
+import hashlib
 import json
 import os
 import re
+from concurrent.futures import Future
 from decimal import Decimal
 from functools import cache
 from http.client import HTTPException
-from threading import Lock
+from threading import Lock, Thread
 from typing import Literal
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -16,8 +18,9 @@ from pydantic import BaseModel, ConfigDict
 from qdrant_client import QdrantClient
 
 from app.core.config import REPO_ROOT
+from app.rag.dual_adapter_dpr import DualAdapterDPR
 from app.rag.embeddings import LocalEmbedder
-from app.rag.loader import RELEASES_DIR, load_corpus
+from app.rag.loader import load_corpus
 from app.rag.points import build_points
 from app.rag.qdrant_store import QdrantStore
 from app.rag.search import search
@@ -25,6 +28,7 @@ from app.rag.search import search
 from .reviewed_documents import ORIGIN, manufacturer_points
 
 MODEL = "gpt-5-mini"
+_DPR_CHECKPOINT = REPO_ROOT / "data" / "rag" / "models" / "dpr_minilm_dual.npz"
 _SEARCH_LOCK = Lock()
 _VERIFIED = {"verification_status": "verified"}
 _GPU = re.compile(r"gpu|그래픽\s*카드|글카", re.I)
@@ -75,82 +79,57 @@ class _Reply(BaseModel):
     amount: int | None
 
 
-@cache
-def _index():
-    """Index the released corpus and reviewed manufacturer documents together."""
-    points = [*build_points(load_corpus()), *manufacturer_points()]
+def _build_index(points):
     try:
-        encoder = LocalEmbedder(
+        backbone = LocalEmbedder(
             cache_dir=os.getenv("BUILDWISE_RAG_MODEL_CACHE"), local_files_only=True
         )
-        store = QdrantStore(QdrantClient(":memory:"))
+        with _DPR_CHECKPOINT.open("rb") as checkpoint:
+            revision = hashlib.file_digest(checkpoint, "sha256").hexdigest()
+            checkpoint.seek(0)
+            encoder = DualAdapterDPR.load(checkpoint, embedder=backbone)
+        store = QdrantStore(
+            QdrantClient(":memory:"),
+            model_schema={
+                "schema_version": 1,
+                "embedding_model": "dpr_minilm_dual",
+                "embedding_revision": revision,
+                "token_limit": encoder.token_limit,
+            },
+        )
         store.upsert(points, encoder.embed_documents(p.payload["chunk_text"] for p in points))
     except OSError, ImportError, RuntimeError, ValueError:
         return points, None, None
     return points, encoder, store
 
 
-# These six publisher profiles were reviewed for consultation. Other staging records never enter
-# retrieval. Use the original URL from the dated crawl, not a model-generated citation.
-_GAME_SOURCES = {
-    "SOURCE-103": (
-        {"CHK-FIT-001", "CHK-FIT-002", "CHK-FIT-003"},
-        ("배틀필드", "battlefield"),
-        "https://www.ea.com/games/battlefield/battlefield-6/news/get-ready-for-battlefield-6",
-    ),
-    "SOURCE-104": (
-        {"CHK-FIT-004", "CHK-FIT-005"},
-        ("스파이더맨", "spider-man", "spiderman"),
-        "https://www.playstation.com/en-us/games/marvels-spider-man-2/marvels-spider-man-2-pc/",
-    ),
-    "SOURCE-105": (
-        {"CHK-FIT-006"},
-        ("어쌔신크리드", "assassin"),
-        "https://news.ubisoft.com/en-us/article/5dWbPvxtnNdQQVI3cb2m3p/assassins-creed-shadows-pc-specs-revealed-preorders-open",
-    ),
-}
+@cache
+def _start_index():
+    points = [*build_points(load_corpus()), *manufacturer_points()]
+    ready = Future()
+
+    def build():
+        try:
+            ready.set_result(_build_index(points))
+        except Exception as exc:
+            ready.set_exception(exc)
+
+    Thread(target=build, name="consultation-search-index", daemon=True).start()
+    return points, ready
+
+
+def _index():
+    # _retrieve serializes initialization and searches. The worker only publishes
+    # a finished index; meanwhile keyword searches use the same verified corpus.
+    points, ready = _start_index()
+    return ready.result() if ready.done() else (points, None, None)
 
 
 @cache
 def _game_profiles():
-    folder = RELEASES_DIR.parent / "staging" / "2026-11-19-gaming-fit" / "normalized"
-    if not folder.is_dir():
-        return []
-
-    def rows(table):
-        with (folder / f"{table}.jsonl").open(encoding="utf-8-sig") as stream:
-            return [json.loads(line) for line in stream if line.strip()]
-
-    crawls = {r["source_key"]: r for r in rows("crawl_records_normalized")}
-    profiles = []
-    for chunk in rows("rag_chunks_normalized"):
-        entry = _GAME_SOURCES.get(chunk["source_key"])
-        if entry is None or chunk["검증 상태"] != "verified":
-            continue
-        ids, names, url = entry
-        crawl = crawls.get(chunk["source_key"], {})
-        key = chunk["chunk_id"]
-        if (
-            key in ids
-            and chunk["chunk_key"] == "BW20261119FIT:" + key
-            and chunk["document_type"] == "publisher_profile"
-            and key in crawl.get("linked_chunk_ids", "").split(";")
-            and chunk["chunk_text"] in crawl.get("normalized_text", "")
-            and chunk["metadata"].get("source_url") == crawl.get("공식 URL") == url
-        ):
-            profiles.append(
-                (
-                    names,
-                    {
-                        "chunk_key": chunk["chunk_key"],
-                        "title": crawl["문서명"],
-                        "url": url,
-                        "text": chunk["chunk_text"],
-                        "origin": "게임 배급사 공개 자료",
-                    },
-                )
-            )
-    return profiles
+    path = REPO_ROOT / "data" / "rag" / "consultation" / "game_profiles.json"
+    profiles = json.loads(path.read_text(encoding="utf-8"))
+    return [(row["aliases"], row["source"]) for row in profiles]
 
 
 def _matches_quote_or_question(passage, question, context):

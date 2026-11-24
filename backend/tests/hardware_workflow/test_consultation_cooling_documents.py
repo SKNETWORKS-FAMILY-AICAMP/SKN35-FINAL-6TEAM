@@ -1,7 +1,5 @@
 import pytest
 
-from app.domains.hardware.pc_consultation.cooling_documents import supplement_cooling_check
-
 
 @pytest.fixture
 def selected_parts():
@@ -16,19 +14,14 @@ def selected_parts():
     }
 
 
-def test_nominal_cpu_tdp_and_test_rig_capacity_do_not_prove_thermal_performance(selected_parts):
-    cooling = {"check_type": "COOLER_POWER", "result": "UNKNOWN"}
-    socket = {"check_type": "COOLER_SOCKET", "result": "PASS"}
-    supplement_cooling_check(selected_parts, [socket, cooling])
-    assert socket == {"check_type": "COOLER_SOCKET", "result": "PASS"}
-    assert cooling["result"] == "UNKNOWN"
-    assert [source["chunk_key"] for source in cooling["sources"]] == [
-        "AMD:RYZEN-5-7600",
-        "THERMALRIGHT:PA120-SE:DTPC",
-    ]
-    assert "65 W" in cooling["sources"][0]["text"]
-    assert "125~260 W" in cooling["sources"][1]["text"]
-    assert "온도 측정" in cooling["reason"]
+def test_nominal_cpu_tdp_and_test_rig_capacity_do_not_prove_thermal_performance(
+    selected_parts, validate_parts
+):
+    selected_parts["cpu"]["specs"] = {"socket": "AM5", "tdp_w": 65}
+    selected_parts["cooler"]["specs"].update(sockets=["AM5"], test_rig_w=260)
+    checks = validate_parts(selected_parts)
+    assert checks["COOLER_SOCKET"]["result"] == "PASS"
+    assert checks["COOLER_POWER"]["result"] == "UNKNOWN"
 
 
 @pytest.mark.parametrize(
@@ -40,14 +33,33 @@ def test_nominal_cpu_tdp_and_test_rig_capacity_do_not_prove_thermal_performance(
         ("cooler", {"specs": {"color": "White"}}),
     ],
 )
-def test_sibling_parts_cannot_borrow_thermal_evidence(selected_parts, category, changes):
+def test_sibling_parts_cannot_borrow_thermal_evidence(
+    selected_parts, category, changes, validate_parts
+):
     selected_parts[category].update(changes)
-    check = {"check_type": "COOLER_POWER", "result": "UNKNOWN"}
-    supplement_cooling_check(selected_parts, [check])
-    assert check == {"check_type": "COOLER_POWER", "result": "UNKNOWN"}
+    check = validate_parts(selected_parts)["COOLER_POWER"]
+    assert check["result"] == "UNKNOWN"
+    assert not check.get("sources")
 
 
-def test_existing_verdict_is_preserved(selected_parts):
-    check = {"check_type": "COOLER_POWER", "result": "FAIL", "reason": "정격 초과"}
-    supplement_cooling_check(selected_parts, [check])
-    assert check == {"check_type": "COOLER_POWER", "result": "FAIL", "reason": "정격 초과"}
+def test_existing_verdict_is_preserved(selected_parts, validate_parts):
+    selected_parts["cpu"]["specs"] = {"cpu_power_limit_w": 150}
+    selected_parts["cooler"]["specs"]["cooling_limit_w"] = 100
+    assert validate_parts(selected_parts)["COOLER_POWER"]["result"] == "FAIL"
+    selected_parts["cooler"]["specs"]["cooling_limit_w"] = 151
+    assert validate_parts(selected_parts)["COOLER_POWER"]["result"] == "PASS"
+
+
+def test_manufacturer_cpu_pair_requires_the_exact_chip_socket_and_cooler(validate_parts):
+    cpu = {"name": "Intel Core i5-14400F", "specs": {"socket": "LGA1700"}}
+    cooler = {"name": "Noctua NH-D12L"}
+    checks = validate_parts({"cpu": cpu, "cooler": cooler})
+    assert checks["COOLER_POWER"]["result"] == checks["COOLER_SOCKET"]["result"] == "PASS"
+    assert checks["COOLER_POWER"]["sources"][0]["url"].endswith("intel-core-i5-14400f")
+    for changed in ({"name": "Intel Core i5-14400"}, {"specs": {"socket": "AM5"}}):
+        assert (
+            validate_parts({"cpu": cpu | changed, "cooler": cooler})["COOLER_POWER"]["result"]
+            == "UNKNOWN"
+        )
+    cooler["name"] += " variant"
+    assert validate_parts({"cpu": cpu, "cooler": cooler})["COOLER_POWER"]["result"] == "UNKNOWN"

@@ -124,6 +124,16 @@ describe("PC consultation transcript bridge", () => {
     expect(appendConsultMessage(first, "추가 메모", now)).toEqual(second);
     expect(second.messages[0]).toBe(chat.messages[0]);
   });
+  it("answers an explicit why question using the displayed demo recommendation", () => {
+    const chat = appendConsultMessage(
+      initialChatState(),
+      "왜 추천해요?",
+      now,
+      readyToSelect().candidates,
+    );
+    expect(chat.messages.at(-1)?.content).toContain(candidate.part.name);
+    expect(chat.messages.at(-1)?.content).toContain(candidate.reason);
+  });
   it("records actual mode and survey choices in Korean", () => {
     const mode = transition(initialConsultState(), { type: "CHOOSE_MODE", mode: "new" });
     expect(mode.messages[0].content).toContain("새 PC");

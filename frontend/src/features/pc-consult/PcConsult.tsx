@@ -15,6 +15,7 @@ import { PaymentScreen, QuoteScreen, SavedScreen } from "./components/QuoteScree
 import { SummaryPanel } from "./components/SummaryPanel";
 import type { ProductVisualMap } from "./components/PartVisual";
 import {
+  categoryBudget,
   consultReducer,
   currentCategory,
   currentQuote,
@@ -23,12 +24,13 @@ import {
   type ConsultEvent,
   type ConsultState,
 } from "./state";
-import { CATEGORY_LABELS, type CandidateRequest, type Survey } from "./types";
+import { CATEGORY_LABELS, selectionLines, type CandidateRequest, type Survey } from "./types";
 import "./pcConsult.css";
 
 export function PcConsult({
   source,
   sessionId,
+  chatRevision,
   onContext,
   embedded = false,
   onTransition,
@@ -41,6 +43,7 @@ export function PcConsult({
   source: ConsultDataSource;
   /** 상담 서버 세션 번호. 있으면 상담 번호로 그대로 씁니다(실제 백엔드). 없으면 시연용 번호를 만듭니다. */
   sessionId?: string;
+  chatRevision?: number;
   /** 서버 대화가 지금 설문과 고른 부품을 알 수 있게 넘겨 줍니다. */
   onContext?: (survey: Survey | null, selected: import("./types").SelectionMap) => void;
   embedded?: boolean;
@@ -75,7 +78,9 @@ export function PcConsult({
   const [productVisuals, setProductVisuals] = useState<ProductVisualMap>({});
   useEffect(() => {
     setProductVisuals((previous) => {
-      const additions = Object.values(state.selected).filter((part) => !previous[part.source_key]);
+      const additions = selectionLines(state.selected)
+        .map(({ part }) => part)
+        .filter((part) => !previous[part.source_key]);
       if (!additions.length) return previous;
       return {
         ...previous,
@@ -189,18 +194,11 @@ export function PcConsult({
             ),
           )
         : state.selected;
-    const otherCost = Object.values(selected)
-      .filter((part) => part.category !== category)
-      .reduce((sum, part) => sum + (part.current_price ?? 0), 0);
-    const remaining = Math.max(0, state.survey.budget - otherCost);
     return {
       survey: state.survey,
       category,
       selected,
-      budget:
-        state.survey.mode === "replacement"
-          ? remaining
-          : Math.min(state.plan.allocations[category], remaining),
+      budget: categoryBudget(state.survey, state.plan, selected, category),
       color: state.conditions.color,
       note: state.conditions.note,
       requestedDiscountPercent,
@@ -241,7 +239,16 @@ export function PcConsult({
     return () => {
       active = false;
     };
-  }, [source, request, state.screen, state.awaitingSelection, retry, dispatch, deliver]);
+  }, [
+    source,
+    request,
+    state.screen,
+    state.awaitingSelection,
+    retry,
+    chatRevision,
+    dispatch,
+    deliver,
+  ]);
 
   useEffect(() => {
     if (state.screen !== "selection" || !complete || !state.survey) return;
@@ -428,6 +435,11 @@ export function PcConsult({
         )}
         <div className={showSummary && !renderLayout ? "pc-workspace" : "pc-single"}>
           <div id="pc-main-content" className="pc-content" tabIndex={-1} ref={content}>
+            {state.screen === "type" && state.demoPaymentCompleted && (
+              <p className="pc-notice" role="status">
+                결제가 되었습니다.
+              </p>
+            )}
             {state.screen === "type" && (
               <TypeScreen
                 onChoose={(mode) => {
@@ -505,9 +517,9 @@ export function PcConsult({
                     pending={state.requestId !== null || (!state.candidates && !state.error)}
                     error={state.error}
                     budget={request.budget}
-                    reason={state.plan?.reasons[category]}
-                    onChoose={(candidate, allowUnknown) =>
-                      dispatch({ type: "SELECT", candidate, allowUnknown })
+                    selectedCooler={state.selected.cooler}
+                    onChoose={(candidate, allowUnknown, fans) =>
+                      dispatch({ type: "SELECT", candidate, allowUnknown, fans })
                     }
                     onRetry={() => setRetry((value) => value + 1)}
                     onBudget={() => dispatch({ type: "OPEN_BUDGET" })}
@@ -561,7 +573,6 @@ export function PcConsult({
             {state.screen === "saved" && state.receipt && state.survey && (
               <SavedScreen
                 receipt={state.receipt}
-                mode={state.survey.mode}
                 products={productVisuals}
                 onQuote={() => dispatch({ type: "VIEW_QUOTE" })}
                 onPayment={() => dispatch({ type: "PAYMENT" })}
@@ -572,6 +583,7 @@ export function PcConsult({
                 receipt={state.receipt}
                 products={productVisuals}
                 onQuote={() => dispatch({ type: "VIEW_QUOTE" })}
+                onPay={() => dispatch({ type: "COMPLETE_DEMO_PAYMENT" })}
               />
             )}
           </div>
