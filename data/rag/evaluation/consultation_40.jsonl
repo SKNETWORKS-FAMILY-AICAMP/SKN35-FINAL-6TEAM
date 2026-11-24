@@ -1,0 +1,40 @@
+{"id":"identifier-01","type":"identifier","question":"M425R1GB4BB0-CWM 검증 목록 보여줘","gold":["JINBONG:CHK-FW16-002"]}
+{"id":"identifier-02","type":"identifier","question":"HMCG78AGBSA095N 문서 조회","gold":["JINBONG:CHK-FW16-002"]}
+{"id":"identifier-03","type":"identifier","question":"AD5S560032G","gold":["JINBONG:CHK-FW16-002"]}
+{"id":"identifier-04","type":"identifier","question":"RZ09-0581x 모델 정보","gold":["JINBONG:CHK-RAZER-002"]}
+{"id":"identifier-05","type":"identifier","question":"RZ09-0508x 자료","gold":["JINBONG:CHK-RAZER-003"]}
+{"id":"identifier-06","type":"identifier","question":"nt750qgk-k51ag 자료 보여주세요","gold":["JINBONG:CHK-SAM-001"]}
+{"id":"identifier-07","type":"identifier","question":"CB16GU4800 문서","gold":["BW20261119:CHK-HW19-014"]}
+{"id":"identifier-08","type":"identifier","question":"CB16GS3200 자료","gold":["BW20261119:CHK-HW19-013"]}
+{"id":"identifier-09","type":"identifier","question":"B450 TOMAHAWK MAX 문서","gold":["BW20261119:CHK-HW19-005"]}
+{"id":"identifier-10","type":"identifier","question":"MAG B550 TOMAHAWK 자료","gold":["BW20261119:CHK-HW19-006","BW20261119:CHK-HW19-007"]}
+{"id":"symptom-01","type":"symptom","question":"램 바꾸고 XMP 켠 다음 Framework 13이 켜지질 않아요.","gold":["JINBONG:CHK-FW-001"]}
+{"id":"symptom-02","type":"symptom","question":"새 SSD를 끼웠는데 Crucial 제품이 바이오스에서 안 보여요.","gold":["BW20261119:CHK-HW19-018"]}
+{"id":"symptom-03","type":"symptom","question":"Crucial SSD 홈이 어긋나서 끝까지 안 들어가요. 힘을 더 줘도 돼요?","gold":["BW20261119:CHK-HW19-019"]}
+{"id":"symptom-04","type":"symptom","question":"BenQ 화면이 까맣고 USB-C 선으로 충전만 돼요.","gold":["BW20261119:CHK-HW19-027"]}
+{"id":"symptom-05","type":"symptom","question":"허브를 거치면 BenQ에 신호가 없어요. 뭘 먼저 빼 볼까요?","gold":["BW20261119:CHK-HW19-028"]}
+{"id":"symptom-06","type":"symptom","question":"맥을 껐다 켜면 Plugable 도크에 꽂은 화면만 사라져요.","gold":["BW20261119:CHK-HW19-031"]}
+{"id":"symptom-07","type":"symptom","question":"DisplayLink 앱은 켜져 있는데 맥의 외부 화면이 검어요. 권한 문제일까요?","gold":["BW20261119:CHK-HW19-032"]}
+{"id":"symptom-08","type":"symptom","question":"B450 TOMAHAWK MAX에 새 SSD를 달자 옛날 하드가 사라졌어요.","gold":["BW20261119:CHK-HW19-005"]}
+{"id":"symptom-09","type":"symptom","question":"llama.cpp에서 그래픽 메모리보다 큰 모델을 올리려니 공간이 모자라요.","gold":["JINBONG:CHK-LLM-002"]}
+{"id":"symptom-10","type":"symptom","question":"Framework 노트북에 방열판 달린 SSD를 끼우니 뚜껑이 잘 안 닫혀요.","gold":["JINBONG:CHK-FW-003"]}
+{"id":"constraints-01","type":"constraints","question":"North 케이스 앞에 30mm 라디에이터를 달면 그래픽카드 길이가 얼마나 남죠?","gold":["BW20261119:CHK-HW19-001"]}
+{"id":"constraints-02","type":"constraints","question":"North XL에 전면 라디에이터와 라이저를 같이 쓰면 GPU 길이 한도가 어떻게 달라져요?","gold":["BW20261119:CHK-HW19-002"]}
+{"id":"constraints-03","type":"constraints","question":"H5 Flow 2024에서 상단 280mm 라디에이터랑 높은 램을 같이 쓸 수 있나요?","gold":["BW20261119:CHK-HW19-004"]}
+{"id":"constraints-04","type":"constraints","question":"MAG B550 TOMAHAWK에 SATA 방식 110mm SSD를 달려면 어떤 슬롯인가요?","gold":["BW20261119:CHK-HW19-006"]}
+{"id":"constraints-05","type":"constraints","question":"TUF GAMING B550-PLUS에서 M.2_2를 채운 상태로 기존 SATA 디스크도 쓰고 싶어요. 어느 포트를 피하죠?","gold":["BW20261119:CHK-HW19-008"]}
+{"id":"constraints-06","type":"constraints","question":"NH-D15 G2에 35mm 램과 전면 팬을 같이 쓰려면 케이스 높이는 얼마가 필요하죠?","gold":["BW20261119:CHK-HW19-020"]}
+{"id":"constraints-07","type":"constraints","question":"WD19에 모니터 하나만 쓰는데 4K 60Hz를 내려면 어떤 링크가 필요하죠?","gold":["BW20261119:CHK-HW19-030"]}
+{"id":"constraints-08","type":"constraints","question":"맥에서 외장 그래픽을 쓰려면 프로세서와 포트가 어떤 조건이어야 해요?","gold":["JINBONG:CHK-MAC-002"]}
+{"id":"constraints-09","type":"constraints","question":"CB16GU4800과 CB16GS4800 중 노트북 슬롯 규격인 쪽은 어느 거죠?","gold":["BW20261119:CHK-HW19-014"]}
+{"id":"constraints-10","type":"constraints","question":"Ryzen AI 300 Framework Laptop 16에 SO-DIMM 두 개와 XMP를 같이 쓸 수 있어요?","gold":["JINBONG:CHK-FW16-001"]}
+{"id":"insufficient-01","type":"insufficient","question":"M425R1GB4BB0-CWZ 검증 목록 보여줘","gold":[],"needs":"정확한 품번 또는 별도 검증 목록이 필요하다."}
+{"id":"insufficient-02","type":"insufficient","question":"RZ09-0581z 문서","gold":[],"needs":"입력한 모델명을 확인해야 한다."}
+{"id":"insufficient-03","type":"insufficient","question":"CB16GU4899 조회","gold":[],"needs":"입력한 품번을 확인해야 한다."}
+{"id":"insufficient-04","type":"insufficient","question":"이 램이 지금 이 매장에 몇 개 남았나요?","gold":[],"needs":"매장, 품번, 실시간 재고가 필요하다."}
+{"id":"insufficient-05","type":"insufficient","question":"오늘 주문하면 내일 몇 시에 받을 수 있나요?","gold":[],"needs":"주문과 배송 정보가 필요하다."}
+{"id":"insufficient-06","type":"insufficient","question":"제 노트북에 이 메모리가 맞습니까?","gold":[],"needs":"노트북 모델과 메모리 품번이 필요하다."}
+{"id":"insufficient-07","type":"insufficient","question":"150만 원 이하로 가장 조용한 완제품 지금 하나 골라 주세요.","gold":[],"needs":"판매 기업의 가격과 재고, 소음 측정 조건이 필요하다."}
+{"id":"insufficient-08","type":"insufficient","question":"제가 결제한 그래픽카드 환불이 승인됐나요?","gold":[],"needs":"해당 주문의 환불 처리 상태가 필요하다."}
+{"id":"insufficient-09","type":"insufficient","question":"저번에 산 컴퓨터에 모니터를 최대 몇 대 연결할 수 있죠?","gold":[],"needs":"구매한 컴퓨터의 모델과 출력 포트가 필요하다."}
+{"id":"insufficient-10","type":"insufficient","question":"제 케이스에 새 쿨러가 들어가나요?","gold":[],"needs":"케이스와 쿨러 모델 및 장착 높이가 필요하다."}

@@ -1,0 +1,150 @@
+{"id":"domain-01-1","negative":"JINBONG:CHK-HF-002","reason":"단일 GGUF 파일을 여는 설명에는 4비트 양자화와 장치 배치 설정이 없다."}
+{"id":"domain-01-2","negative":"JINBONG:CHK-HF-002","reason":"단일 GGUF 파일을 여는 설명에는 4비트 양자화와 장치 배치 설정이 없다."}
+{"id":"domain-01-3","negative":"JINBONG:CHK-HF-002","reason":"단일 GGUF 파일을 여는 설명에는 4비트 양자화와 장치 배치 설정이 없다."}
+{"id":"domain-02-1","negative":"JINBONG:CHK-HF-001","reason":"4비트 로딩 예제는 GGUF 내부 구성이나 파일 선택 인자를 설명하지 않는다."}
+{"id":"domain-02-2","negative":"JINBONG:CHK-HF-001","reason":"4비트 로딩 예제는 GGUF 내부 구성이나 파일 선택 인자를 설명하지 않는다."}
+{"id":"domain-02-3","negative":"JINBONG:CHK-HF-001","reason":"4비트 로딩 예제는 GGUF 내부 구성이나 파일 선택 인자를 설명하지 않는다."}
+{"id":"domain-03-1","negative":"JINBONG:CHK-PT-001","reason":"계산 플랫폼별 설치 명령 선택에는 Apple Silicon의 MPS와 macOS 개발 도구 요구사항이 없다."}
+{"id":"domain-03-2","negative":"JINBONG:CHK-PT-001","reason":"계산 플랫폼별 설치 명령 선택에는 Apple Silicon의 MPS와 macOS 개발 도구 요구사항이 없다."}
+{"id":"domain-03-3","negative":"JINBONG:CHK-PT-001","reason":"계산 플랫폼별 설치 명령 선택에는 Apple Silicon의 MPS와 macOS 개발 도구 요구사항이 없다."}
+{"id":"domain-04-1","negative":"JINBONG:CHK-MS-002","reason":"WSL 안내는 Windows 네이티브 개발에 필요한 Visual Studio와 CUDA Toolkit 조합을 설명하지 않는다."}
+{"id":"domain-04-2","negative":"JINBONG:CHK-MS-002","reason":"WSL 안내는 Windows 네이티브 개발에 필요한 Visual Studio와 CUDA Toolkit 조합을 설명하지 않는다."}
+{"id":"domain-04-3","negative":"JINBONG:CHK-MS-002","reason":"WSL 안내는 Windows 네이티브 개발에 필요한 Visual Studio와 CUDA Toolkit 조합을 설명하지 않는다."}
+{"id":"domain-05-1","negative":"JINBONG:CHK-PT-001","reason":"PyTorch 설치 선택지는 ROCm 호환표의 커널·펌웨어·드라이버 조건을 담지 않는다."}
+{"id":"domain-05-2","negative":"JINBONG:CHK-PT-001","reason":"PyTorch 설치 선택지는 ROCm 호환표의 커널·펌웨어·드라이버 조건을 담지 않는다."}
+{"id":"domain-05-3","negative":"JINBONG:CHK-PT-001","reason":"PyTorch 설치 선택지는 ROCm 호환표의 커널·펌웨어·드라이버 조건을 담지 않는다."}
+{"id":"domain-06-1","negative":"JINBONG:CHK-INT-002","reason":"NPU 전용 점검 문단에는 OpenVINO 배포 방식에 따른 Python·컴파일러 조건이 없다."}
+{"id":"domain-06-2","negative":"JINBONG:CHK-INT-002","reason":"NPU 전용 점검 문단에는 OpenVINO 배포 방식에 따른 Python·컴파일러 조건이 없다."}
+{"id":"domain-06-3","negative":"JINBONG:CHK-INT-002","reason":"NPU 전용 점검 문단에는 OpenVINO 배포 방식에 따른 Python·컴파일러 조건이 없다."}
+{"id":"domain-07-1","negative":"JINBONG:CHK-INT-001","reason":"일반 배포 조건만 안내하며 NPU의 OS별 확인 위치와 커널 점검 절차를 명시하지 않는다."}
+{"id":"domain-07-2","negative":"JINBONG:CHK-INT-001","reason":"일반 배포 조건만 안내하며 NPU의 OS별 확인 위치와 커널 점검 절차를 명시하지 않는다."}
+{"id":"domain-07-3","negative":"JINBONG:CHK-INT-001","reason":"일반 배포 조건만 안내하며 NPU의 OS별 확인 위치와 커널 점검 절차를 명시하지 않는다."}
+{"id":"domain-08-1","negative":"JINBONG:CHK-MS-002","reason":"WSL 가이드는 GPU 제조사와 드라이버 경로는 나누지만 DirectML의 API 수준과 DX12 요구사항을 설명하지 않는다."}
+{"id":"domain-08-2","negative":"JINBONG:CHK-MS-002","reason":"WSL 가이드는 GPU 제조사와 드라이버 경로는 나누지만 DirectML의 API 수준과 DX12 요구사항을 설명하지 않는다."}
+{"id":"domain-08-3","negative":"JINBONG:CHK-MS-002","reason":"WSL 가이드는 GPU 제조사와 드라이버 경로는 나누지만 DirectML의 API 수준과 DX12 요구사항을 설명하지 않는다."}
+{"id":"domain-09-1","negative":"JINBONG:CHK-NV-001","reason":"Windows 네이티브 CUDA 툴체인 문단에는 WSL 지원 조건이나 여러 제조사용 DirectML 경로가 없다."}
+{"id":"domain-09-2","negative":"JINBONG:CHK-NV-001","reason":"Windows 네이티브 CUDA 툴체인 문단에는 WSL 지원 조건이나 여러 제조사용 DirectML 경로가 없다."}
+{"id":"domain-09-3","negative":"JINBONG:CHK-NV-001","reason":"Windows 네이티브 CUDA 툴체인 문단에는 WSL 지원 조건이나 여러 제조사용 DirectML 경로가 없다."}
+{"id":"domain-10-1","negative":"JINBONG:CHK-AMD-001","reason":"ROCm 문단은 AMD 호환 조합을 다루며 PyTorch의 설치 명령 선택기를 설명하지 않는다."}
+{"id":"domain-10-2","negative":"JINBONG:CHK-AMD-001","reason":"ROCm 문단은 AMD 호환 조합을 다루며 PyTorch의 설치 명령 선택기를 설명하지 않는다."}
+{"id":"domain-10-3","negative":"JINBONG:CHK-AMD-001","reason":"ROCm 문단은 AMD 호환 조합을 다루며 PyTorch의 설치 명령 선택기를 설명하지 않는다."}
+{"id":"domain-11-1","negative":"JINBONG:CHK-HP-001","reason":"HP 서비스 문서는 Dell 모델의 보드 통합 RAM 및 교체 가능 여부를 판별하는 근거가 아니다."}
+{"id":"domain-11-2","negative":"JINBONG:CHK-HP-001","reason":"HP 서비스 문서는 Dell 모델의 보드 통합 RAM 및 교체 가능 여부를 판별하는 근거가 아니다."}
+{"id":"domain-11-3","negative":"JINBONG:CHK-HP-001","reason":"HP 서비스 문서는 Dell 모델의 보드 통합 RAM 및 교체 가능 여부를 판별하는 근거가 아니다."}
+{"id":"domain-12-1","negative":"JINBONG:CHK-DELL-001","reason":"Dell 문단에는 HP 모델의 설치 가이드 종류와 점검 항목이 없다."}
+{"id":"domain-12-2","negative":"JINBONG:CHK-DELL-001","reason":"Dell 문단에는 HP 모델의 설치 가이드 종류와 점검 항목이 없다."}
+{"id":"domain-12-3","negative":"JINBONG:CHK-DELL-001","reason":"Dell 문단에는 HP 모델의 설치 가이드 종류와 점검 항목이 없다."}
+{"id":"domain-13-1","negative":"JINBONG:CHK-HP-001","reason":"HP 서비스 가이드에는 Lenovo의 납땜 메모리 확인 자료와 Parts Lookup이 없다."}
+{"id":"domain-13-2","negative":"JINBONG:CHK-HP-001","reason":"HP 서비스 가이드에는 Lenovo의 납땜 메모리 확인 자료와 Parts Lookup이 없다."}
+{"id":"domain-13-3","negative":"JINBONG:CHK-HP-001","reason":"HP 서비스 가이드에는 Lenovo의 납땜 메모리 확인 자료와 Parts Lookup이 없다."}
+{"id":"domain-14-1","negative":"JINBONG:CHK-DELL-001","reason":"Dell 모델별 문단은 ASUS Tech Specs에서 온보드·SO-DIMM과 저장장치 범위를 구분하는 방법을 제공하지 않는다."}
+{"id":"domain-14-2","negative":"JINBONG:CHK-DELL-001","reason":"Dell 모델별 문단은 ASUS Tech Specs에서 온보드·SO-DIMM과 저장장치 범위를 구분하는 방법을 제공하지 않는다."}
+{"id":"domain-14-3","negative":"JINBONG:CHK-DELL-001","reason":"Dell 모델별 문단은 ASUS Tech Specs에서 온보드·SO-DIMM과 저장장치 범위를 구분하는 방법을 제공하지 않는다."}
+{"id":"domain-15-1","negative":"JINBONG:CHK-LG-001","reason":"LG의 직접 업그레이드 권고는 Acer의 부품별 교체 범위나 제3자 설치 손상의 보증 조건을 설명하지 않는다."}
+{"id":"domain-15-2","negative":"JINBONG:CHK-LG-001","reason":"LG의 직접 업그레이드 권고는 Acer의 부품별 교체 범위나 제3자 설치 손상의 보증 조건을 설명하지 않는다."}
+{"id":"domain-15-3","negative":"JINBONG:CHK-LG-001","reason":"LG의 직접 업그레이드 권고는 Acer의 부품별 교체 범위나 제3자 설치 손상의 보증 조건을 설명하지 않는다."}
+{"id":"domain-16-1","negative":"JINBONG:CHK-FW16-004","reason":"Framework 16의 소켓 길이·부팅 안내는 MSI의 비대칭 RAID 안정성이나 모델별 PCIe 세대를 보장하지 않는다."}
+{"id":"domain-16-2","negative":"JINBONG:CHK-FW16-004","reason":"Framework 16의 소켓 길이·부팅 안내는 MSI의 비대칭 RAID 안정성이나 모델별 PCIe 세대를 보장하지 않는다."}
+{"id":"domain-16-3","negative":"JINBONG:CHK-FW16-004","reason":"Framework 16의 소켓 길이·부팅 안내는 MSI의 비대칭 RAID 안정성이나 모델별 PCIe 세대를 보장하지 않는다."}
+{"id":"domain-17-1","negative":"JINBONG:CHK-ACR-001","reason":"Acer의 일반적인 업그레이드 범위는 LG 2026년형의 슬롯과 자가 작업 권고를 설명하지 않는다."}
+{"id":"domain-17-2","negative":"JINBONG:CHK-ACR-001","reason":"Acer의 일반적인 업그레이드 범위는 LG 2026년형의 슬롯과 자가 작업 권고를 설명하지 않는다."}
+{"id":"domain-17-3","negative":"JINBONG:CHK-ACR-001","reason":"Acer의 일반적인 업그레이드 범위는 LG 2026년형의 슬롯과 자가 작업 권고를 설명하지 않는다."}
+{"id":"domain-18-1","negative":"JINBONG:CHK-HUAWEI-001","reason":"MateBook의 교체 가능 부품으로는 Surface의 모델별 rSSD 지원 목록이나 서비스 가이드를 판단할 수 없다."}
+{"id":"domain-18-2","negative":"JINBONG:CHK-HUAWEI-001","reason":"MateBook의 교체 가능 부품으로는 Surface의 모델별 rSSD 지원 목록이나 서비스 가이드를 판단할 수 없다."}
+{"id":"domain-18-3","negative":"JINBONG:CHK-HUAWEI-001","reason":"MateBook의 교체 가능 부품으로는 Surface의 모델별 rSSD 지원 목록이나 서비스 가이드를 판단할 수 없다."}
+{"id":"domain-19-1","negative":"JINBONG:CHK-CMP-007","reason":"CORSAIR 키트 검색은 Kingston 메모리 파인더에 시스템 부품 번호를 입력하는 방법을 설명하지 않는다."}
+{"id":"domain-19-2","negative":"JINBONG:CHK-CMP-007","reason":"CORSAIR 키트 검색은 Kingston 메모리 파인더에 시스템 부품 번호를 입력하는 방법을 설명하지 않는다."}
+{"id":"domain-19-3","negative":"JINBONG:CHK-CMP-007","reason":"CORSAIR 키트 검색은 Kingston 메모리 파인더에 시스템 부품 번호를 입력하는 방법을 설명하지 않는다."}
+{"id":"domain-20-1","negative":"JINBONG:CHK-MSI-QVL-002","reason":"MSI의 보드별 CPU 지원 목록은 Intel 데스크톱 CPU에서 호환 보드를 역조회하는 도구가 아니다."}
+{"id":"domain-20-2","negative":"JINBONG:CHK-MSI-QVL-002","reason":"MSI의 보드별 CPU 지원 목록은 Intel 데스크톱 CPU에서 호환 보드를 역조회하는 도구가 아니다."}
+{"id":"domain-20-3","negative":"JINBONG:CHK-MSI-QVL-002","reason":"MSI의 보드별 CPU 지원 목록은 Intel 데스크톱 CPU에서 호환 보드를 역조회하는 도구가 아니다."}
+{"id":"domain-21-1","negative":"JINBONG:CHK-CMP-004","reason":"AM4 칩셋 표는 AM5 600·800 시리즈 및 새 Ryzen 조합을 다루지 않는다."}
+{"id":"domain-21-2","negative":"JINBONG:CHK-CMP-004","reason":"AM4 칩셋 표는 AM5 600·800 시리즈 및 새 Ryzen 조합을 다루지 않는다."}
+{"id":"domain-21-3","negative":"JINBONG:CHK-CMP-004","reason":"AM4 칩셋 표는 AM5 600·800 시리즈 및 새 Ryzen 조합을 다루지 않는다."}
+{"id":"domain-22-1","negative":"JINBONG:CHK-CMP-003","reason":"AM5의 600·800 시리즈 조건은 AM4 보드의 칩셋별 CPU 지원표에 적용할 수 없다."}
+{"id":"domain-22-2","negative":"JINBONG:CHK-CMP-003","reason":"AM5의 600·800 시리즈 조건은 AM4 보드의 칩셋별 CPU 지원표에 적용할 수 없다."}
+{"id":"domain-22-3","negative":"JINBONG:CHK-CMP-003","reason":"AM5의 600·800 시리즈 조건은 AM4 보드의 칩셋별 CPU 지원표에 적용할 수 없다."}
+{"id":"domain-23-1","negative":"JINBONG:CHK-MSI-QVL-001","reason":"MSI 램 목록 안내는 ASUS QVL 미등재의 의미와 CPU별 BIOS 조건을 설명하지 않는다."}
+{"id":"domain-23-2","negative":"JINBONG:CHK-MSI-QVL-001","reason":"MSI 램 목록 안내는 ASUS QVL 미등재의 의미와 CPU별 BIOS 조건을 설명하지 않는다."}
+{"id":"domain-23-3","negative":"JINBONG:CHK-MSI-QVL-001","reason":"MSI 램 목록 안내는 ASUS QVL 미등재의 의미와 CPU별 BIOS 조건을 설명하지 않는다."}
+{"id":"domain-24-1","negative":"JINBONG:CHK-APL-001","reason":"MPS 개발 환경의 OS 최소 버전은 macOS 27의 Mac 기종별 설치 자격과 다르다."}
+{"id":"domain-24-2","negative":"JINBONG:CHK-APL-001","reason":"MPS 개발 환경의 OS 최소 버전은 macOS 27의 Mac 기종별 설치 자격과 다르다."}
+{"id":"domain-24-3","negative":"JINBONG:CHK-APL-001","reason":"MPS 개발 환경의 OS 최소 버전은 macOS 27의 Mac 기종별 설치 자격과 다르다."}
+{"id":"domain-25-1","negative":"JINBONG:CHK-MAC-006","reason":"Mac Studio의 칩별 화면 상한과 포트 그룹은 Mac mini의 연결 수와 포트를 설명하지 않는다."}
+{"id":"domain-25-2","negative":"JINBONG:CHK-MAC-006","reason":"Mac Studio의 칩별 화면 상한과 포트 그룹은 Mac mini의 연결 수와 포트를 설명하지 않는다."}
+{"id":"domain-25-3","negative":"JINBONG:CHK-MAC-006","reason":"Mac Studio의 칩별 화면 상한과 포트 그룹은 Mac mini의 연결 수와 포트를 설명하지 않는다."}
+{"id":"domain-26-1","negative":"JINBONG:CHK-SUR-001","reason":"Surface의 rSSD 문단에는 Huawei MateBook의 통합 그래픽·메모리 교체 범위가 없다."}
+{"id":"domain-26-2","negative":"JINBONG:CHK-SUR-001","reason":"Surface의 rSSD 문단에는 Huawei MateBook의 통합 그래픽·메모리 교체 범위가 없다."}
+{"id":"domain-26-3","negative":"JINBONG:CHK-SUR-001","reason":"Surface의 rSSD 문단에는 Huawei MateBook의 통합 그래픽·메모리 교체 범위가 없다."}
+{"id":"domain-27-1","negative":"JINBONG:CHK-MSI-QVL-002","reason":"MSI CPU 목록에는 보드가 지원하는 메모리 모듈 목록이 없다."}
+{"id":"domain-27-2","negative":"JINBONG:CHK-MSI-QVL-002","reason":"MSI CPU 목록에는 보드가 지원하는 메모리 모듈 목록이 없다."}
+{"id":"domain-27-3","negative":"JINBONG:CHK-MSI-QVL-002","reason":"MSI CPU 목록에는 보드가 지원하는 메모리 모듈 목록이 없다."}
+{"id":"domain-28-1","negative":"JINBONG:CHK-MSI-QVL-001","reason":"MSI Memory Support는 프로세서 검증과 CPU에 필요한 BIOS 버전을 제시하는 표가 아니다."}
+{"id":"domain-28-2","negative":"JINBONG:CHK-MSI-QVL-001","reason":"MSI Memory Support는 프로세서 검증과 CPU에 필요한 BIOS 버전을 제시하는 표가 아니다."}
+{"id":"domain-28-3","negative":"JINBONG:CHK-MSI-QVL-001","reason":"MSI Memory Support는 프로세서 검증과 CPU에 필요한 BIOS 버전을 제시하는 표가 아니다."}
+{"id":"domain-29-1","negative":"JINBONG:CHK-ASROCK-QVL-001","reason":"ASRock의 소켓별 램 표에는 GIGABYTE B650EM의 보드 리비전·메모리 구성 정보가 없다."}
+{"id":"domain-29-2","negative":"JINBONG:CHK-ASROCK-QVL-001","reason":"ASRock의 소켓별 램 표에는 GIGABYTE B650EM의 보드 리비전·메모리 구성 정보가 없다."}
+{"id":"domain-29-3","negative":"JINBONG:CHK-ASROCK-QVL-001","reason":"ASRock의 소켓별 램 표에는 GIGABYTE B650EM의 보드 리비전·메모리 구성 정보가 없다."}
+{"id":"domain-30-1","negative":"JINBONG:CHK-GIGA-QVL-001","reason":"기가바이트 한 모델의 페이지로 ASRock의 소켓·칩셋별 RAM 목록을 찾아갈 수 없다."}
+{"id":"domain-30-2","negative":"JINBONG:CHK-GIGA-QVL-001","reason":"기가바이트 한 모델의 페이지로 ASRock의 소켓·칩셋별 RAM 목록을 찾아갈 수 없다."}
+{"id":"domain-30-3","negative":"JINBONG:CHK-GIGA-QVL-001","reason":"기가바이트 한 모델의 페이지로 ASRock의 소켓·칩셋별 RAM 목록을 찾아갈 수 없다."}
+{"id":"domain-31-1","negative":"JINBONG:CHK-MAC-005","reason":"MacBook Air의 화면 조건은 MacBook Pro의 칩·포트 조합별 사양이 아니다."}
+{"id":"domain-31-2","negative":"JINBONG:CHK-MAC-005","reason":"MacBook Air의 화면 조건은 MacBook Pro의 칩·포트 조합별 사양이 아니다."}
+{"id":"domain-31-3","negative":"JINBONG:CHK-MAC-005","reason":"MacBook Air의 화면 조건은 MacBook Pro의 칩·포트 조합별 사양이 아니다."}
+{"id":"domain-32-1","negative":"JINBONG:CHK-MAC-004","reason":"MacBook Pro 설명은 M4·M5 Air에서 연결 대수에 따라 달라지는 화면 조건을 명시하지 않는다."}
+{"id":"domain-32-2","negative":"JINBONG:CHK-MAC-004","reason":"MacBook Pro 설명은 M4·M5 Air에서 연결 대수에 따라 달라지는 화면 조건을 명시하지 않는다."}
+{"id":"domain-32-3","negative":"JINBONG:CHK-MAC-004","reason":"MacBook Pro 설명은 M4·M5 Air에서 연결 대수에 따라 달라지는 화면 조건을 명시하지 않는다."}
+{"id":"domain-33-1","negative":"JINBONG:CHK-MAC-003","reason":"Mac mini의 화면 3대 안내는 Studio의 칩 세대·포트 그룹별 조건을 제공하지 않는다."}
+{"id":"domain-33-2","negative":"JINBONG:CHK-MAC-003","reason":"Mac mini의 화면 3대 안내는 Studio의 칩 세대·포트 그룹별 조건을 제공하지 않는다."}
+{"id":"domain-33-3","negative":"JINBONG:CHK-MAC-003","reason":"Mac mini의 화면 3대 안내는 Studio의 칩 세대·포트 그룹별 조건을 제공하지 않는다."}
+{"id":"domain-34-1","negative":"JINBONG:CHK-CMP-001","reason":"Kingston 메모리 파인더 문단은 저장장치 분석이나 SSD 업그레이드 추천 기능을 다루지 않는다."}
+{"id":"domain-34-2","negative":"JINBONG:CHK-CMP-001","reason":"Kingston 메모리 파인더 문단은 저장장치 분석이나 SSD 업그레이드 추천 기능을 다루지 않는다."}
+{"id":"domain-34-3","negative":"JINBONG:CHK-CMP-001","reason":"Kingston 메모리 파인더 문단은 저장장치 분석이나 SSD 업그레이드 추천 기능을 다루지 않는다."}
+{"id":"domain-35-1","negative":"JINBONG:CHK-CMP-006","reason":"Kingston PC Scanner는 CORSAIR의 시스템·메인보드별 메모리 키트를 조회하지 않는다."}
+{"id":"domain-35-2","negative":"JINBONG:CHK-CMP-006","reason":"Kingston PC Scanner는 CORSAIR의 시스템·메인보드별 메모리 키트를 조회하지 않는다."}
+{"id":"domain-35-3","negative":"JINBONG:CHK-CMP-006","reason":"Kingston PC Scanner는 CORSAIR의 시스템·메인보드별 메모리 키트를 조회하지 않는다."}
+{"id":"domain-36-1","negative":"JINBONG:CHK-MSI-001","reason":"MSI RAID 문단은 Framework Laptop 16의 기본·보조 소켓 길이와 부팅 지원을 설명하지 않는다."}
+{"id":"domain-36-2","negative":"JINBONG:CHK-MSI-001","reason":"MSI RAID 문단은 Framework Laptop 16의 기본·보조 소켓 길이와 부팅 지원을 설명하지 않는다."}
+{"id":"domain-36-3","negative":"JINBONG:CHK-MSI-001","reason":"MSI RAID 문단은 Framework Laptop 16의 기본·보조 소켓 길이와 부팅 지원을 설명하지 않는다."}
+{"id":"domain-37-1","negative":"JINBONG:CHK-GPU-PSU-002","reason":"RX 9070 XT의 전력·배선 조건은 RTX 5090 FE의 케이블 선택지와 설치 공간 조건이 아니다."}
+{"id":"domain-37-2","negative":"JINBONG:CHK-GPU-PSU-002","reason":"RX 9070 XT의 전력·배선 조건은 RTX 5090 FE의 케이블 선택지와 설치 공간 조건이 아니다."}
+{"id":"domain-37-3","negative":"JINBONG:CHK-GPU-PSU-002","reason":"RX 9070 XT의 전력·배선 조건은 RTX 5090 FE의 케이블 선택지와 설치 공간 조건이 아니다."}
+{"id":"domain-38-1","negative":"JINBONG:CHK-GPU-PSU-003","reason":"Arc B580의 파워와 PCIe 조건은 Radeon RX 9070 XT의 장착 기준과 다르다."}
+{"id":"domain-38-2","negative":"JINBONG:CHK-GPU-PSU-003","reason":"Arc B580의 파워와 PCIe 조건은 Radeon RX 9070 XT의 장착 기준과 다르다."}
+{"id":"domain-38-3","negative":"JINBONG:CHK-GPU-PSU-003","reason":"Arc B580의 파워와 PCIe 조건은 Radeon RX 9070 XT의 장착 기준과 다르다."}
+{"id":"domain-39-1","negative":"JINBONG:CHK-GPU-PSU-002","reason":"라데온 카드의 파워·레인 수치로 인텔 Arc B580의 최소 전력과 연결 폭을 판단할 수 없다."}
+{"id":"domain-39-2","negative":"JINBONG:CHK-GPU-PSU-002","reason":"라데온 카드의 파워·레인 수치로 인텔 Arc B580의 최소 전력과 연결 폭을 판단할 수 없다."}
+{"id":"domain-39-3","negative":"JINBONG:CHK-GPU-PSU-002","reason":"라데온 카드의 파워·레인 수치로 인텔 Arc B580의 최소 전력과 연결 폭을 판단할 수 없다."}
+{"id":"domain-40-1","negative":"BW20261119:CHK-HW19-011","reason":"R760 DIMM 혼용 지침은 두 번째 CPU 장착에 따라 어느 슬롯이 활성화되는지 알려주지 않는다."}
+{"id":"domain-40-2","negative":"BW20261119:CHK-HW19-011","reason":"R760 DIMM 혼용 지침은 두 번째 CPU 장착에 따라 어느 슬롯이 활성화되는지 알려주지 않는다."}
+{"id":"domain-40-3","negative":"BW20261119:CHK-HW19-011","reason":"R760 DIMM 혼용 지침은 두 번째 CPU 장착에 따라 어느 슬롯이 활성화되는지 알려주지 않는다."}
+{"id":"domain-41-1","negative":"BW20261119:CHK-HW19-010","reason":"R760의 슬롯 활성화 문단은 DIMM 용량·DRAM 조직·3DS 혼용 지원 여부를 설명하지 않는다."}
+{"id":"domain-41-2","negative":"BW20261119:CHK-HW19-010","reason":"R760의 슬롯 활성화 문단은 DIMM 용량·DRAM 조직·3DS 혼용 지원 여부를 설명하지 않는다."}
+{"id":"domain-41-3","negative":"BW20261119:CHK-HW19-010","reason":"R760의 슬롯 활성화 문단은 DIMM 용량·DRAM 조직·3DS 혼용 지원 여부를 설명하지 않는다."}
+{"id":"domain-42-1","negative":"BW20261119:CHK-HW19-011","reason":"특정 Dell 서버의 DDR5 혼용 지침은 DDR 세대 간 홈 위치·전기 규격 및 CPU 조건을 설명하지 않는다."}
+{"id":"domain-42-2","negative":"BW20261119:CHK-HW19-011","reason":"특정 Dell 서버의 DDR5 혼용 지침은 DDR 세대 간 홈 위치·전기 규격 및 CPU 조건을 설명하지 않는다."}
+{"id":"domain-42-3","negative":"BW20261119:CHK-HW19-011","reason":"특정 Dell 서버의 DDR5 혼용 지침은 DDR 세대 간 홈 위치·전기 규격 및 CPU 조건을 설명하지 않는다."}
+{"id":"domain-43-1","negative":"JINBONG:CHK-FW16-004","reason":"Framework 16의 두 NVMe 소켓과 SSD 높이를 다룬다. SATA 모듈이 인식되기 위해 슬롯에 필요한 신호는 설명하지 않는다."}
+{"id":"domain-43-2","negative":"BW20261119:CHK-HW19-017","reason":"특정 Z590 보드의 M 키 슬롯 목록은 일반 SATA M.2의 B/B+M 키 및 고정 위치 확인 기준을 설명하지 않는다."}
+{"id":"domain-43-3","negative":"JINBONG:CHK-FW16-004","reason":"NVMe 드라이브 길이와 부팅 가능 여부만 확인할 수 있다. 길이가 맞는 SATA 모듈에 별도 SATA 신호 지원이 필요하다는 조건이 빠져 있다."}
+{"id":"domain-44-1","negative":"BW20261119:CHK-HW19-017","reason":"같은 보드의 슬롯 규격 문단에는 SATA 방식 사용 시 비활성화되는 포트 번호가 없다."}
+{"id":"domain-44-2","negative":"BW20261119:CHK-HW19-017","reason":"같은 보드의 슬롯 규격 문단에는 SATA 방식 사용 시 비활성화되는 포트 번호가 없다."}
+{"id":"domain-44-3","negative":"BW20261119:CHK-HW19-017","reason":"같은 보드의 슬롯 규격 문단에는 SATA 방식 사용 시 비활성화되는 포트 번호가 없다."}
+{"id":"domain-45-1","negative":"BW20261119:CHK-HW19-016","reason":"포트 비활성화 조건만으로는 두 M.2 소켓의 키·길이·PCIe 세대를 알 수 없다."}
+{"id":"domain-45-2","negative":"BW20261119:CHK-HW19-016","reason":"포트 비활성화 조건만으로는 두 M.2 소켓의 키·길이·PCIe 세대를 알 수 없다."}
+{"id":"domain-45-3","negative":"BW20261119:CHK-HW19-015","reason":"일반적인 SATA M.2 신호·키·길이 조건을 안내한다. Z590-A GAMING WIFI II의 두 소켓 중 어느 소켓이 SATA를 받는지는 명시하지 않는다."}
+{"id":"domain-46-1","negative":"BW20261119:CHK-HW19-023","reason":"U12A·D12L용 부품표에는 D15 계열의 세대·변형별 장착 바 번호가 없다."}
+{"id":"domain-46-2","negative":"BW20261119:CHK-HW19-023","reason":"U12A·D12L용 부품표에는 D15 계열의 세대·변형별 장착 바 번호가 없다."}
+{"id":"domain-46-3","negative":"BW20261119:CHK-HW19-023","reason":"U12A·D12L용 부품표에는 D15 계열의 세대·변형별 장착 바 번호가 없다."}
+{"id":"domain-47-1","negative":"BW20261119:CHK-HW19-022","reason":"D15 계열 부품표에는 U12A와 D12L 및 chromax.black의 대응 관계가 없다."}
+{"id":"domain-47-2","negative":"BW20261119:CHK-HW19-022","reason":"D15 계열 부품표에는 U12A와 D12L 및 chromax.black의 대응 관계가 없다."}
+{"id":"domain-47-3","negative":"BW20261119:CHK-HW19-022","reason":"D15 계열 부품표에는 U12A와 D12L 및 chromax.black의 대응 관계가 없다."}
+{"id":"domain-48-1","negative":"BW20261119:CHK-HW19-022","reason":"D15 바의 부품 번호 대응표만으로는 G2의 이동 방향·거리 및 CCD 접촉 목적을 알 수 없다."}
+{"id":"domain-48-2","negative":"BW20261119:CHK-HW19-022","reason":"D15 바의 부품 번호 대응표만으로는 G2의 이동 방향·거리 및 CCD 접촉 목적을 알 수 없다."}
+{"id":"domain-48-3","negative":"BW20261119:CHK-HW19-022","reason":"D15 바의 부품 번호 대응표만으로는 G2의 이동 방향·거리 및 CCD 접촉 목적을 알 수 없다."}
+{"id":"domain-49-1","negative":"BW20261119:CHK-HW19-026","reason":"배선 순서 문단은 HDMI 지원 여부나 첫 모니터에서 MST 기능을 켜야 한다는 조건을 담지 않는다."}
+{"id":"domain-49-2","negative":"BW20261119:CHK-HW19-026","reason":"배선 순서 문단은 HDMI 지원 여부나 첫 모니터에서 MST 기능을 켜야 한다는 조건을 담지 않는다."}
+{"id":"domain-49-3","negative":"BW20261119:CHK-HW19-026","reason":"배선 순서 문단은 HDMI 지원 여부나 첫 모니터에서 MST 기능을 켜야 한다는 조건을 담지 않는다."}
+{"id":"domain-50-1","negative":"BW20261119:CHK-HW19-025","reason":"MST 활성화 조건 문단에는 PC부터 두 번째 화면까지 각 케이블의 입력·출력 방향이 명시되지 않는다."}
+{"id":"domain-50-2","negative":"BW20261119:CHK-HW19-025","reason":"MST 활성화 조건 문단에는 PC부터 두 번째 화면까지 각 케이블의 입력·출력 방향이 명시되지 않는다."}
+{"id":"domain-50-3","negative":"BW20261119:CHK-HW19-025","reason":"MST 활성화 조건 문단에는 PC부터 두 번째 화면까지 각 케이블의 입력·출력 방향이 명시되지 않는다."}
