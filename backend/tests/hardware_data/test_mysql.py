@@ -6,6 +6,7 @@ import uuid
 
 import mysql.connector
 
+from app.db.catalog import list_compatibility
 from app.db.connection import get_connection
 from app.domains.hardware.check_assembly import check_catalog_assembly
 from app.domains.hardware.ingestion.common import DATA, read_json, read_specs
@@ -29,14 +30,14 @@ class MySQLTests(unittest.TestCase):
             "INSERT INTO users (display_name) VALUES (%s)", ("__rollback_test_" + uuid.uuid4().hex,)
         )
         uid = self.cursor.lastrowid
-        self.cursor.execute(
-            "INSERT INTO consultations (user_id,purpose,requirements) VALUES (%s,'test',JSON_OBJECT())",
-            (uid,),
-        )
-        cid = self.cursor.lastrowid
         ids = []
         for _ in range(2):
-            self.cursor.execute("INSERT INTO quotes (consultation_id) VALUES (%s)", (cid,))
+            self.cursor.execute(
+                "INSERT INTO quotes (user_id,consultation_type,payment_reference,paid_at,"
+                "total_amount,performance_goal_snapshot) "
+                "VALUES (%s,'UPGRADE',%s,UTC_TIMESTAMP(6),0,JSON_OBJECT('purpose','test'))",
+                (uid, uuid.uuid4().hex),
+            )
             ids.append(self.cursor.lastrowid)
         self.cursor.execute("SELECT part_id FROM parts ORDER BY part_id LIMIT 1")
         return ids, self.cursor.fetchone()[0]
@@ -44,13 +45,15 @@ class MySQLTests(unittest.TestCase):
     def test_item_cannot_reference_another_quote(self):
         quotes, part = self.make_quotes()
         self.cursor.execute(
-            "INSERT INTO quote_items (quote_id,part_id,part_name_snapshot,quantity,configuration) VALUES (%s,%s,'test',1,JSON_OBJECT())",
+            "INSERT INTO quote_items (quote_id,part_id,part_name_snapshot,quantity,unit_price,configuration,selection_basis) "
+            "VALUES (%s,%s,'test',1,0,JSON_OBJECT(),JSON_OBJECT('reason','test'))",
             (quotes[0], part),
         )
         item = self.cursor.lastrowid
         with self.assertRaises(mysql.connector.IntegrityError):
             self.cursor.execute(
-                "INSERT INTO quote_validations (quote_id,quote_version,item_a_id,check_type,result,reason,input_snapshot,evidence_snapshot) VALUES (%s,1,%s,'SOCKET','UNKNOWN','test',JSON_OBJECT(),JSON_OBJECT())",
+                "INSERT INTO quote_validations (quote_id,item_a_id,check_type,result,reason,input_snapshot,evidence_snapshot) "
+                "VALUES (%s,%s,'SOCKET','UNKNOWN','test',JSON_OBJECT(),JSON_OBJECT())",
                 (quotes[1], item),
             )
 
@@ -58,7 +61,8 @@ class MySQLTests(unittest.TestCase):
         quotes, part = self.make_quotes()
         with self.assertRaises(mysql.connector.Error):
             self.cursor.execute(
-                "INSERT INTO quote_items (quote_id,part_id,part_name_snapshot,quantity,configuration) VALUES (%s,%s,'test',0,JSON_OBJECT())",
+                "INSERT INTO quote_items (quote_id,part_id,part_name_snapshot,quantity,unit_price,configuration,selection_basis) "
+                "VALUES (%s,%s,'test',0,0,JSON_OBJECT(),JSON_OBJECT('reason','test'))",
                 (quotes[0], part),
             )
 
@@ -85,7 +89,7 @@ class MySQLTests(unittest.TestCase):
         self.assertTrue(original_evidence)
         for _ in range(2):
             upsert_parts(self.connection, [part])
-            refresh = upsert_compatibility(self.connection, evidence, "2026-11-16T06:00:00Z")
+            refresh = upsert_compatibility(self.connection, evidence)
             self.assertEqual(refresh["inserted"], 0)
             self.assertEqual(refresh["withheld"], [])
         self.cursor.execute("SELECT COUNT(*) FROM parts")
@@ -96,11 +100,32 @@ class MySQLTests(unittest.TestCase):
         )
         self.assertEqual(self.cursor.fetchall(), original_evidence)
 
+    def test_compatibility_read_resolves_source_from_original_evidence(self):
+        self.cursor.execute(
+            "SELECT compatibility_id,part_a_id,part_b_id,conditions FROM part_compatibility "
+            "ORDER BY compatibility_id LIMIT 1"
+        )
+        evidence_id, part_a_id, part_b_id, conditions = self.cursor.fetchone()
+        conditions = read_specs(conditions)
+        record_key = conditions["_record_key"]
+        record = next(
+            record
+            for record in read_json(DATA / "docyx_compatibility.json")["records"]
+            if record["record_key"] == record_key
+        )
+
+        rows = list_compatibility(self.connection, part_ids=[part_a_id, part_b_id])
+        evidence = next(row for row in rows if row["compatibility_id"] == evidence_id)
+        self.assertEqual(evidence["source_url"], record["source_url"])
+        self.assertEqual(evidence["source_publisher"], record["source_publisher"])
+        self.assertEqual(evidence["conditions"], conditions)
+
     def test_price_refresh_preserves_quote_snapshot(self):
         quotes, _ = self.make_quotes()
         row = self.docyx_part()
         self.cursor.execute(
-            "INSERT INTO quote_items (quote_id,part_id,part_name_snapshot,quantity,unit_price,price_source_url,price_checked_at,configuration) VALUES (%s,%s,%s,1,80,'https://example.com/old','2026-11-10 06:00:00',JSON_OBJECT())",
+            "INSERT INTO quote_items (quote_id,part_id,part_name_snapshot,quantity,unit_price,price_source_url,price_checked_at,configuration,selection_basis) "
+            "VALUES (%s,%s,%s,1,80,'https://example.com/old','2026-11-10 06:00:00',JSON_OBJECT(),JSON_OBJECT('reason','test'))",
             (quotes[0], row["part_id"], row["name"]),
         )
         row.update(current_price="120", price_checked_at="2026-11-16T07:00:00Z")
@@ -121,12 +146,12 @@ class MySQLTests(unittest.TestCase):
         self.assertEqual(len(parts), 6)
         for part_id, name, category in parts:
             self.cursor.execute(
-                "INSERT INTO quote_items (quote_id,part_id,part_name_snapshot,quantity,configuration) "
-                "VALUES (%s,%s,%s,%s,JSON_OBJECT())",
+                "INSERT INTO quote_items (quote_id,part_id,part_name_snapshot,quantity,unit_price,configuration,selection_basis) "
+                "VALUES (%s,%s,%s,%s,0,JSON_OBJECT(),JSON_OBJECT('reason','test'))",
                 (quotes[0], part_id, name, 2 if category == "ram" else 1),
             )
         report = check_catalog_assembly(self.connection, quote_id=quotes[0])
-        self.assertEqual(report["quote_version"], 1)
+        self.assertEqual(report["quote_id"], quotes[0])
         by_type = {check["check_type"]: check for check in report["checks"]}
         for check in (
             "RAM_TYPE",

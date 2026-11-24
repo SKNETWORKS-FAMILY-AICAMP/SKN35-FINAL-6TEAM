@@ -1,9 +1,9 @@
 """Import reviewed official evidence. Does not infer support from missing rows."""
 
 from app.domains.hardware.ingestion.common import (
+    compatibility_sources,
     json_text,
     read_specs,
-    sql_time,
 )
 
 
@@ -56,7 +56,18 @@ def validate_records(records, matches):
     return records
 
 
-def upsert_compatibility(connection, records, checked_at):
+def upsert_compatibility(connection, records):
+    records = list(records)
+    sources = compatibility_sources() if records else {}
+    for record in records:
+        key = record["record_key"]
+        source = {
+            "source_url": record.get("source_url"),
+            "source_publisher": record.get("source_publisher"),
+        }
+        if sources.get(key) != source:
+            raise ValueError(key + ": 호환성 원본 자료의 출처와 일치하지 않습니다.")
+
     counts = {"inserted": 0, "updated": 0, "withheld": []}
     with connection.cursor(dictionary=True) as cursor:
         cursor.execute("SELECT part_id,model_number,specs FROM parts")
@@ -97,26 +108,21 @@ def upsert_compatibility(connection, records, checked_at):
             ]
             if len(existing) > 1:
                 raise ValueError("DB 호환성 근거가 중복됐습니다: " + record["record_key"])
-            source_date = record.get("source_updated_on")
             values = (
                 record["support_status"],
                 record["bios_scope"],
                 record.get("min_bios_version"),
                 json_text(conditions),
-                record["source_publisher"],
-                record["source_url"],
-                source_date + " 00:00:00" if source_date else None,
-                sql_time(checked_at),
             )
             if existing:
                 cursor.execute(
-                    "UPDATE part_compatibility SET support_status=%s,bios_scope=%s,min_bios_version=%s,conditions=%s,source_publisher=%s,source_url=%s,source_updated_at=%s,verified_at=%s WHERE compatibility_id=%s",
+                    "UPDATE part_compatibility SET support_status=%s,bios_scope=%s,min_bios_version=%s,conditions=%s WHERE compatibility_id=%s",
                     (*values, existing[0]["compatibility_id"]),
                 )
                 counts["updated"] += 1
             else:
                 cursor.execute(
-                    "INSERT INTO part_compatibility (part_a_id,part_b_id,check_type,support_status,bios_scope,min_bios_version,conditions,source_publisher,source_url,source_updated_at,verified_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    "INSERT INTO part_compatibility (part_a_id,part_b_id,check_type,support_status,bios_scope,min_bios_version,conditions) VALUES (%s,%s,%s,%s,%s,%s,%s)",
                     (a["part_id"], b["part_id"], record["check_type"], *values),
                 )
                 counts["inserted"] += 1

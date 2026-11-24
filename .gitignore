@@ -157,3 +157,7 @@ celerybeat.pid
 # pyproject.toml, requirements*.txt, uv.lock, poetry.lock, Pipfile.lock,
 # pdm.lock, .python-version, and the environment examples above.
 
+# Generated test reports
+/backend/tests/report/
+/backend/tests/reports/
+

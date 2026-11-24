@@ -1,0 +1,398 @@
+{
+  "company_id": 1,
+  "company_name": "빌드와이즈 시연 상점",
+  "data_status": "test",
+  "price_basis": "가상 상점의 시연용 고정 기준가(KRW)",
+  "description": "상담 흐름의 오프라인 회귀 테스트에 사용하는 가상 부품과 가격입니다.",
+  "parts": [
+    {
+      "id": 101,
+      "category": "cpu",
+      "name": "모아 코어 C6",
+      "price": 180000,
+      "power_draw_w": 65,
+      "tags": [
+        "gaming",
+        "office"
+      ],
+      "specs": {
+        "socket": "M1",
+        "cpu_family": "모아 C",
+        "cores": 6,
+        "tier": 1,
+        "cpu_power_limit_w": 95,
+        "ram_max_gb": 128
+      }
+    },
+    {
+      "id": 102,
+      "category": "cpu",
+      "name": "모아 코어 C8",
+      "price": 245000,
+      "power_draw_w": 90,
+      "tags": [
+        "editing",
+        "gaming"
+      ],
+      "specs": {
+        "socket": "M1",
+        "cpu_family": "모아 C",
+        "cores": 8,
+        "tier": 2,
+        "cpu_power_limit_w": 125,
+        "ram_max_gb": 128
+      }
+    },
+    {
+      "id": 201,
+      "category": "motherboard",
+      "name": "모아 보드 M4",
+      "price": 120000,
+      "power_draw_w": 30,
+      "tags": [],
+      "specs": {
+        "socket": "M1",
+        "form_factor": "mATX",
+        "ram_type": "DDR5",
+        "ram_form_factor": "DIMM",
+        "memory_slots": 4,
+        "ram_max_gb": 128,
+        "supported_drives": [
+          "M.2 2280 NVMe"
+        ],
+        "fixture_cpu_ids": [
+          101,
+          102
+        ],
+        "bios": "M4.1",
+        "fixture_memory_test": {
+          "bios": "M4.1",
+          "cpu_family": "모아 C",
+          "kits": 1,
+          "tested_mtps_by_ram_id": {
+            "301": 5200,
+            "302": 5200,
+            "303": 5600,
+            "304": 5600
+          }
+        }
+      }
+    },
+    {
+      "id": 202,
+      "category": "motherboard",
+      "name": "모아 보드 A4",
+      "price": 160000,
+      "power_draw_w": 35,
+      "tags": [],
+      "specs": {
+        "socket": "M1",
+        "form_factor": "ATX",
+        "ram_type": "DDR5",
+        "ram_form_factor": "DIMM",
+        "memory_slots": 4,
+        "ram_max_gb": 128,
+        "supported_drives": [
+          "M.2 2280 NVMe"
+        ],
+        "fixture_cpu_ids": [
+          101,
+          102
+        ],
+        "bios": "A4.2",
+        "fixture_memory_test": {
+          "bios": "A4.2",
+          "cpu_family": "모아 C",
+          "kits": 1,
+          "tested_mtps_by_ram_id": {
+            "301": 5200,
+            "302": 5200,
+            "303": 5600,
+            "304": 5600
+          }
+        }
+      }
+    },
+    {
+      "id": 301,
+      "category": "ram",
+      "name": "모아 메모리 16GB",
+      "price": 55000,
+      "power_draw_w": 6,
+      "tags": [
+        "office"
+      ],
+      "specs": {
+        "ram_type": "DDR5",
+        "ram_form_factor": "DIMM",
+        "modules_per_item": 2,
+        "capacity_gb": 16,
+        "speed_mtps": 5200
+      }
+    },
+    {
+      "id": 302,
+      "category": "ram",
+      "name": "모아 메모리 32GB",
+      "price": 90000,
+      "power_draw_w": 8,
+      "tags": [
+        "gaming"
+      ],
+      "specs": {
+        "ram_type": "DDR5",
+        "ram_form_factor": "DIMM",
+        "modules_per_item": 2,
+        "capacity_gb": 32,
+        "speed_mtps": 5200
+      }
+    },
+    {
+      "id": 303,
+      "category": "ram",
+      "name": "모아 메모리 플러스 64GB",
+      "price": 155000,
+      "power_draw_w": 12,
+      "tags": [
+        "editing"
+      ],
+      "specs": {
+        "ram_type": "DDR5",
+        "ram_form_factor": "DIMM",
+        "modules_per_item": 2,
+        "capacity_gb": 64,
+        "speed_mtps": 5600
+      }
+    },
+    {
+      "id": 304,
+      "category": "ram",
+      "name": "모아 메모리 플러스 32GB",
+      "price": 105000,
+      "power_draw_w": 8,
+      "tags": [
+        "gaming",
+        "editing"
+      ],
+      "specs": {
+        "ram_type": "DDR5",
+        "ram_form_factor": "DIMM",
+        "modules_per_item": 2,
+        "capacity_gb": 32,
+        "speed_mtps": 5600
+      }
+    },
+    {
+      "id": 401,
+      "category": "gpu",
+      "name": "모아 그래픽 G1 6GB",
+      "price": 180000,
+      "power_draw_w": 95,
+      "tags": [
+        "office"
+      ],
+      "specs": {
+        "tier": 1,
+        "vram_gb": 6,
+        "length_mm": 190,
+        "recommended_psu_w": 400
+      }
+    },
+    {
+      "id": 402,
+      "category": "gpu",
+      "name": "모아 그래픽 G2 12GB",
+      "price": 350000,
+      "power_draw_w": 170,
+      "tags": [
+        "gaming"
+      ],
+      "specs": {
+        "tier": 2,
+        "vram_gb": 12,
+        "length_mm": 260,
+        "recommended_psu_w": 550
+      }
+    },
+    {
+      "id": 403,
+      "category": "gpu",
+      "name": "모아 그래픽 G3 16GB",
+      "price": 450000,
+      "power_draw_w": 220,
+      "tags": [
+        "gaming",
+        "editing"
+      ],
+      "specs": {
+        "tier": 3,
+        "vram_gb": 16,
+        "length_mm": 290,
+        "recommended_psu_w": 650
+      }
+    },
+    {
+      "id": 404,
+      "category": "gpu",
+      "name": "모아 그래픽 G3 롱 16GB",
+      "price": 430000,
+      "power_draw_w": 235,
+      "tags": [
+        "gaming",
+        "editing"
+      ],
+      "specs": {
+        "tier": 3,
+        "vram_gb": 16,
+        "length_mm": 365,
+        "recommended_psu_w": 650
+      }
+    },
+    {
+      "id": 405,
+      "category": "gpu",
+      "name": "모아 그래픽 G2 미니 12GB",
+      "price": 385000,
+      "power_draw_w": 165,
+      "tags": [
+        "gaming"
+      ],
+      "specs": {
+        "tier": 2,
+        "vram_gb": 12,
+        "length_mm": 220,
+        "recommended_psu_w": 550
+      }
+    },
+    {
+      "id": 501,
+      "category": "storage",
+      "name": "모아 SSD 1TB",
+      "price": 130000,
+      "power_draw_w": 7,
+      "tags": [
+        "office",
+        "gaming"
+      ],
+      "specs": {
+        "type": "SSD",
+        "capacity_gb": 1000,
+        "interface": "M.2 2280 NVMe"
+      }
+    },
+    {
+      "id": 502,
+      "category": "storage",
+      "name": "모아 SSD 2TB",
+      "price": 250000,
+      "power_draw_w": 9,
+      "tags": [
+        "gaming",
+        "editing"
+      ],
+      "specs": {
+        "type": "SSD",
+        "capacity_gb": 2000,
+        "interface": "M.2 2280 NVMe"
+      }
+    },
+    {
+      "id": 601,
+      "category": "cooler",
+      "name": "모아 에어 120",
+      "price": 45000,
+      "power_draw_w": 4,
+      "tags": [],
+      "specs": {
+        "sockets": [
+          "M1"
+        ],
+        "height_mm": 145,
+        "cooling_limit_w": 130
+      }
+    },
+    {
+      "id": 602,
+      "category": "cooler",
+      "name": "모아 에어 듀얼",
+      "price": 65000,
+      "power_draw_w": 7,
+      "tags": [
+        "editing"
+      ],
+      "specs": {
+        "sockets": [
+          "M1"
+        ],
+        "height_mm": 158,
+        "cooling_limit_w": 180
+      }
+    },
+    {
+      "id": 701,
+      "category": "psu",
+      "name": "모아 파워 650W",
+      "price": 90000,
+      "power_draw_w": null,
+      "tags": [],
+      "specs": {
+        "wattage_w": 650,
+        "form_factor": "ATX"
+      }
+    },
+    {
+      "id": 702,
+      "category": "psu",
+      "name": "모아 파워 750W",
+      "price": 110000,
+      "power_draw_w": null,
+      "tags": [
+        "editing"
+      ],
+      "specs": {
+        "wattage_w": 750,
+        "form_factor": "ATX"
+      }
+    },
+    {
+      "id": 801,
+      "category": "case",
+      "name": "모아 타워 블랙",
+      "price": 75000,
+      "power_draw_w": 9,
+      "tags": [],
+      "specs": {
+        "color": "black",
+        "max_gpu_length_mm": 320,
+        "max_cooler_height_mm": 165,
+        "board_sizes": [
+          "mATX",
+          "ATX"
+        ],
+        "psu_sizes": [
+          "ATX"
+        ]
+      }
+    },
+    {
+      "id": 802,
+      "category": "case",
+      "name": "모아 타워 화이트",
+      "price": 85000,
+      "power_draw_w": 9,
+      "tags": [],
+      "specs": {
+        "color": "white",
+        "max_gpu_length_mm": 320,
+        "max_cooler_height_mm": 165,
+        "board_sizes": [
+          "mATX",
+          "ATX"
+        ],
+        "psu_sizes": [
+          "ATX"
+        ]
+      }
+    }
+  ]
+}

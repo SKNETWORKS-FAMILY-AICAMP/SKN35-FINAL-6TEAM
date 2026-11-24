@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "tests": [
+    {
+      "id": "unit-base-common-contract-001",
+      "label": "기본 규약",
+      "targetRoot": "harness",
+      "testPath": "contracts",
+      "requirementId": "BASE",
+      "subject": "common-contract",
+      "sequence": "001",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/app/contracts/schemas.py",
+        "contracts/events.schema.json"
+      ]
+    },
+    {
+      "id": "unit-all-catalog-domain-002",
+      "label": "카탈로그·도메인 규칙",
+      "targetRoot": "project",
+      "testPath": "backend/tests/test_catalog_and_domain.py",
+      "requirementId": "ALL",
+      "subject": "catalog-domain",
+      "sequence": "002",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/test_catalog_and_domain.py"
+      ]
+    },
+    {
+      "id": "unit-all-hardware-assembly-003",
+      "label": "하드웨어 조립 규칙",
+      "targetRoot": "project",
+      "testPath": "backend/tests/hardware_data/test_assembly.py",
+      "requirementId": "ALL",
+      "subject": "hardware-assembly",
+      "sequence": "003",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/hardware_data/test_assembly.py"
+      ]
+    },
+    {
+      "id": "unit-all-layout-settings-004",
+      "label": "레이아웃·설정 규칙",
+      "targetRoot": "project",
+      "testPath": "backend/tests/hardware_data/test_layout_and_settings.py",
+      "requirementId": "ALL",
+      "subject": "layout-settings",
+      "sequence": "004",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/hardware_data/test_layout_and_settings.py"
+      ]
+    },
+    {
+      "id": "unit-all-paid-quotes-005",
+      "label": "유료 견적 저장 규칙",
+      "targetRoot": "project",
+      "testPath": "backend/tests/hardware_data/test_paid_quotes.py",
+      "requirementId": "ALL",
+      "subject": "paid-quotes",
+      "sequence": "005",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/hardware_data/test_paid_quotes.py"
+      ]
+    },
+    {
+      "id": "unit-all-hardware-pipeline-006",
+      "label": "하드웨어 데이터 파이프라인",
+      "targetRoot": "project",
+      "testPath": "backend/tests/hardware_data/test_pipeline.py",
+      "requirementId": "ALL",
+      "subject": "hardware-pipeline",
+      "sequence": "006",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/hardware_data/test_pipeline.py"
+      ]
+    },
+    {
+      "id": "unit-all-hardware-workflow-adapters-007",
+      "label": "하드웨어 워크플로 어댑터",
+      "targetRoot": "project",
+      "testPath": "backend/tests/hardware_workflow/test_adapters.py",
+      "requirementId": "ALL",
+      "subject": "hardware-workflow-adapters",
+      "sequence": "007",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/hardware_workflow/test_adapters.py"
+      ]
+    },
+    {
+      "id": "unit-all-hardware-workflow-design-008",
+      "label": "하드웨어 워크플로 설계",
+      "targetRoot": "project",
+      "testPath": "backend/tests/hardware_workflow/test_design.py",
+      "requirementId": "ALL",
+      "subject": "hardware-workflow-design",
+      "sequence": "008",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/hardware_workflow/test_design.py"
+      ]
+    },
+    {
+      "id": "unit-all-rag-loader-009",
+      "label": "RAG 로더",
+      "targetRoot": "project",
+      "testPath": "backend/tests/rag/test_loader.py",
+      "requirementId": "ALL",
+      "subject": "rag-loader",
+      "sequence": "009",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/rag/test_loader.py"
+      ]
+    },
+    {
+      "id": "unit-all-rag-mappings-010",
+      "label": "RAG 매핑",
+      "targetRoot": "project",
+      "testPath": "backend/tests/rag/test_mappings.py",
+      "requirementId": "ALL",
+      "subject": "rag-mappings",
+      "sequence": "010",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/rag/test_mappings.py"
+      ]
+    },
+    {
+      "id": "unit-all-rag-search-011",
+      "label": "RAG 검색",
+      "targetRoot": "project",
+      "testPath": "backend/tests/rag/test_search.py",
+      "requirementId": "ALL",
+      "subject": "rag-search",
+      "sequence": "011",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/rag/test_search.py"
+      ]
+    }
+  ],
+  "classifiedElsewhere": [
+    {
+      "testPath": "backend/tests/module/test_value_flow.py",
+      "testType": "module",
+      "reason": "모듈 간 입력·호출 인수·반환값·견적 상태 전달 검증"
+    },
+    {
+      "testPath": "backend/tests/hardware_data/test_mysql.py",
+      "testType": "module",
+      "reason": "실제 MySQL 제약과 롤백 검증"
+    },
+    {
+      "testPath": "backend/tests/rag/test_qdrant.py",
+      "testType": "module",
+      "reason": "인메모리 Qdrant 저장소 연동 검증"
+    },
+    {
+      "testPath": "backend/tests/hardware_workflow/test_graph.py",
+      "testType": "module",
+      "reason": "전체 LangGraph 워크플로 호출 검증"
+    }
+  ]
+}

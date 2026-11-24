@@ -1,8 +1,8 @@
 # 부품 DB 흐름
 
-`dev_database`의 [현재 ERD](erd/schema.svg)는 8개 테이블의 저장 구조를 보여줍니다. 부품과 제조사 호환성 근거는 적재 명령으로 채웁니다. 상담에서 검증 결과 저장까지는 스키마가 지원하는 흐름이며, 현재 카탈로그 도구가 서비스에서 각 테이블을 자동으로 채우지는 않습니다.
+`dev_database`의 [현재 ERD](erd/schema.svg)는 부품 카탈로그와 결제 완료 견적을 포함한 8개 테이블의 저장 구조를 보여줍니다. 부품과 제조사 호환성 근거는 적재 명령으로 채웁니다.
 
-현재 작업 트리에서 FastAPI 시작 검사는 기존 `app.db.models` 모듈 누락으로 실패합니다. 아래 상담·견적 흐름은 이 DB가 데이터를 저장하는 방법을 설명합니다. 별도 Mock 서비스의 과거 구조는 [아키텍처 문서](../ARCHITECTURE.md)에 있습니다.
+현재 작업 트리에서 FastAPI 시작 검사는 기존 `app.db.models` 모듈 누락으로 실패합니다. 이 문서는 독립 MySQL 데이터 계층을 설명합니다. 별도 Mock 서비스의 과거 구조는 [아키텍처 문서](../ARCHITECTURE.md)에 있습니다.
 
 ## 부품과 호환성 데이터 적재
 
@@ -18,21 +18,17 @@ flowchart LR
 
 `import_parts --apply`가 부품을 먼저 저장하고, 양쪽 부품 ID가 확인된 호환성 근거를 같은 트랜잭션에 연결합니다. 전력과 이미지 갱신은 기존 부품 ID와 견적의 단가를 보존합니다. 새 부품에 저장하는 원본 가격은 KRW로 변환한 테스트용 스냅샷입니다. [적재와 점검 명령](README.md#빠른-사용)
 
-## 상담에서 견적·검증까지
+## 결제 완료 견적 저장
 
 ```mermaid
 flowchart LR
-    users["users<br/>사용자"] --> consultations["consultations<br/>상담·요구사항"]
-    consultations --> messages["messages<br/>대화 이력"]
-    consultations --> quotes["quotes<br/>견적 버전·상태·총액"]
-    quotes --> items["quote_items<br/>선택 부품·수량·견적 단가"]
+    users["users<br/>사용자"] --> quotes["quotes<br/>결제 식별값·유형·성능 목표·총액"]
+    payment["결제 성공 확인"] --> quotes
+    quotes --> items["quote_items<br/>구매 부품·수량·단가·선택 근거"]
     parts["parts<br/>카탈로그"] --> items
-    quotes --> result["quote_validations<br/>검증 결과·사유·스냅샷"]
-    items -. 검증 대상 항목 .-> result
-    evidence["part_compatibility<br/>제조사 호환성 근거"] -. 참조 근거 .-> result
 ```
 
-점선은 검증 결과가 선택적으로 연결하는 참조입니다. 견적 한 건에 항목과 검증 결과를 여러 개 연결할 수 있습니다. 실부품 스키마의 상태와 참조 제약은 [테이블 정의 SQL](../../backend/app/db/sql/parts_catalog.sql)에 있습니다.
+결제 성공을 확인한 호출자가 최종 제품 정보와 선택 근거를 전달하면 `save_paid_quote`가 견적과 모든 품목을 한 트랜잭션으로 기록합니다. 견적의 사용 목적과 목표 성능은 `performance_goal_snapshot`, 품목을 고를 때 사용한 사양과 이유는 `selection_basis`에 기록합니다. 결제 식별값은 고유하며, 결제 전 초안은 상담 흐름에서 임시로 관리합니다. [테이블 정의 SQL](../../backend/app/db/sql/parts_catalog.sql)
 
 ## 기능별 테이블
 
@@ -41,13 +37,15 @@ flowchart LR
 | 사용자 식별 | `users` | 사용자 ID, 표시 이름 |
 | 상담 시작·요구사항 관리 | `consultations` | 사용자 ID, 상담 목적, 요구사항 JSON |
 | 상담 내용 조회 | `messages` | 상담 ID, 발화자 역할, 메시지, 작성 시각 |
-| 부품 검색·후보 선택 | `parts` | 분류, 모델, 사양, 기준 가격, 전력, 사진 URL 및 출처 |
-| 제조사 호환성 확인 | `part_compatibility` | 메인보드–CPU 또는 메인보드–RAM 등의 부품 쌍, 지원 상태, BIOS·QVL 조건, 출처 |
-| 견적 생성·상태 관리 | `quotes` | 상담 ID, 견적 버전, `DRAFT`·`CONFIRMED`·`ARCHIVED`, 총액 |
-| 견적 상세·단가 보존 | `quote_items` | 견적 ID, 부품 ID, 수량, 선택 옵션, 당시 상품명·단가·가격 출처 |
-| 검증 결과 보존 | `quote_validations` | 견적 버전, 검사 종류, 결과·사유, 입력·근거 스냅샷, 선택적인 대상 항목과 제조사 근거 ID |
+| 부품 검색·후보 선택 | `parts` | 분류, 모델, 사양, 기준 가격, 전력, 사진 URL, 사양 JSON 내 원본 출처 |
+| 제조사 호환성 확인 | `part_compatibility` | 메인보드–CPU 또는 메인보드–RAM 등의 부품 쌍, 지원 상태, BIOS·QVL 조건, 근거 원본 키 |
+| 결제 완료 견적 | `quotes` | 사용자 ID, 부품 교체 또는 신규 조립 유형, 결제 식별값·시각, 당시 목표 성능, 총액 |
+| 결제 품목 조회 | `quote_items` | 견적 ID, 부품 ID, 수량, 선택 옵션, 당시 상품명·단가와 선택 근거 |
+| 검증 결과 보관 구조 | `quote_validations` | 견적 ID, 검사 종류, 결과·사유, 입력·근거 자료, 선택적인 대상 항목과 제조사 근거 ID |
 
-부품 가격을 갱신한 이후에도 기존 견적의 당시 단가는 `quote_items.unit_price`에서 조회합니다. `part_compatibility`의 제조사 지원 근거는 여러 견적에서 재사용할 수 있습니다. `quote_validations`는 특정 견적 버전에서 내린 판단을 보존하는 용도입니다.
+`list_compatibility`는 `part_compatibility.conditions._record_key`로 출처 발행자와 원문 URL을 찾아 반환합니다. [호환성 근거 자료](../../data/hardware/docyx_compatibility.json)
+
+부품 가격을 갱신한 이후에도 견적의 결제 단가는 `quote_items.unit_price`에서 조회합니다. 결제 저장 경로가 기록하는 테이블은 `quotes`와 `quote_items`입니다.
 
 ## PSU 산정과 RAG의 경계
 

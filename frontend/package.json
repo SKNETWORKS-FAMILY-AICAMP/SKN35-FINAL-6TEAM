@@ -15,7 +15,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "gen:api": "openapi-typescript ../contracts/openapi.json -o src/api/schema.d.ts",
+    "gen:api": "openapi-typescript ../contracts/openapi.json -o src/api/schema.d.ts && openapi-typescript ../contracts/pc-consult.openapi.json -o src/api/pcSchema.d.ts",
     "e2e": "playwright test"
   },
   "dependencies": {

@@ -22,6 +22,11 @@ from app.domains.hardware.ingestion.common import (
     utc_now,
 )
 from app.domains.hardware.ingestion.docyx import REVISION, prepare_parts, read_snapshot
+from app.domains.hardware.ingestion.fit_specs import (
+    fit_updates,
+    load_fit_reviews,
+    refresh_fit_specs,
+)
 from app.domains.hardware.ingestion.import_compatibility import (
     upsert_compatibility,
     validate_records,
@@ -48,9 +53,13 @@ DROP_OFFERS = (
 
 def upsert_parts(connection, parts, *, power_reviews=None, gpu_estimates=None):
     power_reviews = power_reviews or {}
+    fit_reviews = load_fit_reviews()
     rows = []
     for part in parts:
         specs, power = resolve_catalog_power(part, power_reviews, gpu_estimates)
+        review = fit_reviews.get(specs.get("_provenance", {}).get("source_key"))
+        if review:
+            specs = specs | fit_updates(specs, part["category"], part["model_number"], review)
         rows.append(
             (
                 part["category"],
@@ -58,10 +67,7 @@ def upsert_parts(connection, parts, *, power_reviews=None, gpu_estimates=None):
                 part["name"],
                 part["model_number"],
                 json_text(specs),
-                part["source_url"],
-                part["verified_at"],
                 part["current_price"],
-                part["price_source_url"],
                 sql_time(part["price_checked_at"]),
                 power,
                 resolve_image_url(part.get("image_url"), None),
@@ -72,9 +78,9 @@ def upsert_parts(connection, parts, *, power_reviews=None, gpu_estimates=None):
     new_estimate = f"JSON_CONTAINS_PATH(VALUES(specs),'one','{estimate_path}')"
     query = f"""
         INSERT INTO parts
-            (category,brand,name,model_number,specs,source_url,verified_at,
-             current_price,currency,price_source_url,price_checked_at,power_draw_w,image_url)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,'KRW',%s,%s,%s,%s)
+            (category,brand,name,model_number,specs,
+             current_price,currency,price_checked_at,power_draw_w,image_url)
+        VALUES (%s,%s,%s,%s,%s,%s,'KRW',%s,%s,%s)
         ON DUPLICATE KEY UPDATE model_number=VALUES(model_number),
              specs=CASE
                  WHEN VALUES(power_draw_w) IS NULL AND {old_estimate}
@@ -82,9 +88,8 @@ def upsert_parts(connection, parts, *, power_reviews=None, gpu_estimates=None):
                  WHEN {new_estimate} AND parts.power_draw_w IS NOT NULL AND NOT {old_estimate}
                      THEN JSON_REMOVE(VALUES(specs),'{estimate_path}')
                  ELSE VALUES(specs) END,
-             source_url=VALUES(source_url),verified_at=VALUES(verified_at),
              current_price=VALUES(current_price),currency=VALUES(currency),
-             price_source_url=VALUES(price_source_url),price_checked_at=VALUES(price_checked_at),
+             price_checked_at=VALUES(price_checked_at),
              power_draw_w=CASE WHEN {new_estimate} AND NOT {old_estimate}
                  THEN COALESCE(parts.power_draw_w,VALUES(power_draw_w))
                  ELSE COALESCE(VALUES(power_draw_w),parts.power_draw_w) END,
@@ -214,9 +219,7 @@ def refresh_metadata(
     }
 
 
-def apply_catalog(
-    parts, records, checked_at, *, power_reviews, gpu_estimates, reset=False, specs_only=False
-):
+def apply_catalog(parts, records, *, power_reviews, gpu_estimates, reset=False, specs_only=False):
     if specs_only and reset:
         raise ValueError("사양 갱신과 초기화를 동시에 실행할 수 없습니다.")
     if reset and connection_settings()["host"].lower() not in ("localhost", "127.0.0.1", "::1"):
@@ -251,7 +254,7 @@ def apply_catalog(
             upsert_parts(
                 connection, parts, power_reviews=power_reviews, gpu_estimates=gpu_estimates
             )
-        evidence = upsert_compatibility(connection, records, checked_at)
+        evidence = upsert_compatibility(connection, records)
         with connection.cursor() as cursor:
             cursor.execute("SELECT COUNT(*) FROM parts")
             count = cursor.fetchone()[0]
@@ -284,7 +287,29 @@ def main():
         action="store_true",
         help="부품 ID와 가격을 유지하고 검토 사양과 근거만 갱신",
     )
+    mode.add_argument("--fit-only", action="store_true", help="제조사 조립 사양 대상만 비교·갱신")
     args = parser.parse_args()
+    if args.fit_only:
+        if any(
+            (
+                args.source_dir,
+                args.krw_per_usd,
+                args.fx_date,
+                args.fx_source,
+                args.with_images,
+                args.image_dataset,
+            )
+        ):
+            parser.error("--fit-only는 원본·환율·이미지 옵션과 함께 사용할 수 없습니다.")
+        reviews = load_fit_reviews()
+        with closing(get_connection()) as connection:
+            if args.apply:
+                with import_transaction(connection):
+                    changes = refresh_fit_specs(connection, reviews, apply=True)
+            else:
+                changes = refresh_fit_specs(connection, reviews)
+        print(json.dumps({"reviewed": len(reviews), "changes": changes}, ensure_ascii=False))
+        return
     if args.reset and not args.apply:
         parser.error("--reset에는 --apply가 필요합니다.")
     if args.specs_only and (
@@ -386,7 +411,6 @@ def main():
             apply_catalog(
                 parts,
                 records,
-                checked_at,
                 power_reviews=power_reviews,
                 gpu_estimates=gpu_estimates,
                 reset=args.reset,

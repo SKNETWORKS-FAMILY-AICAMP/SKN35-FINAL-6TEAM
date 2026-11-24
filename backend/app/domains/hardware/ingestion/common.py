@@ -4,11 +4,14 @@ import json
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
+from functools import cache
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from app.domains.hardware.ingestion.paths import DATA as DATA
 
 CATEGORIES = ("cpu", "motherboard", "ram", "gpu", "storage", "psu", "case", "cooler")
+COMPATIBILITY_REVIEWS = DATA / "docyx_compatibility.json"
 TABLES = (
     "users",
     "consultations",
@@ -27,6 +30,35 @@ def utc_now():
 
 def read_json(path):
     return json.loads(Path(path).read_text(encoding="utf-8-sig"))
+
+
+@cache
+def compatibility_sources() -> dict[str, dict[str, str]]:
+    """Index the original source metadata by compatibility record key."""
+    reviews = read_json(COMPATIBILITY_REVIEWS)
+    if not isinstance(reviews, dict) or not isinstance(reviews.get("records"), list):
+        raise ValueError("호환성 원본 자료에 근거 목록이 필요합니다.")
+
+    sources = {}
+    for record in reviews["records"]:
+        key = record.get("record_key") if isinstance(record, dict) else None
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError("호환성 원본 자료에 근거 키가 없습니다.")
+        if key in sources:
+            raise ValueError("호환성 원본 자료의 근거 키가 중복됐습니다: " + key)
+        url = record.get("source_url")
+        if not isinstance(url, str) or not url.startswith("https://") or not urlsplit(url).netloc:
+            raise ValueError("호환성 원본 자료에 HTTPS 출처가 필요합니다: " + key)
+        publisher = record.get("source_publisher")
+        if not isinstance(publisher, str) or not publisher.strip():
+            raise ValueError("호환성 원본 자료에 출처 발행자가 필요합니다: " + key)
+        sources[key] = {"source_url": url, "source_publisher": publisher}
+    return sources
+
+
+@cache
+def compatibility_source_urls() -> dict[str, str]:
+    return {key: source["source_url"] for key, source in compatibility_sources().items()}
 
 
 def read_specs(value):
