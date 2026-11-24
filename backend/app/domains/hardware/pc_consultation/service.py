@@ -360,10 +360,15 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
         fitting_cases = []
         for case in _read(category="case", all_candidates=True).parts:
             specs = case["specs"]
-            if radiator and (radiator not in specs.get("front_radiator_sizes_mm", ())
-                             and str(radiator) not in specs.get("gpu_clearance_by_front_radiator_mm", {})):
+            if radiator and (
+                radiator not in specs.get("front_radiator_sizes_mm", ())
+                and str(radiator) not in specs.get("gpu_clearance_by_front_radiator_mm", {})
+            ):
                 continue
-            if survey.get("_fans") and cooling.case_fit({**known, "case": case}, survey["_fans"])["result"] != "PASS":
+            if (
+                survey.get("_fans")
+                and cooling.case_fit({**known, "case": case}, survey["_fans"])["result"] != "PASS"
+            ):
                 continue
             fitting_cases.append(case)
 
@@ -400,12 +405,21 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
                 continue
             if fitting_cases is not None:
                 for case in fitting_cases:
-                    fit = _evaluate(survey, {**rows, "case": case}, {*buy, role, "case"}, snapshot,
-                                    run_graph=False, scope="case")
+                    fit = _evaluate(
+                        survey,
+                        {**rows, "case": case},
+                        {*buy, role, "case"},
+                        snapshot,
+                        run_graph=False,
+                        scope="case",
+                    )
                     if not any(_blocking(c) for c in fit["checks"]):
                         break
                 else:
-                    reject(row, "선택한 냉각 구성과 파워를 함께 장착할 수 있는 예산 내 케이스가 확인되지 않았습니다.")
+                    reject(
+                        row,
+                        "선택한 냉각 구성과 파워를 함께 장착할 수 있는 예산 내 케이스가 확인되지 않았습니다.",
+                    )
                     rejected += 1
                     continue
             yield row, validation

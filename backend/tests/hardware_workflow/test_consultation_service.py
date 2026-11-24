@@ -82,6 +82,18 @@ def test_cooling_basket_revalidates_price_power_and_remaining_mounts(shop):
     assert (result["items"][-1]["part_id"], result["items"][-1]["quantity"]) == (610, 2)
     checks = {c["code"]: c for c in result["validation"]["checks"]}
     assert checks["CASE_FANS"]["status"] == "PASS"
+    rows[801]["specs"]["max_psu_length_mm"] = 160
+    rows[702]["specs"]["length_mm"] = 140
+    psus = service.candidates(
+        dict(
+            survey={**survey, "budget": 1500000},
+            category="psu",
+            budget=200000,
+            selected={k: v for k, v in BUILD.items() if k not in ("psu", "case")},
+        )
+    )
+    assert [option["part"]["part_id"] for option in psus["passed"]] == [702]
+    rows[701]["specs"]["length_mm"] = 150
     regular = service.validate(SURVEY, BUILD)
 
     def get_power(v):

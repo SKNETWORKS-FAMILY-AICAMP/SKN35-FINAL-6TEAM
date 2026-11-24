@@ -104,7 +104,11 @@ def read_snapshot(source_dir):
             with urlopen(f"{RAW}/{REVISION}/data/json/{filename}", timeout=30) as response:
                 content = response.read(4 * 1024 * 1024 + 1)
         else:
-            content = (source_dir / filename).read_bytes()
+            path = source_dir / filename
+            # Existing offline snapshots predate case-fan support.
+            if slug == "case-fan" and not path.exists():
+                continue
+            content = path.read_bytes()
         if hashlib.sha256(content).hexdigest() != checksum:
             raise ValueError(f"{filename}: docyx 고정 리비전의 파일과 SHA-256이 다릅니다.")
         snapshot[slug] = json.loads(content)
@@ -207,11 +211,20 @@ def prepare_parts(
             }
 
     names = Counter((p["category"], name_key(p["name"])) for p in parts.values())
+    cpu_cooler_names = Counter(
+        name_key(p["name"])
+        for p in parts.values()
+        if p["category"] == "cooler" and p["specs"].get("cooling_type") != "case_fan"
+    )
     for key in excluded_keys:
         if removed := parts.pop(key, None):
             counts[removed["category"]]["skipped_excluded"] += 1
     for key, part in parts.items():
-        if names[part["category"], name_key(part["name"])] > 1 or len(part["name"]) > 255:
+        normalized = name_key(part["name"])
+        matches = names[part["category"], normalized]
+        if part["category"] == "cooler" and part["specs"].get("cooling_type") != "case_fan":
+            matches = cpu_cooler_names[normalized]
+        if matches > 1 or len(part["name"]) > 255:
             part["name"] = f"{part['name'][:239]} [{key[6:18]}]"
         counts[part["category"]]["ready"] += 1
 
