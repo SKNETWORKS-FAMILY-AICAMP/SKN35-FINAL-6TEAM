@@ -89,19 +89,20 @@ class UsageLedger:
 
 
 class SessionMeter:
-    """상담 세션마다 합성 글자와 요청 빈도를 셉니다. 세션이 실제로 받은 답 글자에 예산을 묶습니다."""
+    """상담 세션마다 합성 글자와 요청 빈도를 셉니다. 세션이 실제로 받은 답 글자에 예산을 묶습니다.
+
+    즉시 반응(고정 문장)은 여기서 세지 않습니다. 서버 캐시에 한 번 만들어 두고 다시 씁니다.
+    """
 
     def __init__(
         self,
         *,
         ratio: int = 3,
-        allowance: int = 300,
         per_minute: int = 40,
         max_sessions: int = 512,
         clock: Callable[[], float] = monotonic,
     ):
         self.ratio = ratio
-        self.allowance = allowance
         self.per_minute = per_minute
         self.max_sessions = max_sessions
         self._clock = clock
@@ -124,15 +125,11 @@ class SessionMeter:
             hits.append(now)
             self._remember(session)
 
-    def check(self, session: str, answer_chars: int, chars: int) -> None:
-        with self._lock:
-            if self._used.get(session, 0) + chars > answer_chars * self.ratio + self.allowance:
-                raise BudgetExceeded("이 상담의 음성 합성 한도에 도달했습니다.", 30)
-
     def charge(self, session: str, answer_chars: int, chars: int) -> None:
+        """한도 확인과 차감을 한 번에 합니다."""
         with self._lock:
             used = self._used.get(session, 0)
-            if used + chars > answer_chars * self.ratio + self.allowance:
+            if used + chars > answer_chars * self.ratio:
                 raise BudgetExceeded("이 상담의 음성 합성 한도에 도달했습니다.", 30)
             self._used[session] = used + chars
             self._remember(session)

@@ -3,6 +3,7 @@
 import io
 import socket
 import threading
+import time
 import wave
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -109,17 +110,36 @@ def test_returns_complete_wav_and_reuses_cache_without_budget(tmp_path):
 
 def test_session_budget_is_tied_to_answer_length(tmp_path):
     client, url, _ = _client(_service(tmp_path, FakeProvider()), answer="짧은 답")
-    allowed = len("짧은 답") * 3 + 300
-    assert client.post(url, json={"text": "가" * 300}).status_code == 200
-    response = client.post(url, json={"text": "나" * (allowed - 300 + 1)})
+    allowed = len("짧은 답") * 3
+    assert client.post(url, json={"text": "가" * allowed}).status_code == 200
+    response = client.post(url, json={"text": "나"})
     assert response.status_code == 429
     assert response.headers["retry-after"] == "30"
 
 
-def test_session_without_answers_only_gets_ack_allowance(tmp_path):
+def test_session_without_answers_can_only_read_acks(tmp_path):
     client, url, _ = _client(_service(tmp_path, FakeProvider()), answer=None)
-    assert client.post(url, json={"text": "네, 확인할게요."}).status_code == 200
-    assert client.post(url, json={"text": "가" * 400}).status_code == 429
+    for ack in ("네, 잠시만요.", "네, 확인할게요.", "네, 알겠어요.", "좋아요, 잠시만요."):
+        assert client.post(url, json={"text": ack}).status_code == 200
+    assert client.post(url, json={"text": "안녕하세요"}).status_code == 429
+
+
+def test_one_sessions_limit_does_not_block_another_session(tmp_path):
+    service = _service(tmp_path, FakeProvider())
+    small, small_url, app = _client(service, answer="짧음")
+    response = small.post(small_url, json={"text": "가" * 30})
+    assert response.status_code == 429
+    other = TestClient(app)
+    other_id = other.post("/api/pc-consult/sessions").json()["session_id"]
+    app.state.pc_sessions._items[other_id].messages.append(
+        MessageOut(id=1, role="assistant", content=ANSWER, created_at=datetime.now(KST))
+    )
+    assert (
+        other.post(
+            f"/api/pc-consult/sessions/{other_id}/speech", json={"text": "가" * 30}
+        ).status_code
+        == 200
+    )
 
 
 def test_daily_limit_returns_retry_after_until_midnight(tmp_path):
@@ -195,11 +215,10 @@ def test_cache_shares_one_synthesis_between_concurrent_requests(tmp_path):
     gate = threading.Event()
     provider = FakeProvider(gate=gate)
     service = _service(tmp_path, provider)
-    charges: list[int] = []
     results: list[bytes] = []
 
     def request():
-        results.append(service.synthesize("같은 문장", charge=lambda: charges.append(1)))
+        results.append(service.synthesize("같은 문장"))
 
     threads = [threading.Thread(target=request) for _ in range(3)]
     for thread in threads:
@@ -208,8 +227,25 @@ def test_cache_shares_one_synthesis_between_concurrent_requests(tmp_path):
     for thread in threads:
         thread.join()
     assert provider.calls == ["같은 문장"]
-    assert len(charges) == 1
+    assert service.ledger is not None and service.ledger.used() == (5, 5)
     assert len(set(results)) == 1
+
+
+def test_congestion_does_not_spend_the_budget(tmp_path):
+    gate = threading.Event()
+    settings = SpeechSettings(provider="openai", usage_db=tmp_path / "usage.sqlite3")
+    ledger = UsageLedger(settings.usage_db, daily_chars=1_000, total_chars=1_000)
+    service = SpeechService(settings, FakeProvider(gate=gate), ledger, concurrency=1, slot_wait=0.1)
+    busy = threading.Thread(target=lambda: service.synthesize("먼저 온 문장"))
+    busy.start()
+    while not service.cache._pending:
+        pass
+    with pytest.raises(SpeechError) as caught:
+        service.synthesize("나중 문장")
+    gate.set()
+    busy.join()
+    assert caught.value.status == 503
+    assert ledger.used() == (len("먼저 온 문장"),) * 2
 
 
 def test_failed_synthesis_is_not_cached(tmp_path):
@@ -217,7 +253,7 @@ def test_failed_synthesis_is_not_cached(tmp_path):
     service = _service(tmp_path, provider)
     for _ in range(2):
         with pytest.raises(SpeechError):
-            service.synthesize("문장", charge=lambda: None)
+            service.synthesize("문장")
     assert provider.calls == ["문장", "문장"]
     assert service.cached("문장") is None
 
@@ -262,6 +298,19 @@ class _Upstream:
                 if behaviour == "error":
                     self.send_response(500)
                     self.end_headers()
+                    return
+                if behaviour == "drip":
+                    self.send_response(200)
+                    self.send_header("Content-Type", content_type)
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    try:
+                        for index in range(0, len(body), 10):
+                            self.wfile.write(body[index : index + 10])
+                            self.wfile.flush()
+                            time.sleep(0.05)
+                    except OSError:
+                        pass
                     return
                 self.send_response(200)
                 self.send_header("Content-Type", content_type)
@@ -383,3 +432,15 @@ def test_missing_openai_key_turns_speech_off(tmp_path):
         SpeechSettings(provider="openai", usage_db=tmp_path / "u.db")
     )
     assert service.enabled is False
+
+
+def test_slow_drip_response_is_cut_by_total_deadline(monkeypatch, upstream):
+    import app.voice.speech as speech
+
+    monkeypatch.setattr(speech, "TOTAL_DEADLINE_S", 0.3)
+    server = upstream("drip", _wav(0.2))
+    started = time.monotonic()
+    with pytest.raises(SpeechError) as caught:
+        _http(server.url).synthesize("문장")
+    assert caught.value.status == 502
+    assert time.monotonic() - started < 3

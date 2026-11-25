@@ -1,5 +1,6 @@
 """상담 답을 서버 음성으로 읽는 경로. 상담 세션 쿠키로 확인하고, 합성량을 그 세션의 답 글자에 묶습니다.
 
+답을 아직 못 받은 세션은 즉시 반응(ACK_TEXTS)만 읽을 수 있습니다. 즉시 반응은 서버 캐시에서 다시 씁니다.
 서버 음성이 꺼져 있거나(기본) 실패하면 프론트는 브라우저 음성으로 읽습니다.
 """
 
@@ -9,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.api.pc_sessions import COOKIE, GuestSession, GuestSessions
 from app.contracts.voice import SpeechIn, SpeechStatusOut
-from app.voice.speech import SpeechError, SpeechService, load_settings
+from app.voice.speech import ACK_TEXTS, SpeechError, SpeechService, load_settings
 from app.voice.usage import BudgetExceeded, SessionMeter
 
 router = APIRouter(prefix="/api/pc-consult/sessions/{session_id}/speech", tags=["음성 읽기"])
@@ -75,11 +76,10 @@ def synthesize_speech(request: Request, session_id: str, body: SpeechIn) -> Resp
         meter.hit(session_id)
         audio = service.cached(text)
         if audio is None:
-            answer_chars = _answer_chars(session)
-            meter.check(session_id, answer_chars, len(text))
-            audio = service.synthesize(
-                text, charge=lambda: meter.charge(session_id, answer_chars, len(text))
-            )
+            # 세션 한도는 공유 합성 밖에서 셉니다. 한 세션의 한도 초과가 같은 문장을 기다리는 다른 세션에 번지지 않게.
+            if text not in ACK_TEXTS:
+                meter.charge(session_id, _answer_chars(session), len(text))
+            audio = service.synthesize(text)
     except BudgetExceeded as exc:
         raise _too_many(exc) from None
     except SpeechError as exc:

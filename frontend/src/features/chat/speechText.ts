@@ -60,6 +60,9 @@ const LETTERS: Record<string, string> = {
 };
 /** 숫자 뒤 단위. 긴 것부터 맞춥니다. */
 const UNITS: [string, string][] = [
+  ["Gbps", "기가비피에스"],
+  ["Mbps", "메가비피에스"],
+  ["GbE", "기가비트 이더넷"],
   ["GHz", "기가헤르츠"],
   ["MHz", "메가헤르츠"],
   ["Hz", "헤르츠"],
@@ -80,7 +83,7 @@ const UNITS: [string, string][] = [
   ["%", "퍼센트"],
   ["V", "볼트"],
 ];
-/** 고유어로 읽는 단위와 그 상한. "20대"(나이대)처럼 한자어가 맞는 경우를 피하려고 상한을 둡니다. */
+/** 고유어로 읽는 단위와 그 상한. "10대 사용자"(나이대)처럼 한자어가 맞는 경우는 뒤 말로 가립니다. */
 const COUNTERS: [string, number][] = [
   ["번째", 99],
   ["시간", 99],
@@ -93,7 +96,7 @@ const COUNTERS: [string, number][] = [
   ["장", 99],
   ["달", 99],
   ["시", 12],
-  ["대", 9],
+  ["대(?!\\s?(?:초반|중반|후반|사용자|게이머|유저|고객|학생|직장인|남성|여성|남녀))", 99],
 ];
 const SCALE: Record<string, number> = { 십: 10, 백: 100, 천: 1000, 만: 1e4, 억: 1e8, 조: 1e12 };
 
@@ -321,6 +324,7 @@ function cleanSymbols(text: string): string {
     .replace(/[/|]/g, " ")
     .replace(/·/g, ", ")
     .replace(/\+/g, " 플러스 ")
+    .replace(/×/g, " 곱하기 ")
     .replace(/&/g, " 앤 ")
     .replace(/%/g, " 퍼센트")
     .replace(/[#*_`]/g, "");
@@ -329,8 +333,9 @@ function cleanSymbols(text: string): string {
 /** 화면 글 한 문장을 소리 내어 읽을 글로 바꿉니다. 같은 입력에는 늘 같은 글을 돌려줍니다. */
 export function toSpoken(text: string, dictionary: readonly ReadingEntry[] = []): string {
   const entries = sorted(dictionary);
-  let out = splitHyphens(text.normalize("NFC"));
-  out = applyDictionary(out, entries);
+  // 사전을 먼저 봐서 "Micro-ATX", "Wi-Fi" 처럼 하이픈이 든 이름을 살립니다.
+  let out = applyDictionary(text.normalize("NFC"), entries);
+  out = splitHyphens(out);
   out = expandRanges(out);
   out = readMonthsAndCounters(out);
   out = readScaledAndUnits(out);

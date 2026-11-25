@@ -32,6 +32,8 @@ class FakeContext implements AudioContextLike {
   destination = {};
   resumes = 0;
   canResume = true;
+  /** true 면 디코딩이 끝나지 않습니다. */
+  hang = false;
   sources: FakeSource[] = [];
   resume() {
     this.resumes += 1;
@@ -39,6 +41,7 @@ class FakeContext implements AudioContextLike {
     return Promise.resolve();
   }
   decodeAudioData(data: ArrayBuffer) {
+    if (this.hang) return new Promise<{ duration: number }>(() => {});
     return Promise.resolve({ duration: data.byteLength / 1000 });
   }
   createBufferSource() {
@@ -244,15 +247,74 @@ describe("createServerSpeech", () => {
     expect(browser.spoken).toHaveLength(1);
   });
 
-  it("ends by watchdog when the source never reports the end", async () => {
-    const { speech, context, network } = await setup();
+  /** 오디오 시계를 실제처럼 움직이며 시간을 보냅니다. */
+  async function play(context: FakeContext, ms: number, until = Number.POSITIVE_INFINITY) {
+    for (let spent = 0; spent < ms; spent += 100) {
+      context.currentTime = Math.min(until, context.currentTime + 0.1);
+      await vi.advanceTimersByTimeAsync(100);
+    }
+  }
+
+  it("ends by watchdog when the clock reached the end but no end signal came", async () => {
+    const { speech, context, network, browser } = await setup();
     const { log, callbacks } = events();
     speech.speak("문장", callbacks);
     network.calls[0].respond(200, 2000); // 2초 음성
     await flush();
-    context.currentTime = 0.5;
-    await vi.advanceTimersByTimeAsync(2000 + END_SLACK_MS);
+    await play(context, 2000 + END_SLACK_MS);
     expect(log).toEqual(["started:server", "ended"]);
+    expect(browser.spoken).toHaveLength(0);
+  });
+
+  it("re-reads the whole sentence with the browser when playback stops halfway", async () => {
+    const { speech, context, network, browser } = await setup();
+    const { log, callbacks } = events();
+    speech.speak("총액은 백팔십만 원입니다.", callbacks);
+    network.calls[0].respond(200, 2000);
+    await flush();
+    await play(context, 1500, 0.5); // 0.5초에서 시계가 멈춤
+    expect(context.sources[0].stopped).toBe(true);
+    expect(browser.spoken.map((item) => item.text)).toEqual(["총액은 백팔십만 원입니다."]);
+    expect(log).toEqual(["started:server"]);
+    browser.spoken[0].callbacks.started?.();
+    browser.spoken[0].callbacks.ended();
+    expect(log).toEqual(["started:server", "started:browser:fallback", "ended"]);
+  });
+
+  it("cuts a decode that never finishes at the deadline", async () => {
+    const { speech, context, network, browser, advance } = await setup();
+    context.hang = true;
+    speech.speak("문장", events().callbacks);
+    network.calls[0].respond(200);
+    await advance(REQUEST_TIMEOUT_MS);
+    expect(browser.spoken).toHaveLength(1);
+    expect(context.sources).toHaveLength(0);
+  });
+
+  it("does not let a request from before the circuit opened close it", async () => {
+    const { speech, network, browser } = await setup();
+    speech.prepare?.("먼저");
+    speech.speak("한도", events().callbacks);
+    network.calls[1].respond(429, 0, { "Retry-After": "30" });
+    await flush();
+    network.calls[0].respond(200);
+    await flush();
+    speech.speak("다음", events().callbacks);
+    expect(network.calls).toHaveLength(2);
+    expect(browser.spoken.map((item) => item.text)).toEqual(["한도", "다음"]);
+  });
+
+  it("keeps the longer wait when 429 responses overlap", async () => {
+    const { speech, network, browser, advance } = await setup();
+    speech.speak("하나", events().callbacks);
+    speech.speak("둘", events().callbacks);
+    network.calls[0].respond(429, 0, { "Retry-After": "30" });
+    network.calls[1].respond(429, 0, { "Retry-After": "5" });
+    await flush();
+    await advance(6000);
+    speech.speak("셋", events().callbacks);
+    expect(network.calls).toHaveLength(2);
+    expect(browser.spoken.at(-1)?.text).toBe("셋");
   });
 
   it("times out, reads with the browser, and ignores the late response", async () => {

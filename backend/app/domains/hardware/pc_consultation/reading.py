@@ -78,6 +78,10 @@ _READINGS: tuple[tuple[str, str, bool], ...] = (
     ("4K", "포케이", False),
     ("OLED", "올레드", False),
     ("RGB", "알지비", False),
+    ("HDMI", "에이치디엠아이", False),
+    ("DisplayPort", "디스플레이포트", False),
+    ("Wi-Fi", "와이파이", False),
+    ("Bluetooth", "블루투스", False),
 )
 
 

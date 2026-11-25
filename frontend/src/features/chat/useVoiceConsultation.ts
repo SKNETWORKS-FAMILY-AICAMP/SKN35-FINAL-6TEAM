@@ -42,7 +42,8 @@ interface Options {
 
 type ActiveTurn = VoiceReplyBoundary & { turnId: number };
 
-/** 즉시 반응. 짧게(1초 안쪽) 두고 대화 기록에는 남기지 않습니다. */
+/** 즉시 반응. 짧게(1초 안쪽) 두고 대화 기록에는 남기지 않습니다.
+ * 백엔드 app/voice/speech.py 의 ACK_TEXTS 와 같아야 합니다(답 전 세션이 서버 음성으로 읽을 수 있는 문장). */
 export const ACKS = ["네, 잠시만요.", "네, 확인할게요.", "네, 알겠어요.", "좋아요, 잠시만요."];
 export const ACK_DELAY_MS = 350;
 /** 끼어든 직후 브라우저가 인식을 끊으면(aborted) 이 안에서 한 번만 다시 켭니다. */

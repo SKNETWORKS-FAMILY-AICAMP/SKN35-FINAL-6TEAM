@@ -190,7 +190,7 @@ interface SpeechServer {
 
 async function fakeSpeechServer(
   page: Page,
-  options: { status?: number; delayMs?: number; seconds?: number } = {},
+  options: { status?: number; delayMs?: number; seconds?: number; acksOk?: boolean } = {},
 ): Promise<SpeechServer> {
   const requests: { text: string; at: number }[] = [];
   await page.route(SPEECH_ROUTE, async (route) => {
@@ -202,7 +202,8 @@ async function fakeSpeechServer(
     const text = (request.postDataJSON() as { text: string }).text;
     requests.push({ text, at: Date.now() });
     await new Promise((resolve) => setTimeout(resolve, options.delayMs ?? 150));
-    if (options.status && options.status !== 200) {
+    const failing = options.status && options.status !== 200;
+    if (failing && !(options.acksOk && ACK_TEXTS.has(text))) {
       await route.fulfill({ status: options.status, body: "실패" }).catch(() => undefined);
       return;
     }
@@ -259,25 +260,73 @@ test("서버 음성으로 문장 순서대로 읽고, 다음 문장은 미리 �
 });
 
 test("서버 음성이 실패하면 그 문장은 브라우저 읽기로 넘어간다", async ({ page }) => {
-  await fakeSpeechServer(page, { status: 503 });
+  // 즉시 반응은 성공하고 답 문장만 실패하게 해서, 닫힌 회로에서 실제로 넘어가는 경로를 봅니다.
+  await fakeSpeechServer(page, { status: 503, acksOk: true });
   await openServerVoice(page, 100);
   await say(page, "그래픽카드 추천해 주세요");
   await expect(spoken(page)).toHaveCount(LONG_SENTENCES, { timeout: 10_000 });
   await expect(spoken(page).first()).toContainText("실험용 답입니다.");
-  // 미리 받던 즉시 반응이 연달아 실패해 회로가 열렸으므로 답은 처음부터 브라우저로 읽습니다.
   const counts = await readings(page);
-  expect(counts).toMatchObject({ server: 0, browser: LONG_SENTENCES });
+  expect(counts.server).toBe(0);
+  expect(counts.fallback).toBeGreaterThan(0);
+  expect(counts.browser).toBe(LONG_SENTENCES);
+});
+
+test("서버 실패로 브라우저가 읽는 중에 그만 읽기를 누르면 멈춘다", async ({ page }) => {
+  await fakeSpeechServer(page, { status: 503, acksOk: true });
+  await openServerVoice(page, 100);
+  await say(page, "그래픽카드 추천해 주세요");
+  // 브라우저(가짜) 읽기가 소리를 내는 동안 페이지 안에서 바로 누릅니다(왕복 지연으로 문장이 바뀌지 않게).
+  const countAtStop = await page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        const started = Date.now();
+        const tick = () => {
+          const button = document.querySelector<HTMLButtonElement>('[data-testid="voice-stop"]');
+          if (window.__voiceLab?.speaking() && button) {
+            button.click();
+            resolve(document.querySelectorAll('[data-testid="voice-lab-spoken"] li').length);
+          } else if (Date.now() - started > 8000) resolve(-1);
+          else setTimeout(tick, 2);
+        };
+        tick();
+      }),
+  );
+  expect(countAtStop).toBeGreaterThan(0);
+  await expect(page.getByTestId("voice-status")).toHaveText("듣는 중");
+  await expect(page.locator('[data-testid="voice-lab-spoken"] li[data-cancelled]')).toHaveCount(1);
+  await page.waitForTimeout(1500);
+  await expect(spoken(page)).toHaveCount(countAtStop);
 });
 
 test("서버 음성을 읽는 중에 그만 읽기를 누르면 더 재생하지 않는다", async ({ page }) => {
   await fakeSpeechServer(page, { delayMs: 100, seconds: 2 });
   await openServerVoice(page, 100);
   await say(page, "그래픽카드 추천해 주세요");
-  await expect.poll(async () => (await readings(page)).server, { timeout: 5000 }).toBe(1);
-  await page.getByTestId("voice-stop").click();
+  // 서버 음성이 재생되기 시작하면 페이지 안에서 바로 누르고, 그때까지 읽은 문장 수를 기록합니다.
+  const serverAtStop = await page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        const started = Date.now();
+        const tick = () => {
+          const server = (window.__voiceLab?.readings() ?? []).reduce(
+            (sum, item) => sum + item.server,
+            0,
+          );
+          const button = document.querySelector<HTMLButtonElement>('[data-testid="voice-stop"]');
+          if (server >= 1 && button) {
+            button.click();
+            resolve(server);
+          } else if (Date.now() - started > 8000) resolve(-1);
+          else setTimeout(tick, 2);
+        };
+        tick();
+      }),
+  );
+  expect(serverAtStop).toBeGreaterThan(0);
   await expect(page.getByTestId("voice-status")).toHaveText("듣는 중");
   await page.waitForTimeout(2500);
-  expect(await readings(page)).toMatchObject({ server: 1, browser: 0 });
+  expect(await readings(page)).toMatchObject({ server: serverAtStop, browser: 0 });
 });
 
 test("마이크 없이 글만 보내도 서버 음성으로 읽는다", async ({ page }) => {

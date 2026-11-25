@@ -33,7 +33,8 @@ interface Props {
   voiceEngine?: VoiceEngineOptions;
   /** 턴 시간 표. 없으면 ?voice-debug 일 때만 보입니다. */
   showTimings?: boolean;
-  /** 실제 상담 세션 id. 있으면 서버 음성(켜져 있을 때)과 상품 이름 읽기 사전을 씁니다. */
+  /** 실제 상담 세션 id. 있으면 서버 음성(켜져 있을 때)과 상품 이름 읽기 사전을 씁니다.
+   * 처음 값으로 읽기 경로를 정하므로, 세션이 바뀌면 key 로 다시 마운트해야 합니다. */
   speechSession?: string;
 }
 

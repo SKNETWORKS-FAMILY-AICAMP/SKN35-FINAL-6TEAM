@@ -2,7 +2,8 @@
 
     BUILDWISE_TTS_PROVIDER  none(기본, 브라우저 읽기) | openai | http(직접 띄운 공개 모델 서버)
 
-문장 전체를 끝까지 받은 것만 성공입니다. 중간에 끊기면 실패로 돌려주고 캐시에 넣지 않습니다.
+공급자 응답을 끝까지 받은 것만 성공입니다. 길이가 모자라거나 전송이 끊긴 것(검출할 수 있는 절단)은
+실패로 돌려주고 캐시에 넣지 않습니다. 공급자가 정상 종료로 보낸 음성이 실제로 문장 끝까지인지는 알 수 없습니다.
 """
 
 import hashlib
@@ -11,6 +12,7 @@ import io
 import json
 import os
 import threading
+import time
 import wave
 from collections import OrderedDict
 from collections.abc import Callable
@@ -33,6 +35,10 @@ OPENAI_SPEECH_URL = "https://api.openai.com/v1/audio/speech"
 OPENAI_SAMPLE_RATE = 24_000
 SAMPLE_RATES = frozenset({16_000, 22_050, 24_000, 44_100, 48_000})
 MAX_AUDIO_BYTES = 3_000_000
+#: 공급자 요청 하나의 전체 시간 상한(초). 조금씩 계속 오는 응답이 합성 자리를 오래 잡지 못하게 합니다.
+TOTAL_DEADLINE_S = 25.0
+#: 답을 아직 못 받은 세션도 읽을 수 있는 즉시 반응. 프론트 useVoiceConsultation.ts 의 ACKS 와 같아야 합니다.
+ACK_TEXTS = frozenset({"네, 잠시만요.", "네, 확인할게요.", "네, 알겠어요.", "좋아요, 잠시만요."})
 DEFAULT_INSTRUCTIONS = "친절하고 차분한 매장 상담원 말투로, 또박또박 자연스러운 속도로 읽어 주세요."
 
 
@@ -143,7 +149,8 @@ _opener = build_opener(_NoRedirect)
 
 
 def _fetch(request: Request, timeout: float) -> tuple[bytes, str]:
-    """본문을 끝까지 읽습니다. 길이가 모자라거나 끊기면 SpeechError(502)."""
+    """본문을 끝까지 읽습니다. 길이가 모자라거나 끊기거나 전체 시간 상한을 넘으면 SpeechError(502)."""
+    started = time.monotonic()
     try:
         with _opener.open(request, timeout=timeout) as response:
             if response.status != 200:
@@ -151,7 +158,9 @@ def _fetch(request: Request, timeout: float) -> tuple[bytes, str]:
             declared = response.headers.get("Content-Length")
             chunks: list[bytes] = []
             size = 0
-            while chunk := response.read(65_536):
+            while chunk := response.read1(65_536):
+                if time.monotonic() - started > TOTAL_DEADLINE_S:
+                    raise SpeechError(502, "음성 합성이 너무 오래 걸립니다.")
                 size += len(chunk)
                 if size > MAX_AUDIO_BYTES:
                     raise SpeechError(502, "음성이 너무 깁니다. 문장을 줄여 주세요.")
@@ -191,7 +200,7 @@ class OpenAIProvider:
         )
         # 리다이렉트에 키가 실리지 않게 합니다.
         request.add_unredirected_header("Authorization", f"Bearer {self.settings.openai_key}")
-        pcm, _ = _fetch(request, timeout=20)
+        pcm, _ = _fetch(request, timeout=10)
         if not pcm or len(pcm) % 2:
             raise SpeechError(502, "음성 합성이 중간에 끊겼습니다.")
         return pcm_to_wav(pcm, OPENAI_SAMPLE_RATE)
@@ -225,7 +234,7 @@ class HttpProvider:
         )
         if self.settings.token:
             request.add_unredirected_header("Authorization", f"Bearer {self.settings.token}")
-        data, content_type = _fetch(request, timeout=20)
+        data, content_type = _fetch(request, timeout=10)
         if content_type not in {"audio/wav", "audio/x-wav", "audio/wave"}:
             raise SpeechError(502, "음성 합성 서버가 WAV 가 아닌 응답을 보냈습니다.")
         return check_wav(data)
@@ -342,19 +351,21 @@ class SpeechService:
     def cached(self, text: str) -> bytes | None:
         return self.cache.peek(self.key(text))
 
-    def synthesize(self, text: str, *, charge: Callable[[], None]) -> bytes:
-        """캐시에 없을 때만 charge(세션 예산)와 원장 예약을 거쳐 공급자를 부릅니다."""
+    def synthesize(self, text: str) -> bytes:
+        """캐시에 없을 때만 합성 자리를 잡고, 원장에 글자를 예약한 뒤 공급자를 부릅니다.
+
+        자리를 못 잡은 혼잡(503)은 예산을 쓰지 않습니다. 예약한 뒤의 실패는 환급하지 않습니다.
+        """
         provider = self.provider
         if provider is None or self.ledger is None:
             raise SpeechError(503, "서버 음성 합성이 꺼져 있습니다.")
         ledger = self.ledger
 
         def create() -> bytes:
-            charge()
-            ledger.reserve(len(text))
             if not self._slots.acquire(timeout=self._slot_wait):
                 raise SpeechError(503, "음성 합성 요청이 몰렸습니다. 브라우저 음성으로 읽습니다.")
             try:
+                ledger.reserve(len(text))
                 return provider.synthesize(text)
             finally:
                 self._slots.release()

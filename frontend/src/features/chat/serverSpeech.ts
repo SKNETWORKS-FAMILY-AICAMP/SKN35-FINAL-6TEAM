@@ -2,7 +2,9 @@
  * 서버 음성 읽기. 받아쓰기는 브라우저 그대로 두고, 읽기만 서버가 만든 음성(WAV)으로 바꿉니다.
  * 서버 음성이 꺼져 있거나 실패하면 그 문장은 브라우저 음성으로 읽습니다.
  *
- * - 문장 하나를 다 받은 뒤 재생합니다(서버가 끝까지 만든 음성만 줍니다).
+ * - 문장 하나를 다 받은 뒤 재생합니다(서버는 끊긴 것으로 검출된 음성은 주지 않습니다).
+ * - 받기와 디코딩을 합쳐 4초 안에 못 끝내면 그 문장은 브라우저로 읽습니다.
+ * - 재생 중 오디오 시계가 멈추거나, 끝 신호 없이 음성 길이를 넘기면서 덜 읽었으면 문장 전체를 브라우저로 다시 읽습니다.
  * - 문장 하나의 stop 은 재생만 멈춥니다. 미리 받은 것은 cancelAll 이 버립니다.
  * - started 는 소리를 예약한 시각입니다. 실제 스피커 출력은 장치 지연만큼 늦습니다.
  */
@@ -45,8 +47,10 @@ export interface ServerSpeechOptions {
 /** 서버가 받는 가장 긴 읽기 글. 넘으면 그 문장은 브라우저로 읽습니다. */
 export const MAX_SERVER_CHARS = 500;
 export const REQUEST_TIMEOUT_MS = 4000;
-/** 재생을 예약한 뒤 이 안에 오디오 시계가 안 움직이면 브라우저로 넘깁니다. */
+/** 재생 중 오디오 시계가 이만큼 안 움직이면 브라우저로 넘깁니다. */
 export const STALL_MS = 600;
+/** 재생 진행을 보는 간격. */
+export const PROGRESS_MS = 300;
 /** 끝 신호가 오지 않을 때 음성 길이에 더해 기다리는 시간. */
 export const END_SLACK_MS = 2000;
 export const CIRCUIT_OPEN_MS = 60_000;
@@ -64,6 +68,8 @@ interface Entry {
   controller: AbortController;
   promise: Promise<Result>;
   settled: Result | null;
+  /** cancelAll·밀어내기로 버린 요청. 늦게 끝나도 회로에 반영하지 않습니다. */
+  cancelled: boolean;
 }
 
 function audioConstructor(): typeof AudioContext | undefined {
@@ -96,6 +102,8 @@ export function createServerSpeech(options: ServerSpeechOptions): SpeechAdapter 
   let failures = 0;
   let openUntil = 0;
   let trialRunning = false;
+  /** 회로가 열릴 때마다 올립니다. 열리기 전에 시작한 요청의 성공은 회로를 닫지 못합니다. */
+  let epoch = 0;
 
   function audio(): AudioContextLike | null {
     if (context === undefined) {
@@ -116,24 +124,37 @@ export function createServerSpeech(options: ServerSpeechOptions): SpeechAdapter 
     return !trialRunning;
   }
 
-  function record(result: Result, trial: boolean) {
+  function open(until: number) {
+    // 여러 429 가 겹쳐도 더 긴 대기를 지킵니다.
+    openUntil = Math.max(openUntil, until);
+    failures = 0;
+    epoch += 1;
+  }
+
+  function record(result: Result, trial: boolean, startedEpoch: number) {
     if (trial) trialRunning = false;
     if (result.ok) {
+      if (startedEpoch !== epoch) return;
       failures = 0;
-      openUntil = 0;
+      if (trial) openUntil = 0;
       return;
     }
     if (result.failure === "limit") {
-      openUntil = now() + (result.retryAfterMs ?? CIRCUIT_OPEN_MS);
-      failures = 0;
+      open(now() + (result.retryAfterMs ?? CIRCUIT_OPEN_MS));
       return;
     }
     if (result.failure !== "provider") return; // 취소·거절(422 등)은 장애로 세지 않습니다.
+    if (startedEpoch !== epoch && !trial) return;
     failures += 1;
-    if (trial || failures >= FAILURES_TO_OPEN) {
-      openUntil = now() + CIRCUIT_OPEN_MS;
-      failures = 0;
+    if (trial || failures >= FAILURES_TO_OPEN) open(now() + CIRCUIT_OPEN_MS);
+  }
+
+  function drop(text: string, entry: Entry) {
+    if (!entry.settled) {
+      entry.cancelled = true;
+      entry.controller.abort();
     }
+    entries.delete(text);
   }
 
   function totalBytes(): number {
@@ -146,8 +167,7 @@ export function createServerSpeech(options: ServerSpeechOptions): SpeechAdapter 
     for (const [text, entry] of entries) {
       if (entries.size <= MAX_ENTRIES && totalBytes() <= MAX_BYTES) return;
       if (entry.keep) continue;
-      if (!entry.settled) entry.controller.abort();
-      entries.delete(text);
+      drop(text, entry);
     }
   }
 
@@ -155,55 +175,64 @@ export function createServerSpeech(options: ServerSpeechOptions): SpeechAdapter 
     const controller = new AbortController();
     const trial = openUntil !== 0;
     if (trial) trialRunning = true;
+    const startedEpoch = epoch;
     const startedAt = now();
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      controller.abort();
-    }, timeoutMs);
     const entry: Entry = {
       keep,
       controller,
       settled: null,
-      promise: (async (): Promise<Result> => {
-        try {
-          const response = await request(options.endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text }),
-            credentials: "same-origin",
-            signal: controller.signal,
-          });
-          if (!response.ok) {
-            if (response.status === 429) {
-              const seconds = Number(response.headers.get("Retry-After"));
-              return {
-                ok: false,
-                failure: "limit",
-                retryAfterMs: Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : undefined,
-              };
-            }
+      cancelled: false,
+      promise: Promise.resolve({ ok: false, failure: "aborted" }),
+    };
+    const work = (async (): Promise<Result> => {
+      try {
+        const response = await request(options.endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+          credentials: "same-origin",
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          if (response.status === 429) {
+            const seconds = Number(response.headers.get("Retry-After"));
             return {
               ok: false,
-              failure: response.status >= 500 ? "provider" : "rejected",
+              failure: "limit",
+              retryAfterMs: Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : undefined,
             };
           }
-          const data = await response.arrayBuffer();
-          const context = audio();
-          if (!context || !data.byteLength) return { ok: false, failure: "provider" };
-          const buffer = await context.decodeAudioData(data);
-          return { ok: true, buffer, fetchMs: now() - startedAt, bytes: data.byteLength };
-        } catch {
-          if (controller.signal.aborted && !timedOut) return { ok: false, failure: "aborted" };
-          return { ok: false, failure: "provider" };
-        } finally {
-          clearTimeout(timer);
+          return {
+            ok: false,
+            failure: response.status >= 500 ? "provider" : "rejected",
+          };
         }
-      })(),
-    };
+        const data = await response.arrayBuffer();
+        // 디코딩이 버퍼를 비우기 전에 크기를 잽니다.
+        const bytes = data.byteLength;
+        const context = audio();
+        if (!context || !bytes) return { ok: false, failure: "provider" };
+        const buffer = await context.decodeAudioData(data);
+        if (entry.cancelled) return { ok: false, failure: "aborted" };
+        return { ok: true, buffer, fetchMs: now() - startedAt, bytes };
+      } catch {
+        if (entry.cancelled) return { ok: false, failure: "aborted" };
+        return { ok: false, failure: "provider" };
+      }
+    })();
+    // 받기와 디코딩 전체를 한도에 묶습니다. 디코딩이 끝나지 않아도 결과는 정해집니다.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<Result>((resolve) => {
+      timer = setTimeout(() => {
+        controller.abort();
+        resolve({ ok: false, failure: "provider" });
+      }, timeoutMs);
+    });
+    entry.promise = Promise.race([work, deadline]).finally(() => clearTimeout(timer));
     void entry.promise.then((result) => {
       entry.settled = result;
-      record(result, trial);
+      if (entry.cancelled) return;
+      record(result, trial, startedEpoch);
       if (!result.ok && entries.get(text) === entry) entries.delete(text);
       evict();
     });
@@ -225,11 +254,7 @@ export function createServerSpeech(options: ServerSpeechOptions): SpeechAdapter 
   }
 
   function cancelAll() {
-    for (const [text, entry] of entries) {
-      if (entry.keep) continue;
-      if (!entry.settled) entry.controller.abort();
-      entries.delete(text);
-    }
+    for (const [text, entry] of entries) if (!entry.keep) drop(text, entry);
   }
 
   function speakWithBrowser(text: string, callbacks: SpeakCallbacks, fallbackUsed: boolean) {
@@ -251,11 +276,16 @@ export function createServerSpeech(options: ServerSpeechOptions): SpeechAdapter 
     let source: AudioSourceLike | null = null;
     let stopBrowser: (() => void) | null = null;
     const timers: ReturnType<typeof setTimeout>[] = [];
+    let watch: ReturnType<typeof setInterval> | undefined;
+    const clearTimers = () => {
+      for (const timer of timers) clearTimeout(timer);
+      clearInterval(watch);
+    };
 
     const finish = (report: () => void) => {
       if (stopped || done) return;
       done = true;
-      for (const timer of timers) clearTimeout(timer);
+      clearTimers();
       if (!entry.keep && entries.get(text) === entry) entries.delete(text);
       report();
     };
@@ -271,7 +301,7 @@ export function createServerSpeech(options: ServerSpeechOptions): SpeechAdapter 
     };
     const toBrowser = () => {
       if (stopped || done || stopBrowser) return;
-      for (const timer of timers) clearTimeout(timer);
+      clearTimers();
       silence();
       stopBrowser = speakWithBrowser(
         text,
@@ -304,40 +334,58 @@ export function createServerSpeech(options: ServerSpeechOptions): SpeechAdapter 
         return toBrowser();
       }
       callbacks.started?.({ path: "server", fetchMs });
+      const played = () => context.currentTime - scheduledAt;
+      const nearEnd = () => played() >= buffer.duration - 0.1;
+      // 재생 중 오디오 시계가 멈추면(탭 백그라운드·장치 문제) 문장 전체를 브라우저로 다시 읽습니다.
+      let lastTime = context.currentTime;
+      let stillMs = 0;
+      watch = setInterval(() => {
+        if (source !== node || nearEnd()) return;
+        if (context.currentTime > lastTime) {
+          lastTime = context.currentTime;
+          stillMs = 0;
+          return;
+        }
+        stillMs += PROGRESS_MS;
+        if (stillMs >= STALL_MS) toBrowser();
+      }, PROGRESS_MS);
       timers.push(
-        setTimeout(() => {
-          // 오디오 시계가 멈춰 있으면(탭 백그라운드·장치 문제) 브라우저로 넘깁니다.
-          if (source === node && context.currentTime <= scheduledAt) toBrowser();
-        }, STALL_MS),
         setTimeout(
           () => {
             if (source !== node) return;
-            silence();
-            finish(callbacks.ended);
+            // 끝 신호만 놓쳤으면 정상 종료, 덜 읽었으면 잘린 채 끝내지 않고 다시 읽습니다.
+            if (nearEnd()) {
+              silence();
+              finish(callbacks.ended);
+            } else {
+              toBrowser();
+            }
           },
           buffer.duration * 1000 + END_SLACK_MS,
         ),
       );
     };
 
-    void entry.promise.then(async (result) => {
-      if (stopped || done) return;
-      if (!result.ok) return toBrowser();
-      const context = audio();
-      if (context && context.state !== "running") {
-        // 사용자 동작 없이 읽게 된 경우 한 번 깨워 보고, 안 되면 브라우저로 읽습니다.
-        await Promise.race([
-          context.resume().catch(() => undefined),
-          new Promise((resolve) => setTimeout(resolve, 300)),
-        ]);
-      }
-      play(result.buffer, result.fetchMs);
-    });
+    void entry.promise
+      .then(async (result) => {
+        if (stopped || done) return;
+        if (!result.ok) return toBrowser();
+        const context = audio();
+        if (context && context.state !== "running") {
+          // 사용자 동작 없이 읽게 된 경우 한 번 깨워 보고, 안 되면 브라우저로 읽습니다.
+          await Promise.race([
+            context.resume().catch(() => undefined),
+            new Promise((resolve) => setTimeout(resolve, 300)),
+          ]);
+        }
+        play(result.buffer, result.fetchMs);
+      })
+      .catch(() => toBrowser());
 
     return () => {
       if (done || stopped) return;
       stopped = true;
-      for (const timer of timers) clearTimeout(timer);
+      clearTimers();
       silence();
       stopBrowser?.();
     };
