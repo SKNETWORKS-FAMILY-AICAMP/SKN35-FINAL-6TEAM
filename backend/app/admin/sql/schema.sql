@@ -1,0 +1,3 @@
+-- Local SQLite demo placeholder ONLY. No tables are defined yet.
+-- Not a team/production DB migration. Never execute automatically.
+-- Agree on account/company/document ownership before defining tables.
