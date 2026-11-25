@@ -144,6 +144,20 @@
         "backend/pyproject.toml",
         "backend/tests/rag/test_search.py"
       ]
+    },
+    {
+      "id": "unit-all-contract-discovery-012",
+      "label": "API 계약 수집",
+      "targetRoot": "project",
+      "testPath": "backend/tests/unit/harness/test_route_discovery.py",
+      "requirementId": "ALL",
+      "subject": "contract-discovery",
+      "sequence": "012",
+      "requiredProjectPaths": [
+        "backend/pyproject.toml",
+        "backend/tests/unit/discover.py",
+        "backend/tests/unit/harness/test_route_discovery.py"
+      ]
     }
   ],
   "classifiedElsewhere": [

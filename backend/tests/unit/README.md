@@ -111,7 +111,7 @@ python "C:\sk-encoa\SKN35-FINAL-6TEAM\jjb\backend\tests\unit\discover.py" --acce
 `inventory.json`의 `contracts`와 `contractComparison`에 다음 계약 상태를 저장합니다.
 
 - 환경변수: `.env.example`, Pydantic `BaseSettings`, Python·프론트 환경변수 참조에서 이름·필수 여부·타입만 수집
-- API: FastAPI 라우터의 경로·메서드·입력·응답·상태 코드와 `contracts/openapi.json`의 요청·응답 스키마 수집
+- API: FastAPI 라우터의 경로·메서드·입력·응답·상태 코드와 `contracts/openapi.json`, `contracts/pc-consult.openapi.json`의 요청·응답 스키마 수집. 같은 Python 모듈의 문자열 상수로 선언한 라우터 prefix와 경로도 실제 값으로 해석
 - 실제 `.env` 파일과 환경변수 값은 읽거나 저장하지 않음
 
 새 환경변수와 새 API 추가는 상태로만 기록합니다. 기존 환경변수 삭제·구조 변경, API 삭제·경로·메서드·입력·응답 계약 변경, 소스와 OpenAPI 불일치는 Breaking으로 처리해 기본 규약을 실패시킵니다.

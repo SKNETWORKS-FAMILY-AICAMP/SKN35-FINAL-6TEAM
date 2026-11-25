@@ -586,6 +586,15 @@ def ast_string(node: ast.AST | None) -> str | None:
     return None
 
 
+def route_string(node: ast.AST | None, constants: dict[str, str]) -> str | None:
+    value = ast_string(node)
+    if value is not None:
+        return value
+    if isinstance(node, ast.Name):
+        return constants.get(node.id)
+    return None
+
+
 def ast_path(node: ast.AST) -> str:
     if isinstance(node, ast.Name):
         return node.id
@@ -820,6 +829,18 @@ def discover_declared_routes(
         except OSError, UnicodeDecodeError, SyntaxError:
             continue
 
+        constants: dict[str, str] = {}
+        for node in tree.body:
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            value = ast_string(node.value)
+            if value is None:
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                if isinstance(target, ast.Name):
+                    constants[target.id] = value
+
         prefixes: dict[str, str] = {}
         for node in tree.body:
             if not isinstance(node, ast.Assign) or not isinstance(node.value, ast.Call):
@@ -832,7 +853,7 @@ def discover_declared_routes(
             prefix = ""
             for keyword in node.value.keywords:
                 if keyword.arg == "prefix":
-                    prefix = ast_string(keyword.value) or ast.unparse(keyword.value)
+                    prefix = route_string(keyword.value, constants) or ast.unparse(keyword.value)
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     prefixes[target.id] = prefix
@@ -848,7 +869,7 @@ def discover_declared_routes(
                 method = decorator.func.attr.lower()
                 if method not in API_METHODS or not decorator.args:
                     continue
-                route_path = ast_string(decorator.args[0])
+                route_path = route_string(decorator.args[0], constants)
                 if route_path is None:
                     route_path = ast.unparse(decorator.args[0])
                 receiver = ast_path(decorator.func.value)
@@ -893,10 +914,9 @@ def normalize_openapi(value: Any, parent_key: str | None = None) -> Any:
     return value
 
 
-def discover_openapi_contract(project_root: Path) -> dict[str, Any]:
-    openapi_path = project_root / "contracts" / "openapi.json"
+def read_openapi_contract(openapi_path: Path) -> dict[str, Any]:
     if not openapi_path.is_file():
-        return {"operations": [], "schemas": [], "error": "contracts/openapi.json 없음"}
+        return {"operations": [], "schemas": [], "error": f"{openapi_path} 없음"}
     try:
         document = json.loads(openapi_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
@@ -928,6 +948,38 @@ def discover_openapi_contract(project_root: Path) -> dict[str, Any]:
         for name, schema in sorted(document.get("components", {}).get("schemas", {}).items())
     ]
     return {"operations": operations, "schemas": schemas, "error": None}
+
+
+def discover_openapi_contract(project_root: Path) -> dict[str, Any]:
+    contracts_dir = project_root / "contracts"
+    primary = read_openapi_contract(contracts_dir / "openapi.json")
+    if primary["error"]:
+        return primary
+
+    operations = {item["key"]: item for item in primary["operations"]}
+    schemas = {item["key"]: item for item in primary["schemas"]}
+
+    pc_contract_path = contracts_dir / "pc-consult.openapi.json"
+    if pc_contract_path.is_file():
+        pc_contract = read_openapi_contract(pc_contract_path)
+        if pc_contract["error"]:
+            return pc_contract
+        operations.update({item["key"]: item for item in pc_contract["operations"]})
+        schemas.update(
+            {
+                f"pc-consult::{item['key']}": {
+                    **item,
+                    "key": f"pc-consult::{item['key']}",
+                }
+                for item in pc_contract["schemas"]
+            }
+        )
+
+    return {
+        "operations": [operations[key] for key in sorted(operations)],
+        "schemas": [schemas[key] for key in sorted(schemas)],
+        "error": None,
+    }
 
 
 def discover_api_contract(project_root: Path, production_files: list[Path]) -> dict[str, Any]:
