@@ -28,6 +28,20 @@ class GuestSession:
     draft: QuoteOut | None = None
     draft_input: QuoteIn | None = None
     messages: list[MessageOut] = field(default_factory=list)
+    design: dict = field(default_factory=dict)
+    assessments: dict = field(default_factory=dict)
+    candidate_preferences: dict[str, str] = field(default_factory=dict)
+    draft_preferences: dict[str, str] = field(default_factory=dict)
+    candidate_explanations: dict[str, dict] = field(default_factory=dict)
+
+    def survey_inputs(self, survey: Survey, cooling=None) -> dict:
+        return {
+            **survey.model_dump(),
+            "_cooling": cooling.model_dump() if cooling else {},
+            "_preferences": self.candidate_preferences.copy(),
+            "_design": self.design,
+            "_assessments": self.assessments,
+        }
 
     def check_survey(self, survey: Survey) -> None:
         if self.survey != survey:

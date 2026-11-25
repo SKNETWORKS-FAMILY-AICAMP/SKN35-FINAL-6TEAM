@@ -44,7 +44,7 @@ const quote: Quote = {
   },
 };
 
-it("shows budget, verdict counts, price basis and sources; pending graph results block approval", () => {
+it("shows the budget and blocking reason without listing technical checks on the quote", () => {
   const html = renderToStaticMarkup(
     createElement(QuoteScreen, {
       quotes: [quote],
@@ -61,9 +61,9 @@ it("shows budget, verdict counts, price basis and sources; pending graph results
   expect(html).toContain("가격은 견적 작성 시점의 카탈로그 기준");
   expect(html).toContain("예산 이내 (잔액 ₩50,000)");
   for (const verdict of ["통과 1개", "조건부 1개", "확인 필요 1개", "탈락 0개"])
-    expect(html).toContain(verdict);
-  expect(html).toContain('href="https://example.org/clearance"');
-  expect(html).toContain('href="https://example.org/qvl"');
+    expect(html).not.toContain(verdict);
+  expect(html).not.toContain('href="https://example.org/clearance"');
+  expect(html).not.toContain('href="https://example.org/qvl"');
   expect(html).toContain("테스트 가격 · 미 달러 환산 · 기록일 2026-11-19");
   expect(html).toContain("검증 근거가 더 필요합니다.");
   expect(html).toMatch(/<button[^>]*disabled=""[^>]*>이 견적으로 확정/);

@@ -1,14 +1,13 @@
 """Company-scoped, read-only catalog checks for proposed assemblies."""
 
+from math import ceil
 from operator import contains, ge
 
-from app.domains.hardware.assembly import validate_assembly
+from app.domains.hardware.assembly import AssemblyCheck, AssemblyPart, validate_assembly
+from app.domains.hardware.power_planning import rated_watts
 from app.domains.hardware.reviewed_fit import add_reviewed_fit
 
-from .cooling_documents import supplement_cooling_check
-from .fit_documents import supplement_checks
-from .memory_document import supplement_memory_check
-from .power_documents import assembly_power_parts, supplement_power_checks
+from .reviewed_documents import cooling_evidence
 
 LABELS = {
     "cpu": "CPU",
@@ -21,6 +20,35 @@ LABELS = {
     "case": "케이스",
 }
 CATEGORY_ORDER = tuple(LABELS)
+
+
+def _catalog_capacity(selected):
+    """Size the PSU for the selected build. Each row represents one component or RAM kit."""
+    total = 0
+    for role, row in selected.items():
+        if role == "psu":
+            continue
+        watts = rated_watts(row.get("power_draw_w"))
+        if role == "cpu":
+            watts = rated_watts(row["specs"].get("cpu_power_limit_w")) or watts
+        if watts is None:
+            if (
+                role not in {"cpu", "gpu"}
+                and type(row.get("power_draw_w")) in (int, float)
+                and row["power_draw_w"] == 0
+            ):
+                continue
+            return AssemblyCheck("PSU_CAPACITY", "UNKNOWN", f"{LABELS[role]} 소비전력 미확인")
+        total += watts
+    rating = rated_watts(selected["psu"]["specs"].get("wattage_w"))
+    if rating is None:
+        return AssemblyCheck("PSU_CAPACITY", "UNKNOWN", "파워 정격 출력 미확인")
+    minimum = rated_watts(selected["gpu"]["specs"].get("recommended_psu_w"))
+    required = max(ceil(total), minimum or 0)
+    reason = f"DB 기준 부품 합계 {total:g}W / 파워 정격 {rating:g}W"
+    if minimum:
+        reason += f" / GPU 제조사 권장 {minimum:g}W"
+    return AssemblyCheck("PSU_CAPACITY", "PASS" if rating >= required else "FAIL", reason)
 
 
 def _fit(selected, code, label, host, limit_key, component, size_key, accepts):
@@ -56,10 +84,21 @@ def validate_selection(selection: dict[str, int], parts, compatibility=()) -> li
         if category not in CATEGORY_ORDER or not row or row["category"] != category:
             raise ValueError("부품 ID와 분류가 해당 기업의 카탈로그와 일치하지 않습니다.")
         selected[category] = row
-    assembly = assembly_power_parts(selected)
+    assembly = [
+        AssemblyPart(
+            row["id"], row["name"], role, row["specs"], power_draw_w=row.get("power_draw_w")
+        )
+        for role, row in selected.items()
+    ]
     records = {row["compatibility_id"]: row for row in compatibility}
     checks = []
-    for check in validate_assembly(assembly, compatibility):
+    radiator = selected.get("cooler", {}).get("specs", {}).get("radiator_size_mm")
+    front_radiator = radiator if type(radiator) is int and radiator > 0 else None
+    for check in validate_assembly(assembly, compatibility, front_radiator_mm=front_radiator):
+        if check.check_type == "PSU_CAPACITY" and all(
+            role in selected for role in CATEGORY_ORDER if role != "case"
+        ):
+            check = _catalog_capacity(selected)
         sources = []
         seen_urls = set()
         for record_id in check.compatibility_ids:
@@ -154,11 +193,112 @@ def validate_selection(selection: dict[str, int], parts, compatibility=()) -> li
             ),
         ]
     )
-    checks = supplement_checks(selected, checks)
-    supplement_memory_check(selected, checks)
-    supplement_cooling_check(selected, checks)
-    supplement_power_checks(selected, checks)
+    slots = selected.get("motherboard", {}).get("specs", {}).get("pcie_x16_slots")
+    board_specs = selected.get("motherboard", {}).get("specs", {})
+    slot_present = board_specs.get("pcie_x16_slot_present")
+    slot_result = "UNKNOWN"
+    slot_reason = "메인보드의 그래픽카드용 PCIe x16 슬롯을 확인해야 합니다."
+    if "gpu" in selected and type(slots) is int and slots >= 0:
+        slot_result = "PASS" if slots else "FAIL"
+        slot_reason = f"메인보드 그래픽카드용 PCIe x16 슬롯 {slots}개"
+    elif (
+        "gpu" in selected
+        and slot_present is True
+        and board_specs.get("pcie_x16_slot_present_source_url")
+    ):
+        slot_result = "PASS"
+        slot_reason = "제조사 사양에서 그래픽카드용 PCIe x16 슬롯을 확인했습니다."
+    checks.append(
+        {
+            "check_type": "GPU_BOARD",
+            "result": slot_result,
+            "reason": slot_reason,
+        }
+    )
+    if front_radiator:
+        # A tower height limit cannot verify a radiator installation. Use the
+        # case's documented installed GPU clearance for this front mount.
+        clearance = next(c for c in checks if c["check_type"] == "GPU_CLEARANCE")
+        case = selected.get("case", {}).get("specs", {})
+        cooler = selected["cooler"]["specs"]
+        stack = cooler.get("radiator_stack_mm")
+        base = case.get("max_gpu_length_mm")
+        gpu = selected.get("gpu", {}).get("specs", {})
+        length = gpu.get("installation_length_mm") or gpu.get("length_mm")
+        # When the case lists a supported stack, conservatively reserve its
+        # entire depth even if stock fans occupy part of the same clearance.
+        if (
+            clearance["result"] == "UNKNOWN"
+            and front_radiator in case.get("front_radiator_sizes_mm", ())
+            and all(type(x) in (float, int) and x > 0 for x in (stack, base, length))
+            and stack <= case.get("front_radiator_standard_stack_mm", 0)
+        ):
+            limit = base - stack
+            clearance.update(
+                result="PASS" if length <= limit else "FAIL",
+                reason=f"전면 라디에이터와 팬 {stack}mm를 확보한 GPU 한도 {limit}mm / 카드 {length}mm",
+            )
+        cooler_fit = next(c for c in checks if c["check_type"] == "COOLER_CLEARANCE")
+        cooler_fit.update(
+            result=clearance["result"], reason=clearance["reason"], sources=clearance["sources"]
+        )
+    gpu = selected.get("gpu", {}).get("specs", {})
+    if "psu" in selected and gpu.get("required_pcie_16pin"):
+        checks.append(
+            _fit(
+                selected,
+                "GPU_POWER_CONNECTORS",
+                "16핀 케이블 용량(W)",
+                "psu",
+                "pcie_16pin_capacity_w",
+                "gpu",
+                "gpu_power_w",
+                ge,
+            )
+        )
+    qvl = next(c for c in checks if c["check_type"] == "RAM_QVL")
+    shape = next(c for c in checks if c["check_type"] == "RAM_FORM_FACTOR")
+    if shape["result"] == "UNKNOWN" and qvl["result"] == "CONDITIONAL" and qvl["sources"]:
+        # An official test with this board and kit establishes physical fit for
+        # the pair even when one catalog row omits the form-factor label.
+        shape.update(
+            result="PASS",
+            reason="이 보드·메모리 키트의 실제 장착은 제조사 QVL에서 확인했습니다.",
+            sources=qvl["sources"],
+            compatibility_ids=qvl["compatibility_ids"],
+        )
     add_reviewed_fit(selected, checks)
+    cooler = selected.get("cooler", {})
+    tested = cooler.get("specs", {})
+    cpu_name = selected.get("cpu", {}).get("name")
+    if cpu_name in tested.get("thermal_test_cpus", ()) and (
+        url := tested.get("thermal_test_cpus_source_url")
+    ):
+        thermal = next(c for c in checks if c["check_type"] == "COOLER_POWER")
+        if thermal["result"] == "UNKNOWN":
+            reason = f"{cpu_name} · {cooler['name']} 조합의 CPU 부하 냉각 시험이 확인되었습니다."
+            thermal.update(
+                result="PASS",
+                reason=reason,
+                sources=[
+                    {
+                        "chunk_key": f"DB-COOLING-TEST-{cooler['id']}",
+                        "url": url,
+                        "title": f"{cooler['name']} 냉각 시험",
+                        "text": reason,
+                        "origin": "제품 실측",
+                    }
+                ],
+            )
+    if "cpu" in selected and "cooler" in selected:
+        source = cooling_evidence(selected["cpu"], selected["cooler"])
+        if source:
+            for check in checks:
+                if (
+                    check["check_type"] in {"COOLER_SOCKET", "COOLER_POWER"}
+                    and check["result"] == "UNKNOWN"
+                ):
+                    check.update(result="PASS", reason=source["text"], sources=[source])
     selected_ids = set(selection.values())
     for record in compatibility:
         if (

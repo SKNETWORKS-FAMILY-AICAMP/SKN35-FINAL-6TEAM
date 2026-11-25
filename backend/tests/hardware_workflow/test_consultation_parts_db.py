@@ -74,6 +74,19 @@ def test_unassigned_company_cannot_open_catalog(monkeypatch, company_id):
     connect.assert_not_called()
 
 
+def test_platform_query_scopes_all_three_products_and_binds_the_selected_cpu():
+    rows = {11: {"category": "cpu", "part_id": 11}, 22: {"category": "motherboard", "part_id": 22}}
+    sql, params = parts_db._platform_query(
+        "board.part_id", 1, rows, "motherboard", {"cpu": 8, "ram": 32}
+    )
+    assert params == [1, parts_db.SHOP_SOURCE, 1, 11, 8, 32]
+    for alias in ("cpu", "board", "kit"):
+        assert f"{alias}.specs->>'$._provenance.source'=shop.source" in sql
+        assert f"{alias}.current_price>0" in sql
+    assert "c.check_type='CPU_SUPPORT'" in sql and "m.check_type='MEMORY_QVL'" in sql
+    assert "cpu.part_id=%s" in sql and "board.part_id=%s" not in sql
+
+
 def test_failed_connection_cannot_fall_back_to_a_snapshot(monkeypatch):
     connect = MagicMock(side_effect=mysql.connector.Error("test host unavailable"))
     monkeypatch.setattr(parts_db, "get_connection", connect)

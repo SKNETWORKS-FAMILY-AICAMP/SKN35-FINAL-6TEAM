@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fixtureParts } from "./fixtures/snapshot.fixture";
 import {
+  categoryBudget,
   consultReducer,
   currentCategory,
   currentQuote,
@@ -55,6 +56,21 @@ function part(category: Category, offset = 0): Part {
   if (!value) throw new Error(`Snapshot fixture has no priced ${category} row at ${offset}`);
   return value;
 }
+
+it("자동 배정에서 절약한 금액은 다음 부품에 쓰고 직접 지정한 예산 한도는 지킨다", () => {
+  const plan = start().plan!;
+  const intake = { ...survey, budget: 1_200_000 };
+  const selected = { cpu: { ...part("cpu"), current_price: 100_000 } };
+  expect(categoryBudget(intake, plan, selected, "motherboard")).toBe(200_000);
+  expect(
+    categoryBudget(
+      intake,
+      { ...plan, fixedBudgetCategory: "motherboard" },
+      selected,
+      "motherboard",
+    ),
+  ).toBe(150_000);
+});
 
 function start(
   steps: Category[] = [...NEW_BUILD_STEPS],
@@ -134,18 +150,46 @@ function createQuote(state: ConsultState, version = 1): ConsultState {
   });
 }
 
-function confirm(state: ConsultState): ConsultState {
+function confirm(state: ConsultState, storage: "session" | "memory" = "session"): ConsultState {
   const quote = currentQuote(state)!;
   return consultReducer(consultReducer(state, { type: "CONFIRM_REQUEST", requestId: 90 }), {
     type: "CONFIRMED",
     requestId: 90,
     receipt: {
       quote: { ...quote, status: "CONFIRMED" },
-      storage: "session",
+      storage,
       message: "현재 상담에서 승인",
     },
   });
 }
+
+it("추가 팬 수량을 선택 금액과 견적 스냅샷에 반영한다", () => {
+  const cooler = part("cooler");
+  const fan = { ...cooler, part_id: 90210, source_key: "test-only-fan", current_price: 9000 };
+  const entry = candidate(cooler);
+  let state = provide(start(["cooler"]), entry);
+  state = { ...state, candidates: { ...state.candidates!, fans: [fan] } };
+  state = consultReducer(state, {
+    type: "SELECT",
+    candidate: entry,
+    fans: [{ part: fan, quantity: 2 }],
+  });
+  expect(selectedTotal(state)).toBe(cooler.current_price! + 18000);
+  const quote = quoteFor(state);
+  quote.items.push({
+    ...quote.items[0],
+    part_id: fan.part_id,
+    source_key: fan.source_key,
+    unit_price: 9000,
+    quantity: 2,
+  });
+  const pending = consultReducer(state, { type: "QUOTE_REQUEST", requestId: 80 });
+  expect(consultReducer(pending, { type: "QUOTE_READY", requestId: 80, quote }).screen).toBe(
+    "quote",
+  );
+  quote.items[1].quantity = 1;
+  expect(consultReducer(pending, { type: "QUOTE_READY", requestId: 80, quote }).error).toBeTruthy();
+});
 
 describe("PC consultation event reducer", () => {
   it("runs all eight new-build steps in the requested order", () => {
@@ -425,15 +469,32 @@ describe("PC consultation event reducer", () => {
     expect(consultReducer(state, { type: "SHOW_SAVED" }).screen).toBe("saved");
   });
 
-  it("opens replacement payment only after a save succeeds, never for new builds", () => {
+  it("opens the payment summary for both modes only after server confirmation", () => {
     let replacement = createQuote(complete(start(["gpu"], "replacement")));
     expect(consultReducer(replacement, { type: "PAYMENT" })).toBe(replacement);
     const saving = consultReducer(replacement, { type: "CONFIRM_REQUEST", requestId: 1 });
     expect(consultReducer(saving, { type: "PAYMENT" })).toBe(saving);
     replacement = confirm(replacement);
+    expect(replacement.screen).toBe("payment");
     expect(consultReducer(replacement, { type: "PAYMENT" }).screen).toBe("payment");
     const newBuild = confirm(createQuote(complete(start())));
+    expect(newBuild.screen).toBe("payment");
     expect(consultReducer(newBuild, { type: "PAYMENT" })).toBe(newBuild);
+  });
+
+  it.each(["memory", "session"] as const)("returns home after a mock payment (%s)", (storage) => {
+    const draft = createQuote(complete(start()));
+    const pay = { type: "COMPLETE_DEMO_PAYMENT" } as const;
+    expect(consultReducer(draft, pay)).toBe(draft);
+    const confirmed = confirm(draft, storage);
+    const checkout = consultReducer(confirmed, { type: "PAYMENT" });
+    expect(checkout.screen).toBe("payment");
+    const home = consultReducer(checkout, pay);
+    expect(home).toEqual({ ...initialConsultState(), screen: "type", demoPaymentCompleted: true });
+    expect(consultReducer(home, pay)).toBe(home);
+    expect(consultReducer(home, { type: "CHOOSE_MODE", mode: "new" }).demoPaymentCompleted).toBe(
+      false,
+    );
   });
 
   it("clears save/quote in-flight state on matching errors so the user can retry", () => {

@@ -163,6 +163,16 @@
       },
       "Candidate": {
         "properties": {
+          "cooling_mode": {
+            "default": "purchase",
+            "enum": [
+              "purchase",
+              "bundled",
+              "reuse"
+            ],
+            "title": "Cooling Mode",
+            "type": "string"
+          },
           "part": {
             "$ref": "#/components/schemas/Part"
           },
@@ -200,6 +210,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/Text"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cooling": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cooling"
               },
               {
                 "type": "null"
@@ -246,6 +266,13 @@
               "type": "string"
             },
             "title": "Criteria",
+            "type": "array"
+          },
+          "fans": {
+            "items": {
+              "$ref": "#/components/schemas/Part"
+            },
+            "title": "Fans",
             "type": "array"
           },
           "missingColorCount": {
@@ -321,6 +348,31 @@
         "title": "ConfirmIn",
         "type": "object"
       },
+      "Cooling": {
+        "additionalProperties": false,
+        "properties": {
+          "fans": {
+            "items": {
+              "$ref": "#/components/schemas/FanLine"
+            },
+            "maxItems": 32,
+            "title": "Fans",
+            "type": "array"
+          },
+          "mode": {
+            "default": "purchase",
+            "enum": [
+              "purchase",
+              "bundled",
+              "reuse"
+            ],
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "title": "Cooling",
+        "type": "object"
+      },
       "EventError": {
         "properties": {
           "code": {
@@ -365,6 +417,26 @@
         "title": "EventType",
         "type": "string"
       },
+      "FanLine": {
+        "additionalProperties": false,
+        "properties": {
+          "part_id": {
+            "$ref": "#/components/schemas/PositiveId"
+          },
+          "quantity": {
+            "maximum": 32.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "part_id",
+          "quantity"
+        ],
+        "title": "FanLine",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -404,6 +476,16 @@
       "MessageIn": {
         "additionalProperties": false,
         "properties": {
+          "cooling": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cooling"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "selected": {
             "$ref": "#/components/schemas/Selection"
           },
@@ -690,6 +772,16 @@
       "QuoteIn": {
         "additionalProperties": false,
         "properties": {
+          "cooling": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cooling"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "selected": {
             "$ref": "#/components/schemas/Selection"
           },
@@ -860,6 +952,16 @@
               }
             ]
           },
+          "cooling": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cooling"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "note": {
             "anyOf": [
               {
@@ -1000,6 +1102,16 @@
       "SelectionIn": {
         "additionalProperties": false,
         "properties": {
+          "cooling": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cooling"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "selected": {
             "$ref": "#/components/schemas/Selection"
           },

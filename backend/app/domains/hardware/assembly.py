@@ -184,7 +184,7 @@ def _gpu_clearance(case, gpu, front_radiator_mm):
     code = "GPU_CLEARANCE"
     if not case or not gpu:
         return AssemblyCheck(code, "UNKNOWN", "케이스와 그래픽카드를 각각 하나 선택해야 합니다.")
-    length = gpu.positive("length_mm")
+    length = gpu.positive("installation_length_mm") or gpu.positive("length_mm")
     base_limit = case.positive("max_gpu_length_mm")
     if not length or not base_limit:
         return AssemblyCheck(code, "UNKNOWN", "그래픽카드 길이 또는 케이스 허용 길이가 없습니다.")

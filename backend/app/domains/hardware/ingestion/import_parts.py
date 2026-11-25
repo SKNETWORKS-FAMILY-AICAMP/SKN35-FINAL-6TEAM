@@ -60,6 +60,8 @@ def upsert_parts(connection, parts, *, power_reviews=None, gpu_estimates=None):
         review = fit_reviews.get(specs.get("_provenance", {}).get("source_key"))
         if review:
             specs = specs | fit_updates(specs, part["category"], part["model_number"], review)
+            if specs.get("cooling_type") == "case_fan":
+                power = specs.get("fan_w")
         rows.append(
             (
                 part["category"],

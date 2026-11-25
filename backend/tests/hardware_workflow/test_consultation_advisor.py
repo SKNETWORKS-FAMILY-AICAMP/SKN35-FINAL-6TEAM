@@ -1,12 +1,15 @@
 """Exercise the live-call boundary without any credentials or external requests."""
 
 import json
+from threading import Event
 from urllib.error import HTTPError
 
 import pytest
 
 from app.domains.hardware.pc_consultation import advisor
 from app.domains.hardware.pc_consultation.reviewed_documents import document, manufacturer_points
+from app.rag.dual_adapter_dpr import DualAdapterDPR
+from app.rag.embeddings import DIMENSION
 from app.rag.loader import load_corpus
 from app.rag.points import build_points
 
@@ -40,6 +43,58 @@ def offline(monkeypatch):
     points = [*build_points(load_corpus()), *manufacturer_points()]
     monkeypatch.setenv("OPENAI_API_KEY", "fixture-key-not-a-credential")
     monkeypatch.setattr(advisor, "_index", lambda: (points, None, None))
+
+
+def test_consultation_indexes_and_searches_with_evaluated_dpr(monkeypatch):
+    # Synthetic backbone keeps the test offline while exercising the shipped adapter weights.
+    class Backbone:
+        def embed_documents(self, texts):
+            return ([1.0] + [0.0] * (DIMENSION - 1) for _ in texts)
+
+        def embed_query(self, text):
+            return [1.0] + [0.0] * (DIMENSION - 1)
+
+    monkeypatch.setattr(advisor, "LocalEmbedder", lambda **_: Backbone())
+    points = [*build_points(load_corpus()), *manufacturer_points()]
+    _, encoder, store = index = advisor._build_index(points)
+    assert isinstance(encoder, DualAdapterDPR)
+    try:
+        schema = store.client.get_collection(store.collection).config.metadata["buildwise"]
+        assert schema["embedding_model"] == "dpr_minilm_dual"
+        assert schema["embedding_revision"] == (
+            "6746cfb5b847c1a999c305cdfcbabffdf1ec7dd1389444eb017caaab1425f64e"
+        )
+        monkeypatch.setattr(advisor, "_index", lambda: index)
+        mode, sources = advisor._retrieve("CB16GS4800 노트북용 메모리", {})
+        assert mode == "hybrid" and sources
+    finally:
+        store.client.close()
+
+
+def test_first_search_uses_verified_corpus_while_dense_index_is_building(monkeypatch):
+    entered, finish = Event(), Event()
+    calls = []
+
+    def build(points):
+        calls.append(points)
+        entered.set()
+        assert finish.wait(5)
+        return points, "encoder", "store"
+
+    advisor._start_index.cache_clear()
+    monkeypatch.setattr(advisor, "_build_index", build)
+    try:
+        mode, sources = advisor._retrieve("CB16GS4800 메모리", {})
+        assert mode == "keyword" and sources
+        assert entered.wait(2)
+        assert advisor._index()[1:] == (None, None)
+        finish.set()
+        advisor._start_index()[1].result(timeout=2)
+        assert advisor._index()[1:] == ("encoder", "store")
+        assert len(calls) == 1
+    finally:
+        finish.set()
+        advisor._start_index.cache_clear()
 
 
 def test_actual_release_search_and_trusted_source_attachment(offline, monkeypatch):
@@ -88,28 +143,27 @@ def test_manufacturer_passages_searchable_without_quote_and_unique_in_quote(offl
 def test_current_build_passage_can_be_cited_but_is_not_carried_into_another_quote(
     offline, monkeypatch
 ):
-    from app.domains.hardware.pc_consultation.fit_documents import supplement_checks
+    from app.domains.hardware.pc_consultation.catalog import validate_selection
 
-    selected = {
-        "case": dict(
-            category="case",
-            brand="NZXT",
-            model_number="H5 Flow (2024) Black",
-            source_key="case-nzxt-h5-flow-2024-black",
-            specs={"color": "Black"},
-        ),
-        "cooler": dict(
-            category="cooler",
-            brand="Thermalright",
-            model_number="Peerless Assassin 120 SE",
-            source_key="cooler-thermalright-peerless-assassin-120-se",
-            specs={"height_mm": 155, "color": "Black / Silver"},
-        ),
-    }
-    checks = supplement_checks(
-        selected, [{"check_type": "COOLER_CLEARANCE", "result": "UNKNOWN", "reason": "미확인"}]
-    )
-    case, cooler = checks[0]["sources"]
+    rows = [
+        {
+            "id": 1,
+            "category": "case",
+            "name": "Test case",
+            "specs": {
+                "max_cpu_cooler_mm": 170,
+                "max_cpu_cooler_mm_source_url": "https://example.test/case",
+            },
+        },
+        {
+            "id": 2,
+            "category": "cooler",
+            "name": "Test cooler",
+            "specs": {"height_mm": 155, "height_mm_source_url": "https://example.test/cooler"},
+        },
+    ]
+    checks = validate_selection({"case": 1, "cooler": 2}, rows)
+    case, cooler = next(c["sources"] for c in checks if c["check_type"] == "COOLER_CLEARANCE")
     context = {"check_documents": [case, cooler]}
     question = "선택한 케이스에서 이 CPU 쿨러가 들어가는 근거를 알려주세요."
 

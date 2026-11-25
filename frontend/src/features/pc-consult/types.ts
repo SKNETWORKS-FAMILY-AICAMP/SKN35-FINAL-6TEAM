@@ -25,7 +25,20 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 export type ConsultMode = "replacement" | "new";
 export type AccountKind = "personal" | "business";
 export type Purpose = "gaming" | "image" | "video" | "other";
-export type Part = Wire["Part"];
+export type CoolingMode = "purchase" | "bundled" | "reuse";
+export interface FanSelection {
+  part: Wire["Part"];
+  quantity: number;
+}
+export type Part = Wire["Part"] & {
+  cooling?: { mode: CoolingMode; fans: FanSelection[] };
+};
+export function selectionLines(selected: SelectionMap): FanSelection[] {
+  return [
+    ...Object.values(selected).map((part) => ({ part, quantity: 1 })),
+    ...(selected.cooler?.cooling?.fans ?? []),
+  ];
+}
 export interface OwnedPart {
   category: Category;
   name: string;
@@ -56,7 +69,10 @@ export interface CompatibilityRecord {
   source_publisher: string;
 }
 export type ValidationResult = Omit<Wire["ValidationOut"], "basis"> & { basis: DataBasis };
-export type Candidate = Omit<Wire["Candidate"], "validation"> & { validation: ValidationResult };
+export type Candidate = Omit<Wire["Candidate"], "validation" | "cooling_mode"> & {
+  validation: ValidationResult;
+  cooling_mode?: CoolingMode;
+};
 export interface CandidateRequest {
   survey: Survey;
   category: Category;
@@ -81,7 +97,11 @@ export interface CatalogSummary {
 }
 /** 실제 백엔드(api)와, 백엔드가 꺼졌을 때 쓰는 스냅샷 시연(demo) 중 어디서 온 결과인지. */
 export type DataBasis = "demo" | "api";
-export type CandidateResult = Omit<Wire["CandidatesOut"], "basis" | "passed" | "needsReview"> & {
+export type CandidateResult = Omit<
+  Wire["CandidatesOut"],
+  "basis" | "passed" | "needsReview" | "fans"
+> & {
+  fans?: Part[];
   passed: Candidate[];
   needsReview: Candidate[];
   basis: DataBasis;
@@ -95,6 +115,8 @@ export interface Progress {
   total: number;
 }
 export type QuoteItem = Wire["QuoteItem"];
+export const itemCount = (quote: { items: QuoteItem[] }) =>
+  quote.items.reduce((n, i) => n + i.quantity, 0);
 /** 화면에서만 쓰는 검토 표시. 공통 quote_items 계약은 바꾸지 않습니다. */
 export interface PartReview {
   source_key: string;

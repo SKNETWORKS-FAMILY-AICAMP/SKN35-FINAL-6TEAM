@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { CoolingPicker } from "./CoolingPicker";
+import type { FanSelection, Part } from "../types";
 import {
   CATEGORY_LABELS,
   won,
@@ -18,8 +20,8 @@ interface Props {
   pending: boolean;
   error: string | null;
   budget: number;
-  reason?: string;
-  onChoose: (candidate: Candidate, allowUnknown?: boolean) => void;
+  onChoose: (candidate: Candidate, allowUnknown?: boolean, fans?: FanSelection[]) => void;
+  selectedCooler?: Part;
   onRetry: () => void;
   onBudget: () => void;
   onBack: () => void;
@@ -51,7 +53,6 @@ function CandidateCard({
       {recommended && (
         <div className="pc-recommendation">
           <span>✦ AI 추천</span>
-          <span>{candidate.reason}</span>
         </div>
       )}
       <div className="pc-candidate-main">
@@ -86,13 +87,7 @@ function CandidateCard({
           </button>
         </div>
       </div>
-      <div className="pc-candidate-validation">
-        <div className="pc-badge-row">
-          <StatusBadge status={validation.status} />
-          {validation.basis === "demo" && <span className="pc-demo-label">간이 판단</span>}
-        </div>
-        <ValidationDetails validation={validation} />
-      </div>
+      {validation.status !== "PASS" && <StatusBadge status={validation.status} />}
     </article>
   );
 }
@@ -104,8 +99,8 @@ export function CandidateScreen({
   pending,
   error,
   budget,
-  reason,
   onChoose,
+  selectedCooler,
   onRetry,
   onBudget,
   onBack,
@@ -118,15 +113,6 @@ export function CandidateScreen({
   const [warning, setWarning] = useState<Candidate | null>(null);
   const label = CATEGORY_LABELS[category];
   const onlyReview = Boolean(result && !result.passed.length && result.needsReview.length);
-  const reviewReasons = [
-    ...new Set(
-      result?.needsReview.flatMap((candidate) =>
-        candidate.validation.checks
-          .filter((check) => check.status === "UNKNOWN")
-          .map((check) => check.message),
-      ) ?? [],
-    ),
-  ];
   const phase = progress?.phase;
   const message =
     phase === "loading"
@@ -144,18 +130,11 @@ export function CandidateScreen({
     >
       <summary>
         <span>
-          {onlyReview ? "이 단계는 데이터로 확인할 수 없는 항목이 있어요" : "확인이 더 필요한 후보"}
+          확인이 필요한 후보
           <strong>{result.needsReview.length}</strong>
         </span>
-        <span className="pc-muted">확인 필요 · AI 추천 없음</span>
       </summary>
       <div className="pc-unknown-body">
-        {reviewReasons.length > 0 && (
-          <p className="pc-review-reasons" data-testid="pc-review-reasons">
-            {reviewReasons.join(" · ")}
-          </p>
-        )}
-        {!onlyReview && <p className="pc-muted">확인 필요 후보: 가격 낮은 순 · AI 추천 없음</p>}
         {result.needsReview.slice(0, unknownVisible).map((candidate) => (
           <CandidateCard
             key={candidate.part.source_key}
@@ -172,13 +151,11 @@ export function CandidateScreen({
             확인 필요 후보 더 보기
           </button>
         )}
-        {result.needsReview.length === 0 && <p>확인 불가 후보가 없습니다.</p>}
       </div>
     </details>
   );
   const toolbar = result && (
     <div className="pc-list-toolbar">
-      <p>{onlyReview ? "확인 필요 후보: 가격 낮은 순 · AI 추천 없음" : result.sortLabel}</p>
       {canBudget && (
         <button className="pc-button pc-secondary" onClick={onBudget}>
           이 부품에 예산 더 쓰기 <span aria-hidden="true">↗</span>
@@ -190,28 +167,16 @@ export function CandidateScreen({
     <section className="pc-selection" aria-busy={pending}>
       <div className="pc-section-heading">
         <div>
-          <p className="pc-eyebrow">설계 · 호환성 검증</p>
           <h1>{editing ? `${label}, 다시 골라 주세요.` : `${label} 후보를 골라 주세요.`}</h1>
-          <p className="pc-muted">{reason || "앞서 고른 부품과 예산을 반영했습니다."}</p>
         </div>
         <span className="pc-budget-chip">
           이 부품 한도 <strong>{won(budget)}</strong>
         </span>
       </div>
-      <div className="pc-team-status" role="status">
-        <span className={`pc-status-dot${pending ? " pc-working" : ""}`} />
-        {pending ? message : error ? "작업을 마치지 못했습니다." : "설계팀이 후보를 정리했습니다."}
-        {result?.basis === "demo" && <span className="pc-demo-label">간이 판단</span>}
-      </div>
       {pending ? (
-        <div className="pc-loading">
+        <div className="pc-loading" role="status">
           <div className="pc-spinner" />
           <h2>{message}</h2>
-          <p>
-            {phase === "ready"
-              ? "잠시 후 후보와 확인할 조건을 보여 드립니다."
-              : "제공된 부품과 제조사 근거를 읽고 있습니다."}
-          </p>
         </div>
       ) : error ? (
         <div className="pc-empty" role="alert">
@@ -241,27 +206,17 @@ export function CandidateScreen({
               </div>
             )}
             {!onlyReview && toolbar}
-            <details className="pc-criteria" open>
-              <summary>후보에 적용한 기준</summary>
-              <ul>
-                {result.criteria.map((criterion) => (
-                  <li key={criterion}>{criterion}</li>
-                ))}
-              </ul>
-            </details>
             {result.passed.length > 0 && (
               <div className="pc-list-title">
                 <h2>
-                  현재 조건을 통과한 후보 <span>{result.passed.length}</span>
+                  후보 <span>{result.passed.length}</span>
                 </h2>
-                <span className="pc-muted">조건부 후보는 조건을 확인해 주세요.</span>
               </div>
             )}
             {result.passed.length === 0 && result.needsReview.length === 0 && (
               <div className="pc-empty">
                 <PartGlyph category={category} />
                 <h2>지금 조건에 맞는 후보가 없습니다.</h2>
-                <p>예산이나 설문 조건을 바꿔 주세요.</p>
                 <div className="pc-actions">
                   {canBudget && (
                     <button className="pc-button pc-primary" onClick={onBudget}>
@@ -277,33 +232,34 @@ export function CandidateScreen({
                 </div>
               </div>
             )}
-            <div className="pc-candidate-list">
-              {result.passed.slice(0, visible).map((candidate) => (
-                <CandidateCard
-                  key={candidate.part.source_key}
-                  candidate={candidate}
-                  onChoose={() => onChoose(candidate)}
-                />
-              ))}
-            </div>
-            {visible < result.passed.length && (
-              <button
-                className="pc-button pc-more"
-                onClick={() => setVisible((count) => count + 10)}
-              >
-                후보 더 보기 ({Math.min(visible, result.passed.length)}/{result.passed.length})
-              </button>
+            {category === "cooler" && result.basis === "api" && result.passed.length > 0 ? (
+              <CoolingPicker
+                result={result}
+                selected={selectedCooler}
+                budget={budget}
+                onNext={(choice, fans) => onChoose(choice, false, fans)}
+              />
+            ) : (
+              <div className="pc-candidate-list">
+                {result.passed.slice(0, visible).map((candidate) => (
+                  <CandidateCard
+                    key={candidate.part.source_key}
+                    candidate={candidate}
+                    onChoose={() => onChoose(candidate)}
+                  />
+                ))}
+              </div>
             )}
-            {result.passed.length > 0 && reviewList}
-            <p className="pc-footnote">
-              호환 불가 후보 {result.rejectedCount}개 제외
-              {result.missingColorCount > 0
-                ? ` · 색상 정보 없음 ${result.missingColorCount}개 (색상 조건 확인 불가)`
-                : ""}
-              {result.basis === "demo"
-                ? ". 시연 결과는 실제 조립 가능 여부를 보장하지 않습니다."
-                : ". 제조사 확인이 필요한 조건을 함께 확인해 주세요."}
-            </p>
+            {!(category === "cooler" && result.basis === "api") &&
+              visible < result.passed.length && (
+                <button
+                  className="pc-button pc-more"
+                  onClick={() => setVisible((count) => count + 10)}
+                >
+                  후보 더 보기 ({Math.min(visible, result.passed.length)}/{result.passed.length})
+                </button>
+              )}
+            {result.passed.length > 0 && result.needsReview.length > 0 && reviewList}
           </>
         )
       )}
@@ -311,7 +267,6 @@ export function CandidateScreen({
         <button className="pc-button pc-ghost" onClick={onBack}>
           ← {editing ? "견적으로 돌아가기" : "이전 단계"}
         </button>
-        <span className="pc-muted">부품을 선택하면 다음으로 이동합니다.</span>
       </div>
       {warning && (
         <Modal title="확인하지 못한 항목이 있습니다" onClose={() => setWarning(null)}>

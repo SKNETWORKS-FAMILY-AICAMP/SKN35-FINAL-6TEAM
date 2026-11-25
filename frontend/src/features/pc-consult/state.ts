@@ -1,4 +1,4 @@
-import { CATEGORIES } from "./types";
+import { CATEGORIES, selectionLines, type FanSelection, type Part } from "./types";
 import type {
   AccountKind,
   BudgetProposal,
@@ -18,11 +18,32 @@ import type {
 export type ConsultScreen =
   "start" | "type" | "survey" | "review" | "selection" | "budget" | "quote" | "saved" | "payment";
 
+type ActivePlan = ConsultPlan & { fixedBudgetCategory?: Category };
+
+export function categoryBudget(
+  survey: Survey,
+  plan: ActivePlan,
+  selected: SelectionMap,
+  category: Category,
+) {
+  const otherCost = selectionLines(selected)
+    .filter(({ part }) => part.category !== category)
+    .reduce((sum, { part, quantity }) => sum + (part.current_price ?? 0) * quantity, 0);
+  const remaining = Math.max(0, survey.budget - otherCost);
+  if (survey.mode === "replacement") return remaining;
+  if (plan.fixedBudgetCategory === category) return Math.min(remaining, plan.allocations[category]);
+  const reserve = plan.steps
+    .filter((step) => step !== category && !selected[step])
+    .reduce((sum, step) => sum + plan.allocations[step], 0);
+  return Math.max(0, remaining - reserve);
+}
+
 export interface ConsultState {
   screen: ConsultScreen;
+  demoPaymentCompleted: boolean;
   account: AccountKind;
   survey: Survey | null;
-  plan: ConsultPlan | null;
+  plan: ActivePlan | null;
   consultationId: string;
   selected: SelectionMap;
   validations: Partial<Record<Category, ValidationResult>>;
@@ -44,7 +65,7 @@ export interface ConsultState {
     selected: SelectionMap;
     validations: Partial<Record<Category, ValidationResult>>;
     needsReview: Category[];
-    plan: ConsultPlan | null;
+    plan: ActivePlan | null;
     receipt: SaveReceipt | null;
   } | null;
 }
@@ -59,7 +80,7 @@ export type ConsultEvent =
   | { type: "PROGRESS"; requestId: number; progress: Progress }
   | { type: "CANDIDATES"; requestId: number; result: CandidateResult }
   | { type: "ERROR"; requestId: number; message: string }
-  | { type: "SELECT"; candidate: Candidate; allowUnknown?: boolean }
+  | { type: "SELECT"; candidate: Candidate; allowUnknown?: boolean; fans?: FanSelection[] }
   | { type: "VISIT_STEP"; index: number }
   | { type: "OPEN_BUDGET" }
   | { type: "BUDGET_PROPOSAL"; proposal: BudgetProposal; amount?: number }
@@ -73,6 +94,7 @@ export type ConsultEvent =
   | { type: "CONFIRM_REQUEST"; requestId: number }
   | { type: "CONFIRMED"; requestId: number; receipt: SaveReceipt }
   | { type: "PAYMENT" }
+  | { type: "COMPLETE_DEMO_PAYMENT" }
   | { type: "VIEW_QUOTE" }
   | { type: "SHOW_SAVED" }
   | { type: "RESTART" };
@@ -80,6 +102,7 @@ export type ConsultEvent =
 export function initialConsultState(): ConsultState {
   return {
     screen: "start",
+    demoPaymentCompleted: false,
     account: "personal",
     survey: null,
     plan: null,
@@ -109,8 +132,8 @@ export function currentCategory(state: ConsultState): Category | null {
 }
 
 export function selectedTotal(state: ConsultState): number {
-  return Object.values(state.selected).reduce(
-    (total, part) => total + (part.current_price ?? 0),
+  return selectionLines(state.selected).reduce(
+    (total, { part, quantity }) => total + (part.current_price ?? 0) * quantity,
     0,
   );
 }
@@ -192,18 +215,18 @@ function quoteWithSelectionReviews(state: ConsultState, quote: Quote): Quote {
 }
 
 function quoteMatchesSelection(state: ConsultState, quote: Quote): boolean {
-  const parts = Object.values(state.selected);
+  const parts = selectionLines(state.selected);
   return (
     quote.consultation_id === state.consultationId &&
     quote.total_amount === selectedTotal(state) &&
     quote.items.length === parts.length &&
-    parts.every((part) =>
+    parts.every(({ part, quantity }) =>
       quote.items.some(
         (item) =>
           item.source_key === part.source_key &&
           item.category === part.category &&
           item.unit_price === part.current_price &&
-          item.quantity === 1,
+          item.quantity === quantity,
       ),
     )
   );
@@ -295,8 +318,28 @@ export function consultReducer(state: ConsultState, event: ConsultEvent): Consul
       )
         return state;
       if (candidate.validation.status === "UNKNOWN" && !event.allowUnknown) return state;
-      const changed = state.selected[category]?.source_key !== candidate.part.source_key;
-      const selected = { ...state.selected, [category]: candidate.part };
+      let part: Part = candidate.part;
+      if (category === "cooler" && event.fans) {
+        const fans: FanSelection[] = [];
+        for (const line of event.fans) {
+          const fan = state.candidates?.fans?.find((p) => p.part_id === line.part.part_id);
+          if (
+            !fan ||
+            !Number.isInteger(line.quantity) ||
+            line.quantity < 1 ||
+            line.quantity > 32 ||
+            fans.some((entry) => entry.part.part_id === fan.part_id)
+          )
+            return state;
+          fans.push({ part: fan, quantity: line.quantity });
+        }
+        part = { ...part, cooling: { mode: candidate.cooling_mode ?? "purchase", fans } };
+      }
+      const previous = state.selected[category];
+      const changed =
+        previous?.source_key !== part.source_key ||
+        JSON.stringify(previous?.cooling) !== JSON.stringify(part.cooling);
+      const selected = { ...state.selected, [category]: part };
       const needsReview = new Set(state.needsReview.filter((entry) => entry !== category));
       if (changed && !state.editingCategory) {
         for (const later of state.plan.steps.slice(state.stepIndex + 1)) {
@@ -379,7 +422,11 @@ export function consultReducer(state: ConsultState, event: ConsultEvent): Consul
         selected,
         validations,
         needsReview: [...needsReview],
-        plan: { ...state.plan, allocations: { ...state.budgetProposal.allocations } },
+        plan: {
+          ...state.plan,
+          allocations: { ...state.budgetProposal.allocations },
+          fixedBudgetCategory: currentCategory(state) ?? undefined,
+        },
         budgetProposal: null,
         candidates: null,
         stepIndex:
@@ -491,7 +538,7 @@ export function consultReducer(state: ConsultState, event: ConsultEvent): Consul
       });
       return {
         ...withoutRequest(state),
-        screen: "saved",
+        screen: event.receipt.storage === "session" ? "payment" : "saved",
         quotes: state.quotes.map((previous) =>
           previous.version === quote.version ? savedQuote : previous,
         ),
@@ -499,14 +546,17 @@ export function consultReducer(state: ConsultState, event: ConsultEvent): Consul
       };
     }
     case "PAYMENT":
-      if (
-        state.survey?.mode !== "replacement" ||
-        !state.receipt ||
-        currentQuote(state)?.status !== "CONFIRMED" ||
-        state.screen !== "saved"
-      )
+      if (!state.receipt || currentQuote(state)?.status !== "CONFIRMED" || state.screen !== "saved")
         return state;
       return { ...state, screen: "payment" };
+    case "COMPLETE_DEMO_PAYMENT":
+      if (state.screen !== "payment" || state.receipt?.quote.status !== "CONFIRMED") return state;
+      return {
+        ...initialConsultState(),
+        screen: "type",
+        account: state.account,
+        demoPaymentCompleted: true,
+      };
     case "VIEW_QUOTE":
       if (!currentQuote(state) || state.savePending) return state;
       return { ...withoutRequest(state), screen: "quote" };
