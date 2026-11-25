@@ -161,6 +161,8 @@ export function demoSurveyFromParts(parts: Part[], evidence: EvidenceIndex): Sur
  * Values are explicit UX scenarios, not measured performance or manufacturer guarantees. */
 export const DEMO_RULES = {
   powerHeadroom: 0.25,
+  /** 케이스를 고르기 전 파워 용량에 미리 넣는 케이스 전력. 시연 데이터 케이스 1,048개 중 990개의 값. */
+  caseReserveW: 30,
   cpuCores: { gaming: 6, image: 6, video: 8, other: 4 },
   gpuVram: { fhd: 6, qhd: 8, "4k": 12 },
   highFrameVramExtra: 2,
@@ -348,6 +350,62 @@ export function performanceCriteria(survey: Survey): string[] {
   ];
 }
 
+type M2Slot = { name?: string; pcie?: string[]; sata?: string[] };
+type StoragePorts = { sata_6g_ports?: number; m2_sata?: boolean | null };
+
+/** 상담 서버(reviewed_fit.m2_drive)와 같은 방식으로 M.2 장치의 연결 방식과 길이를 읽습니다. */
+function m2Drive(drive: Part): ["pcie" | "sata", string] | null {
+  const iface = stringSpec(drive, "interface") ?? "";
+  const form = stringSpec(drive, "form_factor");
+  const size = /^M\.2-(22\d{2,3})$/.exec(form ?? "");
+  if (size && iface.startsWith("M.2 PCIe ")) return ["pcie", size[1]];
+  if (size && iface === "M.2 SATA") return ["sata", size[1]];
+  const legacy = /^M\.2 (22\d{2,3}) (NVMe|SATA)$/.exec(iface);
+  if (legacy && (!form || (size && size[1] === legacy[1])))
+    return [legacy[2] === "NVMe" ? "pcie" : "sata", legacy[1]];
+  return null;
+}
+
+export function hasStorageSpecs(board: Part): boolean {
+  const slots = board.specs.m2_storage_slots;
+  return Boolean(board.specs.storage_ports) || (Array.isArray(slots) && slots.length > 0);
+}
+
+/** 메인보드 제조사 사양(저장 포트·M.2 슬롯)으로 저장장치 연결을 판정합니다.
+ * 상담 서버 reviewed_fit._native_storage 와 같은 규칙이고, 보드 사양이 없으면 확인 필요로 둡니다. */
+export function storageFit(board: Part, drive: Part): [ValidationCheck["status"], string] {
+  if (!hasStorageSpecs(board))
+    return [
+      "UNKNOWN",
+      "메인보드 저장장치 포트·슬롯 정보가 없어 연결 규격은 별도 확인이 필요합니다.",
+    ];
+  const ports = (board.specs.storage_ports ?? {}) as StoragePorts;
+  const slots = (
+    Array.isArray(board.specs.m2_storage_slots) ? board.specs.m2_storage_slots : []
+  ) as M2Slot[];
+  const iface = stringSpec(drive, "interface") ?? "";
+  if (/^SATA (1\.5|3\.0|6\.0) Gb\/s$/.test(iface) && (ports.sata_6g_ports ?? 0) > 0)
+    return ["PASS", "드라이브와 보드 모두 SATA 데이터 포트를 사용합니다."];
+  if (iface.startsWith("SAS ") || iface.startsWith("PATA "))
+    return ["FAIL", `이 보드의 기본 SATA·M.2 포트에 ${iface} 장치를 직접 연결할 수 없습니다.`];
+  if (iface.startsWith("M.2 ")) {
+    const m2 = m2Drive(drive);
+    if ((iface === "M.2 SATA" || m2?.[0] === "sata") && ports.m2_sata === false)
+      return ["FAIL", "이 보드의 저장장치용 M.2 슬롯은 SATA 방식을 지원하지 않습니다."];
+    if (m2) {
+      const [protocol, size] = m2;
+      const slot = slots.find((item) => item[protocol]?.includes(size));
+      if (slot)
+        return [
+          "PASS",
+          `${slot.name ?? "M.2"} 슬롯이 ${protocol.toUpperCase()} 방식과 ${size} 규격을 지원합니다.`,
+        ];
+    }
+    return ["UNKNOWN", "M.2 장치의 길이·키와 슬롯의 지원 모드·공유 포트를 확인하세요."];
+  }
+  return ["UNKNOWN", "저장장치 연결 방식과 보드의 기본 포트를 대조할 근거가 부족합니다."];
+}
+
 export type EvidenceIndex = Map<string, CompatibilityRecord[]>;
 export function indexEvidence(records: CompatibilityRecord[]): EvidenceIndex {
   const index: EvidenceIndex = new Map();
@@ -359,6 +417,71 @@ export function indexEvidence(records: CompatibilityRecord[]): EvidenceIndex {
 }
 function evidenceFor(index: EvidenceIndex, type: string, first: Part, second: Part) {
   return index.get(`${type}|${[first.source_key, second.source_key].sort().join("|")}`) ?? [];
+}
+
+/** CPU 와 메인보드의 지원 판정. 제조사 지원 목록, 조건부 기록, 소켓 비교 순서로 봅니다. */
+function cpuSupport(
+  cpu: Part,
+  board: Part,
+  evidence: EvidenceIndex,
+): [ValidationCheck["status"], string, string?] {
+  const records = evidenceFor(evidence, "CPU_SUPPORT", cpu, board);
+  const supported = records.find((record) => record.support_status === "SUPPORTED");
+  if (supported) return ["PASS", "제조사 CPU 지원 목록에 있습니다.", supported.source_publisher];
+  if (records.length) {
+    const bios = [...new Set(records.map((record) => record.min_bios_version).filter(Boolean))];
+    return [
+      "CONDITIONAL",
+      bios.length
+        ? `최소 BIOS ${bios.join(" / ")} 조건을 확인해 주세요.`
+        : "제조사 조건부 지원입니다. 최소 BIOS 정보가 없어 제조사 확인이 필요합니다.",
+      [...new Set(records.map((record) => record.source_publisher))].join(", "),
+    ];
+  }
+  const cpuSocket = stringSpec(cpu, "socket"),
+    boardSocket = stringSpec(board, "socket");
+  if (!cpuSocket || !boardSocket)
+    return ["UNKNOWN", "CPU 지원 근거 또는 양쪽 소켓 정보가 부족합니다."];
+  return [
+    cpuSocket === boardSocket ? "PASS" : "FAIL",
+    `소켓 비교: CPU ${cpuSocket} · 메인보드 ${boardSocket} (제조사 지원 근거 없음)`,
+  ];
+}
+
+/** 신규 조립에서 다음 단계까지 확인할 수 있는 후보인지 봅니다. 추천 순서에만 쓰고 판정은 바꾸지 않습니다.
+ * CPU: 다음 단계 예산 안에 CPU 지원이 통과하고 저장 포트 정보가 있는 보드가 있어야 합니다.
+ * 메인보드: 저장 포트 정보가 있고 CPU 지원이 통과해야 합니다. 저장장치 단계가 확인 필요로 막히지 않게 합니다. */
+export function verifiablePath(
+  parts: Part[],
+  evidence: EvidenceIndex,
+  request: CandidateRequest,
+  policy?: CompanyPolicy,
+): ((candidate: Candidate) => boolean) | undefined {
+  if (request.survey.mode !== "new") return undefined;
+  if (request.category === "motherboard")
+    return (candidate) =>
+      hasStorageSpecs(candidate.part) &&
+      candidate.validation.checks.some(
+        (check) => check.code === "CPU_SUPPORT" && check.status === "PASS",
+      );
+  if (request.category !== "cpu") return undefined;
+  const boards = parts.filter(
+    (part) =>
+      part.category === "motherboard" &&
+      part.current_price !== null &&
+      hasStorageSpecs(part) &&
+      partAllowedByPolicy(part, policy),
+  );
+  // 화면의 categoryBudget 이 메인보드 단계에서 요청할 금액: 메인보드 배분 + 이번 단계에서 남긴 금액
+  const boardShare = planConsultation(request.survey).allocations.motherboard;
+  return (candidate) => {
+    const next = boardShare + request.budget - (candidate.part.current_price ?? 0);
+    return boards.some(
+      (board) =>
+        (board.current_price ?? Infinity) <= next &&
+        cpuSupport(candidate.part, board, evidence)[0] === "PASS",
+    );
+  };
 }
 
 export function validateConfiguration(
@@ -388,36 +511,8 @@ export function validateConfiguration(
     );
   };
   pair("CPU_SUPPORT", ["cpu", "motherboard"], () => {
-    const cpu = config.cpu!,
-      board = config.motherboard!;
-    const records = evidenceFor(evidence, "CPU_SUPPORT", cpu, board);
-    const supported = records.find((record) => record.support_status === "SUPPORTED");
-    if (supported) {
-      add("CPU_SUPPORT", "PASS", "제조사 CPU 지원 목록에 있습니다.", supported.source_publisher);
-      return;
-    }
-    if (records.length) {
-      const bios = [...new Set(records.map((record) => record.min_bios_version).filter(Boolean))];
-      add(
-        "CPU_SUPPORT",
-        "CONDITIONAL",
-        bios.length
-          ? `최소 BIOS ${bios.join(" / ")} 조건을 확인해 주세요.`
-          : "제조사 조건부 지원입니다. 최소 BIOS 정보가 없어 제조사 확인이 필요합니다.",
-        [...new Set(records.map((record) => record.source_publisher))].join(", "),
-      );
-      return;
-    }
-    const cpuSocket = stringSpec(cpu, "socket"),
-      boardSocket = stringSpec(board, "socket");
-    if (!cpuSocket || !boardSocket)
-      add("CPU_SUPPORT", "UNKNOWN", "CPU 지원 근거 또는 양쪽 소켓 정보가 부족합니다.");
-    else
-      add(
-        "CPU_SUPPORT",
-        cpuSocket === boardSocket ? "PASS" : "FAIL",
-        `소켓 비교: CPU ${cpuSocket} · 메인보드 ${boardSocket} (제조사 지원 근거 없음)`,
-      );
+    const [status, message, source] = cpuSupport(config.cpu!, config.motherboard!, evidence);
+    add("CPU_SUPPORT", status, message, source);
   });
   pair("RAM_COMPATIBILITY", ["motherboard", "ram"], () => {
     const board = config.motherboard!,
@@ -529,23 +624,27 @@ export function validateConfiguration(
           "선택·보유 부품의 소비전력 또는 파워 정격 정보가 부족합니다.",
         );
       else {
-        const total = consumers.reduce((sum, part) => sum + (part.power_draw_w ?? 0), 0);
+        // 신규 조립은 파워 다음에 케이스를 고릅니다. 케이스 전력을 미리 넣어야 케이스 단계에서
+        // 모든 케이스가 용량 초과로 빠지는 일이 없습니다.
+        const caseReserve = survey.mode === "new" && !config.case ? DEMO_RULES.caseReserveW : 0;
+        const total =
+          consumers.reduce((sum, part) => sum + (part.power_draw_w ?? 0), 0) + caseReserve;
         const required = Math.ceil(total * (1 + DEMO_RULES.powerHeadroom));
         const estimated = consumers.some((part) => part.power_status === "unconfirmed");
         add(
           "PSU_CAPACITY",
           supply >= required ? "PASS" : "FAIL",
-          `소비전력 ${Math.ceil(total)}W${estimated ? " (추정 포함)" : ""} + 여유 ${DEMO_RULES.powerHeadroom * 100}% = ${required}W · 파워 ${supply}W`,
+          `소비전력 ${Math.ceil(total)}W${estimated ? " (추정 포함)" : ""}${caseReserve ? ` (케이스 몫 ${caseReserve}W 포함)` : ""} + 여유 ${DEMO_RULES.powerHeadroom * 100}% = ${required}W · 파워 ${supply}W`,
         );
       }
     }
   }
-  if (relates("storage") && config.storage)
-    add(
-      "STORAGE_INTERFACE",
-      "UNKNOWN",
-      "메인보드 저장장치 포트·슬롯 정보가 없어 연결 규격은 별도 확인이 필요합니다.",
-    );
+  if (relates("storage") && config.storage) {
+    const [status, message] = config.motherboard
+      ? storageFit(config.motherboard, config.storage)
+      : (["UNKNOWN", "메인보드를 고른 뒤 저장장치 연결 규격을 확인합니다."] as const);
+    add("STORAGE_INTERFACE", status, message);
+  }
   if (!checks.length)
     add(
       "CURRENT_SCOPE",
@@ -666,8 +765,9 @@ export function finishCandidates(
   request: CandidateRequest,
   missingColorCount: number,
   policy?: CompanyPolicy,
+  reachable?: (candidate: Candidate) => boolean,
 ): CandidateResult {
-  const passed = candidates.filter((candidate) =>
+  let passed = candidates.filter((candidate) =>
     ["PASS", "CONDITIONAL"].includes(candidate.validation.status),
   );
   // Missing evidence is never a recommendation, including under a brand-first company policy.
@@ -688,15 +788,21 @@ export function finishCandidates(
       a.part.source_key.localeCompare(b.part.source_key);
     passed.sort(compare);
   }
+  // 다음 단계까지 확인할 수 있는 후보를 앞으로 보냅니다. 각 묶음 안의 순서는 그대로 둡니다.
+  const ahead = reachable ? passed.filter(reachable) : [];
+  const steered = ahead.length > 0;
+  if (steered) passed = [...ahead, ...passed.filter((candidate) => !ahead.includes(candidate))];
   if (passed.length)
     passed[0] = {
       ...passed[0],
       recommended: true,
-      reason:
+      reason: `${steered ? "다음 단계까지 확인할 수 있는 후보 중에서 고릅니다. " : ""}${
         policy?.sort === "brand"
           ? "검증 통과 후보에 기업의 선호 브랜드 순서와 가격 낮은 순을 적용했습니다."
-          : "통과한 후보 중 가장 저렴합니다. 조건부 항목은 조건을 확인해 주세요.",
+          : "통과한 후보 중 가장 저렴합니다. 조건부 항목은 조건을 확인해 주세요."
+      }`,
     };
+  const steerLabel = steered ? "끝까지 확인할 수 있는 조합 먼저, 그다음 " : "";
   return {
     passed,
     needsReview,
@@ -704,9 +810,9 @@ export function finishCandidates(
     missingColorCount,
     sortLabel:
       policy?.sort === "brand"
-        ? `추천 기준: 선호 브랜드 순 (${policy.preferredBrands.join(" → ") || "지정 없음"}), 같은 우선순위는 가격 낮은 순 (판매량 데이터 준비 중)`
+        ? `추천 기준: ${steerLabel}선호 브랜드 순 (${policy.preferredBrands.join(" → ") || "지정 없음"}), 같은 우선순위는 가격 낮은 순 (판매량 데이터 준비 중)`
         : request.survey.mode === "new"
-          ? "추천 기준: 가격 낮은 순 (판매량 데이터 준비 중)"
+          ? `추천 기준: ${steerLabel}가격 낮은 순 (판매량 데이터 준비 중)`
           : "추천 기준: 가격 낮은 순",
     criteria: [
       ...performanceCriteria(request.survey),
@@ -747,6 +853,7 @@ export function filterCandidates(
     request,
     eligible.missingColorCount,
     policy,
+    verifiablePath(parts, evidence, request, policy),
   );
 }
 

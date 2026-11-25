@@ -14,6 +14,7 @@ import {
   indexEvidence,
   planConsultation,
   proposeRebalance,
+  storageFit,
   validateConfiguration,
 } from "./demoRules";
 
@@ -178,7 +179,104 @@ describe("explicit snapshot demo rules", () => {
       (row) => row.code === "PSU_CAPACITY",
     );
     expect(check?.status).toBe("FAIL");
-    expect(check?.message).toContain("294W");
+    // 신규 조립에서 케이스를 아직 안 골랐으니 케이스 몫 30W 를 더합니다: (235 + 30) × 1.25
+    expect(check?.message).toContain("265W (케이스 몫 30W 포함)");
+    expect(check?.message).toContain("332W");
+  });
+  it("uses the chosen case's power instead of the reserve once a case is selected", () => {
+    const withCase = {
+      cpu,
+      gpu: part("gpu-msi-3060-ventus-2x-12g"),
+      psu: part("docyx:e37ac30518a2f66349427c87df67dd645690355c89d062548d79ab4b0cf5c326"),
+      case: { ...part("case-nzxt-h5-flow-2024-black"), power_draw_w: 12 },
+    };
+    const check = validateConfiguration(survey, withCase, evidence, "psu").checks.find(
+      (row) => row.code === "PSU_CAPACITY",
+    );
+    expect(check?.message).not.toContain("케이스 몫");
+    expect(check?.message).toContain("247W");
+  });
+  it("compares storage with the board's ports and M.2 slots like the consultation server", () => {
+    const board = (specs: Record<string, unknown>): Part => ({
+      ...part("mb-asus-tuf-gaming-b850-plus-wifi"),
+      specs: { ...part("mb-asus-tuf-gaming-b850-plus-wifi").specs, ...specs },
+    });
+    const drive = (specs: Record<string, unknown>): Part => ({
+      ...part("docyx:f05d1550ae36444134bdf29a0b110a125c3313cf77b77793d46a1d582a5877a3"),
+      specs,
+    });
+    const ported = board({
+      storage_ports: { sata_6g_ports: 4, m2_sata: false },
+      m2_storage_slots: [{ name: "M.2_1", pcie: ["2280"] }],
+    });
+    expect(storageFit(ported, drive({ interface: "SATA 6.0 Gb/s", form_factor: '2.5"' }))[0]).toBe(
+      "PASS",
+    );
+    const nvme = storageFit(
+      ported,
+      drive({ interface: "M.2 PCIe 4.0 X4", form_factor: "M.2-2280" }),
+    );
+    expect(nvme).toEqual(["PASS", "M.2_1 슬롯이 PCIE 방식과 2280 규격을 지원합니다."]);
+    expect(storageFit(ported, drive({ interface: "M.2 SATA", form_factor: "M.2-2280" }))[0]).toBe(
+      "FAIL",
+    );
+    expect(
+      storageFit(board({}), drive({ interface: "SATA 6.0 Gb/s", form_factor: '3.5"' }))[0],
+    ).toBe("UNKNOWN");
+  });
+  it("recommends a CPU that can still reach a board with storage data, then keeps price order", () => {
+    const base = part("amd-ryzen-5-7600");
+    const oldCpu: Part = {
+      ...base,
+      source_key: "test-old-cpu",
+      name: "Old CPU",
+      current_price: 50000,
+      specs: { ...base.specs, socket: "LGA2011" },
+    };
+    const newCpu: Part = {
+      ...base,
+      source_key: "test-new-cpu",
+      name: "New CPU",
+      current_price: 180000,
+    };
+    const oldBoard: Part = {
+      ...board,
+      source_key: "test-old-board",
+      name: "Old Board",
+      current_price: 100000,
+      specs: { ...board.specs, socket: "LGA2011" },
+    };
+    const newBoard: Part = {
+      ...board,
+      source_key: "test-new-board",
+      name: "New Board",
+      current_price: 200000,
+      specs: { ...board.specs, storage_ports: { sata_6g_ports: 4 } },
+    };
+    const parts = [oldCpu, newCpu, oldBoard, newBoard];
+    const steered = filterCandidates(parts, request("cpu"), indexEvidence([]));
+    expect(steered.passed.map((row) => row.part.name)).toEqual(["New CPU", "Old CPU"]);
+    expect(steered.passed[0].recommended).toBe(true);
+    expect(steered.sortLabel).toContain("끝까지 확인할 수 있는 조합 먼저");
+    // 저장 포트 정보가 있는 보드가 없으면 원래 가격 순서와 문구 그대로
+    const plain = filterCandidates([oldCpu, newCpu, oldBoard], request("cpu"), indexEvidence([]));
+    expect(plain.passed.map((row) => row.part.name)).toEqual(["Old CPU", "New CPU"]);
+    expect(plain.sortLabel).not.toContain("끝까지");
+    // 부품 교체 상담은 순서를 바꾸지 않습니다
+    const replacement = filterCandidates(
+      parts,
+      {
+        ...request("cpu"),
+        survey: {
+          ...survey,
+          mode: "replacement",
+          problems: ["rendering"],
+          owned: { motherboard: { category: "motherboard", name: "New Board", part: newBoard } },
+        },
+      },
+      indexEvidence([]),
+    );
+    expect(replacement.sortLabel).not.toContain("끝까지");
   });
   it("applies remaining budget and actual color specs without inventing missing colors", () => {
     const capped = filterCandidates(

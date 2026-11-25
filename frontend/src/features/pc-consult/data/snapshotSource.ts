@@ -25,6 +25,7 @@ import {
   proposeRebalance,
   validateConfiguration,
   validateCompanyPolicy,
+  verifiablePath,
 } from "./demoRules";
 
 type Fetcher = typeof fetch;
@@ -173,7 +174,13 @@ function createSource(
         });
         await yieldForPaint();
       }
-      const result = finishCandidates(candidates, request, eligible.missingColorCount, policy);
+      const result = finishCandidates(
+        candidates,
+        request,
+        eligible.missingColorCount,
+        policy,
+        verifiablePath(parts, evidence, request, policy),
+      );
       onProgress?.({
         phase: "ready",
         completed: eligible.parts.length,
