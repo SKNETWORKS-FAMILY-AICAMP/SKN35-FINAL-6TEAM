@@ -930,6 +930,30 @@
         "title": "QuoteOut",
         "type": "object"
       },
+      "ReadingEntry": {
+        "description": "화면 글 `text` 를 읽을 때 `spoken` 으로 바꿉니다. prefix 면 바로 뒤 숫자를 한 자리씩 읽습니다.",
+        "properties": {
+          "prefix": {
+            "default": false,
+            "title": "Prefix",
+            "type": "boolean"
+          },
+          "spoken": {
+            "title": "Spoken",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "spoken"
+        ],
+        "title": "ReadingEntry",
+        "type": "object"
+      },
       "RebalanceIn": {
         "additionalProperties": false,
         "properties": {
@@ -1155,6 +1179,46 @@
           "url"
         ],
         "title": "Source",
+        "type": "object"
+      },
+      "SpeechIn": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "description": "읽기용으로 바꾼 문장 하나",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "SpeechIn",
+        "type": "object"
+      },
+      "SpeechStatusOut": {
+        "properties": {
+          "dictionary": {
+            "description": "이 매장 상품 이름을 읽는 법",
+            "items": {
+              "$ref": "#/components/schemas/ReadingEntry"
+            },
+            "title": "Dictionary",
+            "type": "array"
+          },
+          "enabled": {
+            "description": "서버 음성 합성을 쓸 수 있는지. 아니면 브라우저 음성으로 읽습니다.",
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled",
+          "dictionary"
+        ],
+        "title": "SpeechStatusOut",
         "type": "object"
       },
       "Survey": {
@@ -2033,6 +2097,109 @@
         "summary": "Rebalance",
         "tags": [
           "PC 상담"
+        ]
+      }
+    },
+    "/api/pc-consult/sessions/{session_id}/speech": {
+      "get": {
+        "operationId": "speech_status_api_pc_consult_sessions__session_id__speech_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpeechStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "상담 세션이 없거나 만료됨"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Speech Status",
+        "tags": [
+          "음성 읽기"
+        ]
+      },
+      "post": {
+        "operationId": "synthesize_speech_api_pc_consult_sessions__session_id__speech_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeechIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "audio/wav": {}
+            },
+            "description": "문장 하나의 음성(WAV)"
+          },
+          "404": {
+            "description": "상담 세션이 없거나 만료됨"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "description": "세션·하루·누적 합성 한도. Retry-After 초 뒤 다시"
+          },
+          "502": {
+            "description": "음성 합성 실패 또는 잘린 음성"
+          },
+          "503": {
+            "description": "서버 음성 합성 꺼짐 또는 혼잡"
+          }
+        },
+        "summary": "Synthesize Speech",
+        "tags": [
+          "음성 읽기"
         ]
       }
     },

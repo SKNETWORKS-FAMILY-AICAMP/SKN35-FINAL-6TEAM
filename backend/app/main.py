@@ -7,6 +7,7 @@ from mysql.connector import Error as MySQLError
 
 from app.api.pc_consult import router
 from app.api.pc_sessions import GuestSessions
+from app.api.voice import router as voice_router
 from app.contracts.schemas import HealthOut
 from app.db.connection import get_connection
 from app.domains.hardware.pc_consultation.parts_db import SHOP_COMPANY_ID
@@ -18,6 +19,7 @@ def create_app() -> FastAPI:
     )
     app.state.pc_sessions = GuestSessions(SHOP_COMPANY_ID)
     app.include_router(router)
+    app.include_router(voice_router)
 
     @app.get("/api/health", response_model=HealthOut, tags=["system"])
     def health() -> HealthOut:

@@ -192,6 +192,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/pc-consult/sessions/{session_id}/speech": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Speech Status */
+        get: operations["speech_status_api_pc_consult_sessions__session_id__speech_get"];
+        put?: never;
+        /** Synthesize Speech */
+        post: operations["synthesize_speech_api_pc_consult_sessions__session_id__speech_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/pc-consult/sessions/{session_id}/validations": {
         parameters: {
             query?: never;
@@ -515,6 +533,21 @@ export interface components {
             validation: components["schemas"]["ValidationOut"];
             version: components["schemas"]["PositiveId"];
         };
+        /**
+         * ReadingEntry
+         * @description 화면 글 `text` 를 읽을 때 `spoken` 으로 바꿉니다. prefix 면 바로 뒤 숫자를 한 자리씩 읽습니다.
+         */
+        ReadingEntry: {
+            /**
+             * Prefix
+             * @default false
+             */
+            prefix: boolean;
+            /** Spoken */
+            spoken: string;
+            /** Text */
+            text: string;
+        };
         /** RebalanceIn */
         RebalanceIn: {
             amount: components["schemas"]["Money"];
@@ -585,6 +618,27 @@ export interface components {
             title: string;
             /** Url */
             url: string;
+        };
+        /** SpeechIn */
+        SpeechIn: {
+            /**
+             * Text
+             * @description 읽기용으로 바꾼 문장 하나
+             */
+            text: string;
+        };
+        /** SpeechStatusOut */
+        SpeechStatusOut: {
+            /**
+             * Dictionary
+             * @description 이 매장 상품 이름을 읽는 법
+             */
+            dictionary: components["schemas"]["ReadingEntry"][];
+            /**
+             * Enabled
+             * @description 서버 음성 합성을 쓸 수 있는지. 아니면 브라우저 음성으로 읽습니다.
+             */
+            enabled: boolean;
         };
         /** Survey */
         Survey: {
@@ -1074,6 +1128,107 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    speech_status_api_pc_consult_sessions__session_id__speech_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpeechStatusOut"];
+                };
+            };
+            /** @description 상담 세션이 없거나 만료됨 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    synthesize_speech_api_pc_consult_sessions__session_id__speech_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpeechIn"];
+            };
+        };
+        responses: {
+            /** @description 문장 하나의 음성(WAV) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "audio/wav": unknown;
+                };
+            };
+            /** @description 상담 세션이 없거나 만료됨 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description 세션·하루·누적 합성 한도. Retry-After 초 뒤 다시 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 음성 합성 실패 또는 잘린 음성 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 서버 음성 합성 꺼짐 또는 혼잡 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
