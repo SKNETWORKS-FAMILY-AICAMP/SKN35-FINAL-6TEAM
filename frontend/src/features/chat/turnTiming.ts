@@ -2,6 +2,7 @@
  * 음성 턴의 시각 기록. 숫자만 남기고 받아쓴 글·답 글·소리는 남기지 않습니다.
  * 모든 지연 개선(말 끝 판정, 즉시 반응, 서버 스트리밍, 학습 모델)을 같은 자로 재려고 둡니다.
  */
+import type { SpeakInfo } from "./browserSpeech";
 import type { EndpointRule } from "./endpointPolicy";
 
 export type TurnMark =
@@ -23,6 +24,8 @@ export interface TurnRecord {
   bargeIn: boolean;
   /** 앞 문장이 끝나고 다음 문장 소리가 나기까지(ms). */
   sentenceGapsMs: number[];
+  /** 읽은 경로별 문장 수와 서버 음성 받기 시간(ms). fallback 은 서버가 실패해 브라우저로 넘긴 수. */
+  reading: { server: number; browser: number; fallback: number; fetchMs: number[] };
 }
 
 export interface IntervalSummary {
@@ -33,7 +36,8 @@ export interface IntervalSummary {
   p90: number | null;
 }
 
-export type IntervalKey = "endpointWait" | "firstAudio" | "firstContent" | "server" | "gap";
+export type IntervalKey =
+  "endpointWait" | "firstAudio" | "firstContent" | "server" | "gap" | "speechFetch";
 
 const INTERVALS: { key: IntervalKey; label: string; from?: TurnMark; to?: TurnMark }[] = [
   { key: "endpointWait", label: "말 끝 대기", from: "speechEnd", to: "endpoint" },
@@ -41,6 +45,7 @@ const INTERVALS: { key: IntervalKey; label: string; from?: TurnMark; to?: TurnMa
   { key: "firstContent", label: "내용 첫 소리", from: "endpoint", to: "firstContentAudio" },
   { key: "server", label: "서버 응답", from: "requestSent", to: "firstReply" },
   { key: "gap", label: "문장 사이 공백" },
+  { key: "speechFetch", label: "서버 음성 받기" },
 ];
 
 export const TURN_LIMIT = 50;
@@ -55,6 +60,7 @@ export function percentile(values: readonly number[], p: number): number | null 
 
 export function intervalValues(records: readonly TurnRecord[], key: IntervalKey): number[] {
   if (key === "gap") return records.flatMap((record) => record.sentenceGapsMs);
+  if (key === "speechFetch") return records.flatMap((record) => record.reading.fetchMs);
   const spec = INTERVALS.find((item) => item.key === key);
   if (!spec?.from || !spec.to) return [];
   const values: number[] = [];
@@ -107,6 +113,7 @@ export class TurnTimer {
       ack: false,
       bargeIn: false,
       sentenceGapsMs: [],
+      reading: { server: 0, browser: 0, fallback: 0, fetchMs: [] },
     });
     if (this.records.length > this.limit) this.records.splice(0, this.records.length - this.limit);
     this.changed();
@@ -134,6 +141,22 @@ export class TurnTimer {
     this.changed();
   }
 
+  /** 문장 하나를 어느 경로로 읽기 시작했는지. */
+  read(turnId: number, info: SpeakInfo | undefined): void {
+    const record = this.find(turnId);
+    if (!record) return;
+    const reading = record.reading;
+    if (info?.path === "server") {
+      reading.server += 1;
+      if (info.fetchMs !== undefined && info.fetchMs >= 0)
+        reading.fetchMs.push(Math.round(info.fetchMs));
+    } else {
+      reading.browser += 1;
+      if (info?.fallback) reading.fallback += 1;
+    }
+    this.changed();
+  }
+
   clear(): void {
     this.records = [];
     this.changed();
@@ -147,6 +170,7 @@ export class TurnTimer {
           ...record,
           marks: { ...record.marks },
           sentenceGapsMs: [...record.sentenceGapsMs],
+          reading: { ...record.reading, fetchMs: [...record.reading.fetchMs] },
         })),
       };
     }

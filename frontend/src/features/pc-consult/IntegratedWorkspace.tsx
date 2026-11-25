@@ -143,6 +143,7 @@ export function IntegratedWorkspace({
             )}
             <ChatPanel
               key={sessionId}
+              speechSession={live ? sessionId : undefined}
               state={displayedChat}
               disabled={false}
               onSend={(text) => {

@@ -33,12 +33,17 @@ interface Props {
   voiceEngine?: VoiceEngineOptions;
   /** 턴 시간 표. 없으면 ?voice-debug 일 때만 보입니다. */
   showTimings?: boolean;
+  /** 실제 상담 세션 id. 있으면 서버 음성(켜져 있을 때)과 상품 이름 읽기 사전을 씁니다. */
+  speechSession?: string;
 }
 
 const PLACEHOLDER = "예: 노트북 추천, 예산 300만 원";
 const EMPTY = "무엇을 도와드릴까요? 사려는 장비 · 예산 · 용도를 말씀해 주세요.";
 const NO_NOTES: TeamNote[] = [];
-const PAGE_ENGINE: VoiceEngineOptions = { bargeIn: PAGE_VOICE_FLAGS.bargeIn };
+const PAGE_ENGINE: VoiceEngineOptions = {
+  bargeIn: PAGE_VOICE_FLAGS.bargeIn,
+  tts: PAGE_VOICE_FLAGS.tts === "browser" ? "browser" : "auto",
+};
 // 바닥에서 이만큼 안쪽에 있으면 새 기록이 올 때 따라 내려갑니다.
 const FOLLOW_GAP = 48;
 
@@ -165,6 +170,7 @@ export function ChatPanel({
   compactWelcome = false,
   voiceEngine = PAGE_ENGINE,
   showTimings = PAGE_VOICE_FLAGS.debug,
+  speechSession,
 }: Props) {
   const History = compactWelcome ? "details" : "div";
   const [text, setText] = useState("");
@@ -173,7 +179,15 @@ export function ChatPanel({
   const [pinRequest, setPinRequest] = useState(false);
   const logRef = useRef<HTMLOListElement>(null);
   const following = useRef(true);
-  const voice = useVoiceConsultation({ chat: state, onSend, disabled, engine: voiceEngine });
+  const voice = useVoiceConsultation({
+    chat: state,
+    onSend,
+    disabled,
+    engine: voiceEngine,
+    speechEndpoint: speechSession
+      ? `/api/pc-consult/sessions/${encodeURIComponent(speechSession)}/speech`
+      : undefined,
+  });
   const { micEnabled, speechEnabled, finalText, interimText, speakingKind } = voice.state;
   // 즉시 반응을 읽는 동안은 아직 답을 기다리는 중이라 '보내는 중'으로 보여 줍니다.
   const phase =
@@ -313,7 +327,9 @@ export function ChatPanel({
             <summary>음성 처리 안내</summary>
             <p>
               음성은 Chrome 음성 인식 서비스로 보내 글자로 바꿉니다. 녹음 파일은 만들거나 저장하지
-              않습니다.
+              않습니다. 음성 답은 AI 가 만든 목소리로 읽습니다.
+              {voice.serverVoice &&
+                " 서버 음성이 켜져 있어 답 글을 음성 합성 서비스로 보내 소리로 바꿉니다."}
               {voice.bargeIn &&
                 " 끼어들기를 켜면 말소리를 알아채려고 마이크가 계속 켜져 있고, 소리 크기만 브라우저 안에서 확인합니다."}
             </p>

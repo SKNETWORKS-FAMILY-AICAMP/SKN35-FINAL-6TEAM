@@ -1,4 +1,6 @@
 /** Browser-only boundary; no audio blobs, recorder, storage, or application API calls. */
+import type { ReadingEntry } from "./speechText";
+
 interface RecognitionResult {
   isFinal: boolean;
   0: { transcript: string };
@@ -32,11 +34,26 @@ export interface RecognitionCallbacks {
   interrupted?: () => void;
 }
 
+/** 어느 경로로 읽었는지. 시간 기록에만 씁니다. */
+export interface SpeakInfo {
+  path: "server" | "browser";
+  /** 서버 음성 요청부터 재생 준비까지(ms). */
+  fetchMs?: number;
+  /** 서버 음성이 실패해 브라우저로 넘긴 경우. */
+  fallback?: boolean;
+}
+
 export interface SpeakCallbacks {
-  /** 소리가 실제로 나기 시작한 때. 첫 소리 시각을 잽니다. */
-  started?: () => void;
+  /** 소리가 나기 시작한 때. 첫 소리 시각을 잽니다. */
+  started?: (info?: SpeakInfo) => void;
   ended: () => void;
   failed: (reason: string) => void;
+}
+
+/** 서버가 내려 주는 읽기 설정. */
+export interface SpeechStatus {
+  enabled: boolean;
+  dictionary: ReadingEntry[];
 }
 
 export interface SpeechAdapter {
@@ -48,6 +65,14 @@ export interface SpeechAdapter {
   voiceLocality?(): "local" | "remote" | null;
   /** 화면을 열 때 지난 페이지에서 남은 읽기 큐를 비웁니다. */
   reset?(): void;
+  /** 곧 읽을 문장을 미리 받아 둡니다. keep 이면 cancelAll 에도 남깁니다(즉시 반응). */
+  prepare?(text: string, options?: { keep?: boolean }): void;
+  /** 미리 받은 것과 진행 중인 요청을 모두 버립니다. 그만 읽기·끼어들기·새 질문 때 부릅니다. */
+  cancelAll?(): void;
+  /** 사용자 동작(클릭·Enter) 안에서 불러 소리 재생을 허용받습니다. */
+  unlock?(): void;
+  /** 서버 읽기 설정과 상품 이름 사전을 불러옵니다. 없거나 실패하면 null. */
+  load?(): Promise<SpeechStatus | null>;
 }
 
 /** 시작 신호가 이 안에 없으면 그 문장을 건너뜁니다. */

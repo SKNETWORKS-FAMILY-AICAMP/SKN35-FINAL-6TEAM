@@ -5,6 +5,8 @@ import type { ChatState } from "./chatState";
 import { endpointDelay, type EndpointPolicy } from "./endpointPolicy";
 import { createMicActivityDetector, type ActivityDetector } from "./micActivity";
 import { speakable, splitSentences } from "./sentenceSplitter";
+import { createServerSpeech } from "./serverSpeech";
+import { toSpoken, type ReadingEntry } from "./speechText";
 import { TurnTimer, type TurnMark } from "./turnTiming";
 import {
   createVoiceReducer,
@@ -25,6 +27,8 @@ export interface VoiceEngineOptions {
   policy?: EndpointPolicy;
   /** 말 끝 판정 뒤 답이 이만큼 안 오면 즉시 반응을 읽습니다. null 이면 끕니다. */
   ackDelayMs?: number | null;
+  /** browser 면 서버 음성이 켜져 있어도 브라우저 음성으로 읽습니다(?tts=browser). */
+  tts?: "auto" | "browser";
 }
 
 interface Options {
@@ -32,6 +36,8 @@ interface Options {
   onSend: (text: string, quickReply: QuickReplyIn | null) => void | Promise<void>;
   disabled: boolean;
   engine?: VoiceEngineOptions;
+  /** 상담 세션의 음성 경로. 있으면 서버 음성과 상품 이름 사전을 씁니다. */
+  speechEndpoint?: string;
 }
 
 type ActiveTurn = VoiceReplyBoundary & { turnId: number };
@@ -44,8 +50,17 @@ const RETRY_WINDOW_MS = 2000;
 
 const noop = () => {};
 
-export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options) {
-  const [adapter] = useState<SpeechAdapter>(() => engine?.speech ?? createBrowserSpeech());
+export function useVoiceConsultation({ chat, onSend, disabled, engine, speechEndpoint }: Options) {
+  const [adapter] = useState<SpeechAdapter>(() => {
+    if (engine?.speech) return engine.speech;
+    const browser = createBrowserSpeech();
+    if (!speechEndpoint) return browser;
+    return createServerSpeech({
+      endpoint: speechEndpoint,
+      fallback: browser,
+      forceBrowser: engine?.tts === "browser",
+    });
+  });
   const [detector] = useState<ActivityDetector>(
     () => engine?.detector ?? createMicActivityDetector(),
   );
@@ -72,6 +87,27 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
   const lastContentEnd = useRef<{ turn: number; at: number } | null>(null);
   const bargedInAt = useRef(0);
   const retried = useRef(false);
+  /** 상품 이름 사전. 읽는 도중에 바뀌어도 그 문장을 다시 읽지 않게 ref 로 둡니다. */
+  const dictionary = useRef<readonly ReadingEntry[]>([]);
+  const unlocked = useRef(false);
+  const [serverVoice, setServerVoice] = useState(false);
+  const spoken = useCallback((text: string) => toSpoken(text, dictionary.current), []);
+
+  const prepareAcks = useCallback(() => {
+    for (const ack of ACKS) adapter.prepare?.(toSpoken(ack, dictionary.current), { keep: true });
+  }, [adapter]);
+
+  /** 읽기를 멈추고 미리 받은 문장도 버립니다(즉시 반응은 남김). */
+  const cancelSpeech = useCallback(() => {
+    stopSpeech.current();
+    adapter.cancelAll?.();
+  }, [adapter]);
+
+  function unlock() {
+    unlocked.current = true;
+    adapter.unlock?.();
+    prepareAcks();
+  }
 
   const dispatch = useCallback(
     (action: VoiceAction) => {
@@ -96,7 +132,7 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
       };
       activeTurn.current = turn;
       stopRecognition.current();
-      stopSpeech.current();
+      cancelSpeech();
       timer.mark(turnId, "requestSent", Date.now());
       const failed = () => {
         if (activeTurn.current !== turn) return;
@@ -120,7 +156,7 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
         failed();
       }
     },
-    [chat.messages, dispatch, onSend, timer],
+    [cancelSpeech, chat.messages, dispatch, onSend, timer],
   );
 
   useEffect(() => {
@@ -130,17 +166,32 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
     return () => {
       mounted.current = false;
       stopRecognition.current();
-      stopSpeech.current();
+      cancelSpeech();
     };
-  }, [adapter]);
+  }, [adapter, cancelSpeech]);
+
+  // 서버 음성을 쓸 수 있는지와 상품 이름 사전을 받아 둡니다.
+  useEffect(() => {
+    if (!adapter.load) return;
+    let live = true;
+    void adapter.load().then((status) => {
+      if (!live || !status) return;
+      dictionary.current = status.dictionary;
+      setServerVoice(status.enabled);
+      if (status.enabled && unlocked.current) prepareAcks();
+    });
+    return () => {
+      live = false;
+    };
+  }, [adapter, prepareAcks]);
 
   useEffect(() => {
     if (!disabled) return;
     activeTurn.current = null;
     stopRecognition.current();
-    stopSpeech.current();
+    cancelSpeech();
     dispatch({ type: "disabled" });
-  }, [disabled, dispatch]);
+  }, [cancelSpeech, disabled, dispatch]);
 
   const listening = isListening(state) && !disabled && chat.pending === null;
   useEffect(() => {
@@ -253,7 +304,7 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
       if (activeTurn.current?.text === chat.pending) activeTurn.current.sawPending = true;
       if (!current.current.awaitingReply) {
         stopRecognition.current();
-        stopSpeech.current();
+        cancelSpeech();
         dispatch({ type: "manual_send" });
       }
       return;
@@ -278,6 +329,10 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
         activeTurn.current = null;
         timer.mark(turn.turnId, "firstReply", Date.now());
         const sentences = splitSentences(reply.content).map(speakable).filter(Boolean);
+        // 즉시 반응을 읽는 중에도 첫 두 문장은 바로 받기 시작합니다.
+        if (current.current.speechEnabled) {
+          for (const sentence of sentences.slice(0, 2)) adapter.prepare?.(spoken(sentence));
+        }
         dispatch({ type: "reply", text: reply.content, sentences });
         return;
       }
@@ -290,7 +345,18 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
     }
     // 이 훅을 거치지 않고 보낸 요청이 끝났으면 기다림을 풉니다.
     dispatch({ type: "reply_missing" });
-  }, [chat.error, chat.messages, chat.pending, completionRevision, disabled, dispatch, timer]);
+  }, [
+    adapter,
+    cancelSpeech,
+    chat.error,
+    chat.messages,
+    chat.pending,
+    completionRevision,
+    disabled,
+    dispatch,
+    spoken,
+    timer,
+  ]);
 
   useEffect(() => {
     if (state.phase !== "speaking" || disabled) return;
@@ -298,11 +364,12 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
     const kind = state.speakingKind;
     const turn = state.speakingTurn;
     stopRecognition.current();
-    const stop = adapter.speak(state.speakingText, {
-      started: () => {
+    const stop = adapter.speak(spoken(state.speakingText), {
+      started: (info) => {
         const now = Date.now();
         utteranceStartedAt.current = now;
         if (turn === null) return;
+        timer.read(turn, info);
         timer.mark(turn, "firstAudio", now);
         if (kind === "ack") timer.flag(turn, "ack");
         if (kind !== "content") return;
@@ -323,6 +390,9 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
       },
     });
     stopSpeech.current = stop;
+    // 다음 문장을 지금 받기 시작해 문장 사이 공백을 줄입니다.
+    const next = current.current.speechQueue[0];
+    if (next) adapter.prepare?.(spoken(next));
     return () => {
       stop();
       stopSpeech.current = noop;
@@ -331,6 +401,7 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
     adapter,
     disabled,
     dispatch,
+    spoken,
     state.phase,
     state.speakingKind,
     state.speakingText,
@@ -350,7 +421,7 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
         bargedInAt.current = at;
         retried.current = false;
         utteranceStartedAt.current = null;
-        stopSpeech.current();
+        cancelSpeech();
         dispatch({ type: "barge_in", speechId: now.speechId });
       },
       () => ({
@@ -361,7 +432,7 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
         if (mounted.current) setBargeInError(reason);
       },
     );
-  }, [bargeIn, detector, disabled, dispatch, state.micEnabled, timer]);
+  }, [bargeIn, cancelSpeech, detector, disabled, dispatch, state.micEnabled, timer]);
 
   function toggleMic() {
     if (disabled) return;
@@ -374,6 +445,7 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
       return;
     }
     if (current.current.micEnabled) stopRecognition.current();
+    else unlock();
     setBargeInError(null);
     draft.current = {};
     dispatch({ type: "mic", enabled: !current.current.micEnabled });
@@ -388,24 +460,27 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
       });
       return;
     }
-    if (current.current.speechEnabled) stopSpeech.current();
+    if (current.current.speechEnabled) cancelSpeech();
+    else unlock();
     dispatch({ type: "speech", enabled: !current.current.speechEnabled });
   }
 
   function stopReading() {
-    stopSpeech.current();
+    cancelSpeech();
     dispatch({ type: "stop_reading" });
   }
 
   function beforeTextSend() {
     stopRecognition.current();
-    stopSpeech.current();
+    cancelSpeech();
     draft.current = {};
     dispatch({ type: "manual_send" });
   }
 
   function sendText(text: string, quickReply: QuickReplyIn | null) {
     if (disabled || chat.pending !== null || !text.trim()) return;
+    // 전송 클릭·Enter 안에서 소리 재생을 허용받아 둡니다(마이크 없이 글만 쓰는 경우).
+    if (current.current.speechEnabled) unlock();
     beforeTextSend();
     const turnId = current.current.turnId;
     timer.begin(turnId, "text");
@@ -416,6 +491,8 @@ export function useVoiceConsultation({ chat, onSend, disabled, engine }: Options
     state,
     recognitionSupported: adapter.recognitionSupported,
     synthesisSupported: adapter.synthesisSupported,
+    /** 서버 음성이 켜져 있는지. 안내 문구에 씁니다. */
+    serverVoice,
     bargeIn: bargeIn && detector.supported && bargeInError === null,
     bargeInError,
     timer,

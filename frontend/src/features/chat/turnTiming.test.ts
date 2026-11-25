@@ -74,6 +74,23 @@ describe("TurnTimer", () => {
     expect(timer.snapshot()).toEqual([]);
   });
 
+  it("counts reading paths and summarizes server voice fetch time", () => {
+    const timer = new TurnTimer();
+    timer.begin(1, "voice");
+    timer.read(1, { path: "server", fetchMs: 420.4 });
+    timer.read(1, { path: "server", fetchMs: 180 });
+    timer.read(1, { path: "browser", fallback: true });
+    timer.read(1, undefined);
+    timer.read(9, { path: "server", fetchMs: 1 });
+    expect(timer.snapshot()[0].reading).toEqual({
+      server: 2,
+      browser: 2,
+      fallback: 1,
+      fetchMs: [420, 180],
+    });
+    expect(intervalValues(timer.snapshot(), "speechFetch")).toEqual([420, 180]);
+  });
+
   it("exports relative times and no transcript text", () => {
     const timer = new TurnTimer();
     timer.begin(1, "voice", { speechStart: 1_700_000_000_000, endpoint: 1_700_000_000_800 });
@@ -89,6 +106,7 @@ describe("TurnTimer", () => {
         "endpointDelayMs",
         "endpointRule",
         "marks",
+        "reading",
         "sentenceGapsMs",
         "source",
         "turnId",

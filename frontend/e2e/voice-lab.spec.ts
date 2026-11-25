@@ -18,6 +18,7 @@ declare global {
       speaking: () => boolean;
       setLatency: (ms: number) => void;
       setLength: (length: "short" | "long") => void;
+      readings: () => { server: number; browser: number; fallback: number; fetchMs: number[] }[];
     };
   }
 }
@@ -147,3 +148,145 @@ for (const width of [1440, 390]) {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 }
+
+// --- 서버 음성 경로(?tts=server). 서버는 page.route 로 흉내 내고, 재생은 실제 오디오로 합니다. ---
+
+const SPEECH_ROUTE = "**/api/pc-consult/sessions/voice-lab/speech";
+const ACK_TEXTS = new Set([
+  "네, 잠시만요.",
+  "네, 확인할게요.",
+  "네, 알겠어요.",
+  "좋아요, 잠시만요.",
+]);
+
+/** 24kHz 모노 16비트 사인파 WAV. */
+function sineWav(seconds: number): Buffer {
+  const rate = 24_000;
+  const frames = Math.round(rate * seconds);
+  const data = Buffer.alloc(frames * 2);
+  for (let index = 0; index < frames; index++) {
+    data.writeInt16LE(Math.round(Math.sin((index / rate) * 2 * Math.PI * 440) * 3000), index * 2);
+  }
+  const header = Buffer.alloc(44);
+  header.write("RIFF", 0);
+  header.writeUInt32LE(36 + data.length, 4);
+  header.write("WAVEfmt ", 8);
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(1, 22);
+  header.writeUInt32LE(rate, 24);
+  header.writeUInt32LE(rate * 2, 28);
+  header.writeUInt16LE(2, 32);
+  header.writeUInt16LE(16, 34);
+  header.write("data", 36);
+  header.writeUInt32LE(data.length, 40);
+  return Buffer.concat([header, data]);
+}
+
+interface SpeechServer {
+  requests: { text: string; at: number }[];
+  content: () => { text: string; at: number }[];
+}
+
+async function fakeSpeechServer(
+  page: Page,
+  options: { status?: number; delayMs?: number; seconds?: number } = {},
+): Promise<SpeechServer> {
+  const requests: { text: string; at: number }[] = [];
+  await page.route(SPEECH_ROUTE, async (route) => {
+    const request = route.request();
+    if (request.method() === "GET") {
+      await route.fulfill({ json: { enabled: true, dictionary: [] } });
+      return;
+    }
+    const text = (request.postDataJSON() as { text: string }).text;
+    requests.push({ text, at: Date.now() });
+    await new Promise((resolve) => setTimeout(resolve, options.delayMs ?? 150));
+    if (options.status && options.status !== 200) {
+      await route.fulfill({ status: options.status, body: "실패" }).catch(() => undefined);
+      return;
+    }
+    await route
+      .fulfill({ status: 200, contentType: "audio/wav", body: sineWav(options.seconds ?? 0.3) })
+      .catch(() => undefined);
+  });
+  return { requests, content: () => requests.filter((item) => !ACK_TEXTS.has(item.text)) };
+}
+
+async function openServerVoice(page: Page, latencyMs: number, mic = true) {
+  await page.goto("/?voice-lab&fake-speech&tts=server");
+  await expect(page.getByRole("heading", { name: "음성 엔진 실험실" })).toBeVisible();
+  await page.waitForFunction(() => window.__voiceLab !== undefined);
+  await page.evaluate((ms) => window.__voiceLab?.setLatency(ms), latencyMs);
+  await page.getByTestId("voice-reply").click();
+  if (mic) {
+    await page.getByTestId("voice-mic").click();
+    await expect(page.getByTestId("voice-status")).toHaveText("듣는 중");
+  }
+}
+
+const readings = (page: Page) =>
+  page.evaluate(() => {
+    const all = window.__voiceLab?.readings() ?? [];
+    return all.reduce(
+      (sum, item) => ({
+        server: sum.server + item.server,
+        browser: sum.browser + item.browser,
+        fallback: sum.fallback + item.fallback,
+      }),
+      { server: 0, browser: 0, fallback: 0 },
+    );
+  });
+
+test("서버 음성으로 문장 순서대로 읽고, 다음 문장은 미리 받는다", async ({ page }) => {
+  const server = await fakeSpeechServer(page, { delayMs: 200 });
+  await openServerVoice(page, 100);
+  await say(page, "그래픽카드 추천해 주세요");
+  await expect
+    .poll(() => readings(page), { timeout: 10_000 })
+    .toMatchObject({
+      server: LONG_SENTENCES,
+      browser: 0,
+    });
+  const content = server.content();
+  expect(content.map((item) => item.text)).toHaveLength(LONG_SENTENCES);
+  expect(content[0].text).toContain("실험용 답입니다.");
+  expect(content.at(-1)?.text).toContain("판매가를 확인해 주세요.");
+  // 답이 오자마자 첫 두 문장을 같이 요청합니다.
+  expect(content[1].at - content[0].at).toBeLessThan(150);
+  await expect(spoken(page)).toHaveCount(0);
+  await expect(page.getByTestId("voice-status")).toHaveText("듣는 중", { timeout: 8000 });
+});
+
+test("서버 음성이 실패하면 그 문장은 브라우저 읽기로 넘어간다", async ({ page }) => {
+  await fakeSpeechServer(page, { status: 503 });
+  await openServerVoice(page, 100);
+  await say(page, "그래픽카드 추천해 주세요");
+  await expect(spoken(page)).toHaveCount(LONG_SENTENCES, { timeout: 10_000 });
+  await expect(spoken(page).first()).toContainText("실험용 답입니다.");
+  // 미리 받던 즉시 반응이 연달아 실패해 회로가 열렸으므로 답은 처음부터 브라우저로 읽습니다.
+  const counts = await readings(page);
+  expect(counts).toMatchObject({ server: 0, browser: LONG_SENTENCES });
+});
+
+test("서버 음성을 읽는 중에 그만 읽기를 누르면 더 재생하지 않는다", async ({ page }) => {
+  await fakeSpeechServer(page, { delayMs: 100, seconds: 2 });
+  await openServerVoice(page, 100);
+  await say(page, "그래픽카드 추천해 주세요");
+  await expect.poll(async () => (await readings(page)).server, { timeout: 5000 }).toBe(1);
+  await page.getByTestId("voice-stop").click();
+  await expect(page.getByTestId("voice-status")).toHaveText("듣는 중");
+  await page.waitForTimeout(2500);
+  expect(await readings(page)).toMatchObject({ server: 1, browser: 0 });
+});
+
+test("마이크 없이 글만 보내도 서버 음성으로 읽는다", async ({ page }) => {
+  await fakeSpeechServer(page);
+  await openServerVoice(page, 100, false);
+  await page.getByPlaceholder("예: 노트북 추천, 예산 300만 원").fill("그래픽카드 추천해 주세요");
+  await page.getByTestId("chat-send").click();
+  await expect
+    .poll(async () => (await readings(page)).server, { timeout: 10_000 })
+    .toBe(LONG_SENTENCES);
+  await expect(spoken(page)).toHaveCount(0);
+});
