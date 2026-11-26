@@ -4,14 +4,13 @@ import type { FanSelection, Part } from "../types";
 import {
   CATEGORY_LABELS,
   won,
-  priceLabel,
   type Candidate,
   type CandidateResult,
   type Category,
   type Progress,
 } from "../types";
-import { Modal, PartGlyph, PartSpecs, StatusBadge, ValidationDetails } from "./ui";
-import { PartVisual } from "./PartVisual";
+import { Modal, PartGlyph, ValidationDetails } from "./ui";
+import { CandidateCard } from "./CandidateCard";
 
 interface Props {
   category: Category;
@@ -23,73 +22,12 @@ interface Props {
   onChoose: (candidate: Candidate, allowUnknown?: boolean, fans?: FanSelection[]) => void;
   selectedCooler?: Part;
   onRetry: () => void;
+  onMoreGpu?: (previous: CandidateResult) => Promise<CandidateResult>;
   onBudget: () => void;
   onBack: () => void;
   onEditSurvey: () => void;
   canBudget: boolean;
   editing: boolean;
-}
-
-function CandidateCard({
-  candidate,
-  onChoose,
-  reviewOnly = false,
-}: {
-  candidate: Candidate;
-  onChoose: () => void;
-  reviewOnly?: boolean;
-}) {
-  const { part, validation } = candidate;
-  const recommended =
-    !reviewOnly &&
-    candidate.recommended &&
-    (validation.status === "PASS" || validation.status === "CONDITIONAL");
-  return (
-    <article
-      className={`pc-candidate${recommended ? " pc-recommended" : ""}`}
-      data-testid="pc-candidate"
-      data-source-key={part.source_key}
-    >
-      {recommended && (
-        <div className="pc-recommendation">
-          <span>✦ AI 추천</span>
-        </div>
-      )}
-      <div className="pc-candidate-main">
-        <PartVisual category={part.category} name={part.name} imageUrl={part.image_url} />
-        <div className="pc-product">
-          <span className="pc-eyebrow">
-            {!part.brand || /^(unknown|unconfirmed|unverified)$/i.test(part.brand)
-              ? "브랜드 미확인"
-              : part.brand}
-          </span>
-          <h3>{part.name}</h3>
-          <PartSpecs part={part} />
-          <div className="pc-product-meta">
-            <span>{part.specs.color ? `색상: ${String(part.specs.color)}` : "색상 정보 없음"}</span>
-            {part.power_draw_w != null && (
-              <span>
-                소비 전력 {part.power_draw_w}W{part.power_status === "unconfirmed" ? " · 추정" : ""}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="pc-candidate-price">
-          <strong>{part.current_price == null ? "가격 미확인" : won(part.current_price)}</strong>
-          <small>{priceLabel(part)}</small>
-          <button
-            className="pc-button pc-primary"
-            type="button"
-            onClick={onChoose}
-            aria-label={`${part.name} 선택`}
-          >
-            이 부품 선택 <span aria-hidden="true">→</span>
-          </button>
-        </div>
-      </div>
-      {validation.status !== "PASS" && <StatusBadge status={validation.status} />}
-    </article>
-  );
 }
 
 export function CandidateScreen({
@@ -102,6 +40,7 @@ export function CandidateScreen({
   onChoose,
   selectedCooler,
   onRetry,
+  onMoreGpu,
   onBudget,
   onBack,
   onEditSurvey,
@@ -110,6 +49,28 @@ export function CandidateScreen({
 }: Props) {
   const [visible, setVisible] = useState(10);
   const [unknownVisible, setUnknownVisible] = useState(10);
+  const [loadingMore, setLoadingMore] = useState<CandidateResult | null>(null);
+  const [exhausted, setExhausted] = useState<CandidateResult | null>(null);
+  const [loadError, setLoadError] = useState<{ result: CandidateResult; message: string } | null>(
+    null,
+  );
+  async function moreGpu(previous: CandidateResult) {
+    if (!onMoreGpu || loadingMore === previous) return;
+    setLoadingMore(previous);
+    setLoadError(null);
+    try {
+      const next = await onMoreGpu(previous);
+      if (next.passed.length <= previous.passed.length) setExhausted(next);
+      setVisible((count) => count + 10);
+    } catch (error) {
+      setLoadError({
+        result: previous,
+        message: error instanceof Error ? error.message : "추가 GPU 후보를 불러오지 못했습니다.",
+      });
+    } finally {
+      setLoadingMore((current) => (current === previous ? null : current));
+    }
+  }
   const [warning, setWarning] = useState<Candidate | null>(null);
   const label = CATEGORY_LABELS[category];
   const onlyReview = Boolean(result && !result.passed.length && result.needsReview.length);
@@ -217,6 +178,8 @@ export function CandidateScreen({
               <div className="pc-empty">
                 <PartGlyph category={category} />
                 <h2>지금 조건에 맞는 후보가 없습니다.</h2>
+                {(category === "case" || category === "psu") &&
+                  result.criteria.map((reason) => <p key={reason}>{reason}</p>)}
                 <div className="pc-actions">
                   {canBudget && (
                     <button className="pc-button pc-primary" onClick={onBudget}>
@@ -235,6 +198,8 @@ export function CandidateScreen({
             {category === "cooler" && result.basis === "api" && result.passed.length > 0 ? (
               <CoolingPicker
                 result={result}
+                visible={visible}
+                onMore={() => setVisible((count) => count + 10)}
                 selected={selectedCooler}
                 budget={budget}
                 onNext={(choice, fans) => onChoose(choice, false, fans)}
@@ -260,6 +225,29 @@ export function CandidateScreen({
                 </button>
               )}
             {result.passed.length > 0 && result.needsReview.length > 0 && reviewList}
+            {onMoreGpu &&
+              result.basis === "api" &&
+              result.passed.length > 0 &&
+              visible >= result.passed.length &&
+              result.passed.length < 64 &&
+              result.passed.length + result.rejectedCount >= 10 &&
+              (exhausted === result ? (
+                <p role="status">현재 조건의 GPU 후보를 모두 확인했습니다.</p>
+              ) : (
+                <button
+                  type="button"
+                  className="pc-button pc-more"
+                  disabled={loadingMore === result}
+                  onClick={() => void moreGpu(result)}
+                >
+                  {loadingMore === result ? "추가 GPU 후보 확인 중" : "GPU 후보 더 확인하기"}
+                </button>
+              ))}
+            {loadError?.result === result && (
+              <p className="pc-error" role="alert">
+                {loadError.message}
+              </p>
+            )}
           </>
         )
       )}

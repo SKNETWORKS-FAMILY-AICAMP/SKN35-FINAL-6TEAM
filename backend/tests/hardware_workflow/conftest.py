@@ -90,7 +90,9 @@ def validate_parts():
 def fixture_model(schema, instruction, data):
     """Scripted model transport for the fictional catalog only."""
     if schema is designer.CoolingChoice:
-        return schema(index=0, reason="테스트 냉각 근거")
+        return schema(
+            index=0, reason="테스트 냉각 근거", liquid_alternative=None, additional_fan=None
+        )
     if schema is designer.Design:
         survey = data["survey"]
         targets = {"gaming": "gpu", "multitasking": "ram", "heat": "cooler", "storage": "storage"}

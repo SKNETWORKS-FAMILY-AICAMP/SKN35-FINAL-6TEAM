@@ -79,15 +79,14 @@ def plan(request: Request, session_id: str, body: c.PlanIn):
 
     with _sessions(request).visit(session_id, request.cookies.get(COOKIE)) as session:
         session.log.current_requirement_version += 1
-        session.survey = None
-        session.design.clear()
-        session.assessments.clear()
-        session.candidate_explanations.clear()
-        session.draft = session.draft_input = None
         with session.work(Team.consultation, "상담 조건 분석"):
             inputs = session.survey_inputs(body.survey)
+            inputs.update(_design={}, _assessments={})
             result = c.PlanOut.model_validate(_call(service.plan, inputs))
             session.design = inputs["_design"]
+            session.assessments = inputs["_assessments"]
+            session.candidate_explanations.clear()
+            session.draft = session.draft_input = None
             session.survey = body.survey
             return result
 
@@ -101,12 +100,20 @@ def candidates(request: Request, session_id: str, body: c.CandidatesIn):
         stage,
     ):
         details = {}
+        gpu_target = None
+        if body.category == "gpu":
+            previous = session.candidate_explanations.get("gpu", {})
+            # Return a ranked prefix. Repeating the same lookup extends it using the session's
+            # cached performance decisions. Prices and compatibility are checked on every read.
+            gpu_target = len(previous["shown"]) + 1 if previous.get("request") == body else 1
+            details["request"] = body
         result = c.CandidatesOut.model_validate(
             _call(
                 service.candidates,
                 {**body.model_dump(), "survey": session.survey_inputs(body.survey, body.cooling)},
                 validation_stage=stage,
                 explanation=details,
+                gpu_target=gpu_target,
             )
         )
         session.candidate_explanations.pop(body.category, None)

@@ -35,19 +35,21 @@ export function useChat(
   }, [api]);
   const sendChat = useCallback(
     async (text: string) => {
-      if (sending.current || !text.trim()) return;
+      if (sending.current || !text.trim()) return false;
       sending.current = true;
       dispatch({ type: "sent", text });
       try {
         const { survey, selected } = context.current;
         const messages = await api.send(text, survey, selected);
         if (active.current) dispatch({ type: "answered", messages });
+        return active.current;
       } catch (cause) {
         if (active.current)
           dispatch({
             type: "failed",
             error: cause instanceof Error ? cause.message : "답변을 받지 못했습니다.",
           });
+        return false;
       } finally {
         sending.current = false;
       }

@@ -1,10 +1,17 @@
+from datetime import datetime
+
 import pytest
 
-from app.domains.hardware.ingestion.fit_specs import fit_updates, load_fit_reviews
+from app.domains.hardware.ingestion.fit_specs import (
+    CASE_MOUNT_FIELDS,
+    fit_updates,
+    load_fit_reviews,
+)
 from app.domains.hardware.pc_consultation.catalog import validate_selection
+from app.domains.hardware.pc_consultation.parts_db import _part
 
 
-def reviewed_part(name, part_id, initial=None):
+def reviewed_part(name, part_id, initial=None, *, stored=False):
     review = next(r for r in load_fit_reviews().values() if r["raw_name"] == name)
     specs = dict(
         initial or {},
@@ -17,6 +24,10 @@ def reviewed_part(name, part_id, initial=None):
     model = review.get("match_model")
     specs.update(fit_updates(specs, review["category"], model, review))
     assert fit_updates(specs, review["category"], model, review) == {}
+    if not stored:
+        specs.update(
+            fit_updates(specs, review["category"], model, review, include_file_sources=True)
+        )
     return dict(
         id=part_id,
         name=name,
@@ -30,6 +41,39 @@ def reviewed_part(name, part_id, initial=None):
 def checks_for(*parts):
     ids = {p["category"]: p["id"] for p in parts}
     return {c["check_type"]: c for c in validate_selection(ids, parts)}
+
+
+def test_manufacturer_table_sources_are_resolved_without_storing_urls():
+    part = reviewed_part("Intel Core i5-14400F", 1, stored=True)
+    specs = part["specs"]
+    review = load_fit_reviews()[specs["_provenance"]["source_key"]]
+    assert specs["threads"] == 16 and "threads_source_url" not in specs
+    assert (
+        fit_updates(specs, "cpu", part["model_number"], review, include_file_sources=True)[
+            "threads_source_url"
+        ]
+        == review["field_sources"]["threads"]
+    )
+
+
+def test_case_mount_sources_are_resolved_on_read():
+    case = reviewed_part("NZXT H5 Flow (2024)", 1, stored=True)
+    specs = case["specs"]
+    review = load_fit_reviews()[specs["_provenance"]["source_key"]]
+    assert all(field in specs and field + "_source_url" not in specs for field in CASE_MOUNT_FIELDS)
+    assert specs["front_radiator_standard_stack_mm_source_url"]
+    row = case | dict(
+        part_id=1,
+        brand="NZXT",
+        currency="KRW",
+        current_price=100,
+        price_checked_at=datetime(2026, 1, 1),
+    )
+    displayed = _part(row, 1)["specs"]
+    for field in CASE_MOUNT_FIELDS:
+        assert displayed[field + "_source_url"] == review["field_sources"].get(
+            field, review["source_url"]
+        )
 
 
 @pytest.mark.parametrize(

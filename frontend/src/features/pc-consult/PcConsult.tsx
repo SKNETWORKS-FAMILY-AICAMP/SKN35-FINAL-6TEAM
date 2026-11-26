@@ -25,6 +25,7 @@ import {
   type ConsultState,
 } from "./state";
 import { CATEGORY_LABELS, selectionLines, type CandidateRequest, type Survey } from "./types";
+import type { DesignRevision } from "./designRevision";
 import "./pcConsult.css";
 
 export function PcConsult({
@@ -55,6 +56,8 @@ export function PcConsult({
     intake: boolean,
     summary: ReactNode,
     screen: ConsultState["screen"],
+    revise: (change: DesignRevision, record: () => Promise<boolean>) => Promise<void>,
+    revisionPending: boolean,
   ) => ReactNode;
   initialSurvey?: Survey;
   requestedDiscountPercent?: number;
@@ -128,6 +131,9 @@ export function PcConsult({
   const [draft, setDraft] = useState<Survey | null>(null);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState("");
+  const [replanning, setReplanning] = useState(false);
+  const replanLock = useRef(false);
+  const [revisionError, setRevisionError] = useState("");
   const [retry, setRetry] = useState(0);
   const [quoteRetry, setQuoteRetry] = useState(0);
   const requestSequence = useRef(0);
@@ -201,6 +207,7 @@ export function PcConsult({
       budget: categoryBudget(state.survey, state.plan, selected, category),
       color: state.conditions.color,
       note: state.conditions.note,
+      cpuBrand: state.revision?.cpuBrand,
       requestedDiscountPercent,
     };
   }, [
@@ -208,6 +215,7 @@ export function PcConsult({
     state.plan,
     state.selected,
     state.conditions,
+    state.revision,
     state.editingCategory,
     state.stepIndex,
     category,
@@ -215,7 +223,7 @@ export function PcConsult({
   ]);
 
   useEffect(() => {
-    if (state.screen !== "selection" || !state.awaitingSelection || !request) return;
+    if (replanning || state.screen !== "selection" || !state.awaitingSelection || !request) return;
     const requestId = ++requestSequence.current;
     let active = true;
     dispatch({ type: "REQUEST", requestId });
@@ -224,8 +232,28 @@ export function PcConsult({
         if (active) dispatch({ type: "PROGRESS", requestId, progress });
       })
       .then(
-        (result) => {
-          if (active) void deliver({ type: "CANDIDATES", requestId, result });
+        async (result) => {
+          if (!active) return;
+          await deliver({ type: "CANDIDATES", requestId, result });
+          const current = stateRef.current;
+          if (
+            !active ||
+            replanLock.current ||
+            !current.revision ||
+            current.quotes.length ||
+            current.selected[request.category] ||
+            current.candidates !== result ||
+            result.handoff?.required
+          )
+            return;
+          const candidate = result.passed.find((item) => item.recommended) ?? result.passed[0];
+          if (candidate && ["PASS", "CONDITIONAL"].includes(candidate.validation.status))
+            dispatch({
+              type: "SELECT",
+              candidate,
+              automatic: true,
+              ...(request.category === "cooler" ? { fans: [] } : {}),
+            });
         },
         (failure: unknown) => {
           if (active)
@@ -244,6 +272,7 @@ export function PcConsult({
     request,
     state.screen,
     state.awaitingSelection,
+    replanning,
     retry,
     chatRevision,
     dispatch,
@@ -251,7 +280,7 @@ export function PcConsult({
   ]);
 
   useEffect(() => {
-    if (state.screen !== "selection" || !complete || !state.survey) return;
+    if (replanning || state.screen !== "selection" || !complete || !state.survey) return;
     const requestId = ++requestSequence.current;
     let active = true;
     dispatch({ type: "QUOTE_REQUEST", requestId });
@@ -282,6 +311,7 @@ export function PcConsult({
   }, [
     source,
     complete,
+    replanning,
     state.screen,
     state.survey,
     state.consultationId,
@@ -313,16 +343,64 @@ export function PcConsult({
     setStartError("");
     try {
       const plan = await source.planConsultation(state.survey);
-      const consultationId =
-        sessionId ??
-        (typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : `demo-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      const consultationId = newConsultationId();
       dispatch({ type: "START", survey: state.survey, plan, consultationId });
     } catch (failure) {
       setStartError(failure instanceof Error ? failure.message : "상담을 준비하지 못했습니다.");
     } finally {
       setStarting(false);
+    }
+  }
+  function newConsultationId() {
+    return (
+      sessionId ??
+      (typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `demo-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+    );
+  }
+  async function revise(change: DesignRevision, record: () => Promise<boolean>) {
+    const current = stateRef.current;
+    if (
+      replanLock.current ||
+      current.savePending ||
+      !current.survey ||
+      !["selection", "budget", "quote"].includes(current.screen) ||
+      current.receipt
+    )
+      return;
+    replanLock.current = true;
+    setReplanning(true);
+    setRevisionError("");
+    try {
+      if (!(await record())) return;
+      if (
+        change.cpuBrand &&
+        current.survey.mode === "replacement" &&
+        !current.plan?.steps.includes("cpu")
+      ) {
+        setRevisionError(
+          "현재 교체 설계에 CPU가 없습니다. 설문에서 CPU 교체 조건을 확인해 주세요.",
+        );
+        return;
+      }
+      const survey = { ...current.survey, budget: change.budget ?? current.survey.budget };
+      const plan = await source.planConsultation(survey);
+      const consultationId = newConsultationId();
+      dispatch({
+        type: "START",
+        survey,
+        plan,
+        consultationId,
+        revision: { ...current.revision, ...change },
+      });
+    } catch (error) {
+      setRevisionError(
+        error instanceof Error ? error.message : "재설계 요청을 처리하지 못했습니다.",
+      );
+    } finally {
+      replanLock.current = false;
+      setReplanning(false);
     }
   }
   async function confirm(acceptConditions = false) {
@@ -403,7 +481,26 @@ export function PcConsult({
           ))}
         </nav>
       )}
-      <Content className={`pc-main${state.screen === "start" ? " pc-main-start" : ""}`}>
+      {replanning && <p role="status">변경 요청을 확인하고 새 설계를 준비하고 있습니다.</p>}
+      {revisionError && (
+        <p className="pc-error" role="alert">
+          {revisionError}
+        </p>
+      )}
+      {!replanning && state.revision && state.screen === "selection" && (
+        <p role="status">
+          총예산 {state.survey?.budget.toLocaleString("ko-KR")}원
+          {state.revision.cpuBrand && ` · ${state.revision.cpuBrand} CPU`}으로 다시 구성하고
+          있습니다.
+          {state.candidates &&
+            !state.candidates.passed.length &&
+            " 이 조건에서 자동으로 선택할 후보가 없습니다."}
+        </p>
+      )}
+      <Content
+        inert={replanning}
+        className={`pc-main${state.screen === "start" ? " pc-main-start" : ""}`}
+      >
         {showSteps && (
           <nav className="pc-steps" aria-label="부품 구성 순서">
             {state.plan!.steps.map((step, index) => {
@@ -522,6 +619,15 @@ export function PcConsult({
                       dispatch({ type: "SELECT", candidate, allowUnknown, fans })
                     }
                     onRetry={() => setRetry((value) => value + 1)}
+                    onMoreGpu={
+                      category === "gpu"
+                        ? async (previous) => {
+                            const result = await source.getCandidates(request);
+                            dispatch({ type: "MORE_GPU_CANDIDATES", previous, result });
+                            return result;
+                          }
+                        : undefined
+                    }
                     onBudget={() => dispatch({ type: "OPEN_BUDGET" })}
                     onBack={back}
                     onEditSurvey={
@@ -598,6 +704,8 @@ export function PcConsult({
         ["type", "survey", "review"].includes(state.screen),
         selectionSummary,
         state.screen,
+        revise,
+        replanning || state.savePending,
       )
     : screen;
 }

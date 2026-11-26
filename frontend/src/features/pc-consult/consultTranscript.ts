@@ -50,6 +50,7 @@ export function appendConsultMessage(
   text: string,
   now?: string,
   result?: CandidateResult | null,
+  revising = false,
 ): ChatState {
   const memo = text.trim();
   if (!memo) return chat;
@@ -71,7 +72,7 @@ export function appendConsultMessage(
   }
   return append(
     chat,
-    [user(memo), assistant(reply)],
+    [user(memo), assistant(revising ? "요청하신 조건으로 설계를 다시 시작할게요." : reply)],
     chat.messages.at(-1)?.session_id ?? LOCAL_SESSION,
     now,
   );
@@ -152,6 +153,14 @@ export function appendConsultTransition(
     case "START":
       if (next.screen !== "selection" || next.error || next.consultationId !== event.consultationId)
         break;
+      if (event.revision) {
+        lines = [
+          assistant(
+            `총예산 ${won(event.survey.budget)}${event.revision.cpuBrand ? ` · ${event.revision.cpuBrand} CPU` : ""} 조건으로 부품을 다시 조회합니다.`,
+          ),
+        ];
+        break;
+      }
       lines = [
         user("확인한 설문으로 상담을 시작해 주세요."),
         assistant(
@@ -168,6 +177,10 @@ export function appendConsultTransition(
       )
         break;
       const validation = category ? next.validations[category] : undefined;
+      if (event.automatic) {
+        lines = [assistant(`${categoryLabel} 후보 중 ${chosen.name}을 새 구성에 담았습니다.`)];
+        break;
+      }
       const note =
         validation?.status === "UNKNOWN"
           ? " 확인 불가 경고를 확인하고 선택합니다."

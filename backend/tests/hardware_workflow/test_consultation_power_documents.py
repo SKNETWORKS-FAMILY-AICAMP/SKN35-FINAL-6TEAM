@@ -97,3 +97,13 @@ def test_similar_gpu_or_case_cannot_override_the_database(validate_parts):
         assert checks["PSU_CASE"]["result"] == "UNKNOWN"
         assert checks["PSU_CAPACITY"]["result"] == "FAIL"
         assert not checks["PSU_CAPACITY"].get("sources")
+
+
+@pytest.mark.parametrize("limit", [None, 0, -1, True, "200"])
+def test_missing_case_psu_limit_is_an_unresolved_check(limit, validate_parts):
+    selected = build()
+    selected["case"]["specs"]["max_psu_length_mm"] = limit
+    selected["psu"]["specs"]["length_mm"] = 150
+    check = validate_parts(selected)["PSU_CLEARANCE"]
+    assert check["result"] == "UNKNOWN"
+    assert "케이스" in check["reason"]

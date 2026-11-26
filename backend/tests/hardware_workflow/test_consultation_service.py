@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from app.domains.hardware.pc_consultation import complete, cooling, service
+from app.domains.hardware.pc_consultation import complete, cooling, designer, service
 from app.domains.hardware.pc_consultation.flow import InputError
 from app.domains.hardware.pc_consultation.parts_db import CatalogSnapshot
 
@@ -176,6 +176,24 @@ def test_new_plan_prices_budgets_and_complete_quote_uses_locked_build(shop):
     assert improved["validation"]["status"] in {"CONDITIONAL", "UNKNOWN"}
 
 
+def test_case_shortlist_identifies_only_cases_waiting_on_psu_length(shop):
+    rows = {r["id"]: r for r in shop.parts}
+    rows[701]["specs"].pop("length_mm", None)
+    rows[801]["specs"]["max_psu_length_mm"] = 200
+    rows[802]["specs"].pop("max_psu_length_mm", None)
+    request = dict(
+        survey=SURVEY | {"budget": 2000000},
+        category="case",
+        budget=300000,
+        selected={k: v for k, v in BUILD.items() if k != "case"},
+    )
+    result = service.candidates(request)
+    assert not result["passed"]
+    assert any("파워 본체 길이" in line and "1개" in line for line in result["criteria"])
+    rows[701]["specs"]["length_mm"] = 200
+    assert [c["part"]["part_id"] for c in service.candidates(request)["passed"]] == [801]
+
+
 def test_catalog_psu_threshold_is_rechecked_when_case_is_added(shop):
     rows = {r["id"]: r for r in shop.parts}
     selected = {k: v for k, v in BUILD.items() if k not in {"psu", "case"}}
@@ -188,14 +206,19 @@ def test_catalog_psu_threshold_is_rechecked_when_case_is_added(shop):
     total += cpu["specs"]["cpu_power_limit_w"] - cpu["power_draw_w"]
     rows[701]["specs"]["wattage_w"] = total
     rows[702]["specs"]["wattage_w"] = total - 1
-    result = service.candidates(
-        dict(survey=SURVEY, category="psu", budget=300000, selected=selected)
-    )
+    psu_request = dict(survey=SURVEY, category="psu", budget=300000, selected=selected)
+    assert not service.candidates(psu_request)["passed"]
+    # A passive case now fits the exact power budget. A later catalog correction
+    # to its fan draw must still be checked when choosing the case.
+    fan_watts = rows[801]["power_draw_w"]
+    rows[801]["power_draw_w"] = 0
+    result = service.candidates(psu_request)
     assert [c["part"]["part_id"] for c in result["passed"]] == [701]
     checks = {c["code"]: c["status"] for c in result["passed"][0]["validation"]["checks"]}
     assert checks["PSU_CAPACITY"] == "PASS"
     assert "GPU_POWER_CONNECTORS" not in checks
     selected["psu"] = 701
+    rows[801]["power_draw_w"] = fan_watts
     case_request = dict(survey=SURVEY, category="case", budget=300000, selected=selected)
     assert service.candidates(case_request)["passed"] == []
     rows[701]["specs"]["wattage_w"] += rows[801]["power_draw_w"]
@@ -205,6 +228,55 @@ def test_catalog_psu_threshold_is_rechecked_when_case_is_added(shop):
     rows[701]["specs"]["pcie_8pin_available"] = 2
     rows[selected["storage"]]["power_draw_w"] = None
     assert service.candidates(case_request)["passed"] == []
+
+
+def test_cooling_recommends_optional_liquid_and_fan_for_current_build(shop, monkeypatch):
+    rows = {r["id"]: r for r in shop.parts}
+    air = rows[601]
+    liquid = dict(
+        air,
+        id=690,
+        source_key="fixture-liquid",
+        name="가상 수냉",
+        specs=air["specs"] | {"radiator_size_mm": 240},
+    )
+    fan = dict(
+        air,
+        id=691,
+        source_key="fixture-fan",
+        name="가상 팬",
+        price=9000,
+        specs=dict(
+            cooling_type="case_fan", fans_per_item=1, fan_size_mm=120, thickness_mm=25, fan_w=2
+        ),
+    )
+    shop.parts.extend([liquid, fan])
+    generate = designer.generate
+
+    def decide(schema, instruction, data):
+        if schema is not designer.CoolingChoice:
+            return generate(schema, instruction, data)
+        assert set(data["selected"]) == {"cpu", "gpu"}
+        air_index = next(
+            i for i, o in enumerate(data["options"]) if o["part"]["name"] == air["name"]
+        )
+        liquid_index = next(i for i, o in enumerate(data["options"]) if o["method"] == 240)
+        return schema(
+            index=air_index,
+            reason="테스트 공랭",
+            liquid_alternative=dict(index=liquid_index, reason="테스트 수냉"),
+            additional_fan=dict(index=0, reason="테스트 추가 팬")
+            if data["options"][air_index]["eligible_fan_indices"]
+            else None,
+        )
+
+    monkeypatch.setattr(designer, "generate", decide)
+    req = dict(survey=SURVEY, category="cooler", budget=300000, selected={"cpu": 101, "gpu": 402})
+    result = service.candidates(req)
+    assert [c["part"]["part_id"] for c in result["passed"] if c["recommended"]] == [601, 690, 691]
+    assert result["passed"][-1]["validation"]["checks"][0]["status"] == "PENDING"
+    limited = service.candidates(req | {"budget": air["price"]})
+    assert all(c["part"]["part_id"] != 691 for c in limited["passed"])
 
 
 def test_storage_prefers_compatible_m2_before_sales_and_price(shop):

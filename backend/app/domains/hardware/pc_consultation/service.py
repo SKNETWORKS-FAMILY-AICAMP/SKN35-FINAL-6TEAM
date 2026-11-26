@@ -1,7 +1,9 @@
 """Shop-scoped consultation operations. Prices, identity and evidence come from the server."""
 
+import re
+from collections import Counter
 from contextlib import nullcontext
-from itertools import batched
+from itertools import batched, zip_longest
 from time import monotonic
 
 from app.domains.hardware.reviewed_fit import m2_drive
@@ -281,7 +283,9 @@ def _storage_group(row):
     return {"pcie": 0, "sata": 1}.get(protocol, 2)
 
 
-def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, explanation=None):
+def candidates(
+    payload, *, validation_stage=nullcontext, lowest_price=False, explanation=None, gpu_target=None
+):
     survey = payload["survey"]
     role = flow.category(payload["category"])
     selected = payload.get("selected", {})
@@ -352,29 +356,33 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
         explanation.update(category=role, budget=available, color=color, excluded=[])
 
     fitting_cases = None
-    cooler_specs = known.get("cooler", {}).get("specs", {})
-    radiator = cooler_specs.get("radiator_size_mm")
-    if role == "psu" and is_new and "case" not in known and (survey.get("_fans") or radiator):
-        # Reserve a real installation path before offering a PSU. A power rating on its
-        # own cannot establish that the supply fits a case with these fans/radiator.
+    if role == "psu" and is_new and "case" not in known:
+        # Include both endpoints of any catalog conflict in the lookahead.
+        case_catalog = _read(
+            category="case", all_candidates=True, part_ids=[r["id"] for r in snapshot.parts]
+        )
+        base = {k: v for k, v in known.items() if k != "psu"}
         fitting_cases = []
-        for case in _read(category="case", all_candidates=True).parts:
-            specs = case["specs"]
-            if radiator and (
-                radiator not in specs.get("front_radiator_sizes_mm", ())
-                and str(radiator) not in specs.get("gpu_clearance_by_front_radiator_mm", {})
-            ):
+        for case in case_catalog.parts:
+            if case["category"] != "case":
                 continue
-            if (
-                survey.get("_fans")
-                and cooling.case_fit({**known, "case": case}, survey["_fans"])["result"] != "PASS"
-            ):
-                continue
-            fitting_cases.append(case)
+            fit = _evaluate(
+                survey,
+                {**base, "case": case},
+                (set(buy) - {"psu"}) | {"case"},
+                case_catalog,
+                run_graph=False,
+                scope="case",
+            )
+            if not any(_blocking(c) for c in fit["checks"]):
+                fitting_cases.append(case)
 
-    def compatible():
-        nonlocal rejected
-        for row in ordered:
+    closest_case = []
+    missing_psu_dimensions = Counter()
+
+    def compatible(catalog_rows):
+        nonlocal rejected, closest_case
+        for row in catalog_rows:
             if cooling.is_fan(row):
                 continue
             if row["category"] != role or row["id"] == previous or row["price"] > available:
@@ -399,6 +407,12 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
             )
             unresolved = [c for c in validation["checks"] if _blocking(c)]
             if unresolved:
+                if role == "case" and len(unresolved) == 1:
+                    check = unresolved[0]
+                    if check["code"] == "PSU_CLEARANCE" and check["status"] == "UNKNOWN":
+                        missing_psu_dimensions[check["message"]] += 1
+                if role == "case" and (not closest_case or len(unresolved) < len(closest_case)):
+                    closest_case = [f"{row['name']} · {c['message']}" for c in unresolved]
                 message = unresolved[0]["message"]
                 reject(row, message)
                 rejected += 1
@@ -409,7 +423,7 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
                         survey,
                         {**rows, "case": case},
                         {*buy, role, "case"},
-                        snapshot,
+                        case_catalog,
                         run_graph=False,
                         scope="case",
                     )
@@ -418,7 +432,7 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
                 else:
                     reject(
                         row,
-                        "선택한 냉각 구성과 파워를 함께 장착할 수 있는 예산 내 케이스가 확인되지 않았습니다.",
+                        "이 파워로 전력과 장착 규격을 모두 충족하는 예산 내 케이스가 없습니다.",
                     )
                     rejected += 1
                     continue
@@ -428,7 +442,15 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
         assessments = survey.setdefault("_assessments", {})
         cached_before = len(assessments)
         started = monotonic()
-        for batch in batched(compatible(), _FIRST_PAGE_SIZE, strict=False):
+        candidates_to_assess = compatible(ordered)
+        if role == "cooler" and not lowest_price:
+            # Give both cooling methods a place before the result/time limits.
+            air = compatible(r for r in ordered if not r["specs"].get("radiator_size_mm"))
+            liquid = compatible(r for r in ordered if r["specs"].get("radiator_size_mm"))
+            candidates_to_assess = (
+                item for pair in zip_longest(air, liquid) for item in pair if item
+            )
+        for batch in batched(candidates_to_assess, _FIRST_PAGE_SIZE, strict=False):
             decisions = designer.assess(
                 survey,
                 role,
@@ -456,10 +478,15 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
                 )
                 if len(passed) == parts_db.CANDIDATE_LIMIT:
                     break
-            if len(passed) == parts_db.CANDIDATE_LIMIT or (
-                passed
-                and len(assessments) > cached_before
-                and monotonic() - started >= _SHORTLIST_WORK_SECONDS
+            if (
+                len(passed) == parts_db.CANDIDATE_LIMIT
+                or (gpu_target is not None and len(passed) >= gpu_target)
+                or (
+                    gpu_target is None
+                    and passed
+                    and len(assessments) > cached_before
+                    and monotonic() - started >= _SHORTLIST_WORK_SECONDS
+                )
             ):
                 break
     sort_label = "호환·성능 향상 확인 후보 중 낮은 가격순"
@@ -493,13 +520,17 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
         )
     fan_options = []
     if role == "cooler" and not lowest_price:
-        fan_options = [
-            _public(r)
+        fan_rows = [
+            r
             for r in ordered
             if cooling.fan_ready(r)
             and r["price"] <= available
-            and ("case" not in known or cooling.case_fit(known, [(r, 1)])["result"] == "PASS")
+            and (
+                "case" not in known
+                or cooling.case_fit({"case": known["case"]}, [(r, 1)])["result"] == "PASS"
+            )
         ]
+        fan_options = [_public(r) for r in fan_rows]
         cpu = known.get("cpu")
         # Free options still require a documented thermal and physical fit.
         # An included SKU is referenced by source identity, independent of local DB IDs.
@@ -536,16 +567,60 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
                     },
                 )
         if passed:
-            index, reason = designer.choose_cooling(survey, known, passed)
-            winner = passed.pop(index)
-            passed.insert(0, winner)
-            for i, option in enumerate(passed):
-                option["recommended"] = i == 0
-            winner["reason"] = reason
+            indexed = {r["id"]: r for r in snapshot.parts}
+            eligible_fans = []
+            for option in passed:
+                unit = option["part"]
+                free_id = (
+                    unit["part_id"] if option.get("cooling_mode") in ("bundled", "reuse") else None
+                )
+                eligible = []
+                for i, fan in enumerate(fan_rows):
+                    if unit["current_price"] + fan["price"] > available:
+                        continue
+                    combined = _evaluate(
+                        {**survey, "_fans": [(fan, 1)], "_free_cooler": free_id},
+                        {**known, "cooler": indexed[unit["part_id"]]},
+                        {*buy, role},
+                        snapshot,
+                        run_graph=False,
+                        scope=role,
+                    )
+                    if not any(_blocking(c) for c in combined["checks"]):
+                        eligible.append(i)
+                eligible_fans.append(eligible)
+            choice = designer.choose_cooling(survey, known, passed, fan_options, eligible_fans)
+            for option in passed:
+                option["recommended"] = False
+            for pick in (choice, choice.liquid_alternative):
+                if pick:
+                    passed[pick.index].update(recommended=True, reason=pick.reason)
+            passed.insert(0, passed.pop(choice.index))
+            passed.sort(key=lambda option: not option["recommended"])
+            if fan := choice.additional_fan:
+                fit = cooling.case_fit(
+                    {**known, "cooler": passed[0]["part"]}, [(fan_rows[fan.index], 1)]
+                )
+                passed.append(
+                    {
+                        "part": fan_options[fan.index],
+                        "recommended": True,
+                        "reason": fan.reason,
+                        "validation": _result([fit]),
+                    }
+                )
             sort_label = "현재 구성에 맞는 CPU 냉각 방식 우선"
+    ranked_reasons = sorted(reasons, key=reasons.get, reverse=True)
     criteria = []
     if not passed:
-        criteria.extend(sorted(reasons, key=reasons.get, reverse=True)[:3])
+        if missing_psu_dimensions:
+            ranked_reasons = [
+                f"다른 케이스 검사를 통과한 {count}개 · {message}"
+                for message, count in missing_psu_dimensions.most_common()
+            ]
+            criteria.extend(ranked_reasons)
+        else:
+            criteria.extend(closest_case or ranked_reasons[:3])
     if note := payload.get("note"):
         criteria.append(f"추가 요청 {note} · 자유 입력 조건은 별도 확인이 필요합니다.")
     if explanation is not None:
@@ -563,7 +638,7 @@ def candidates(payload, *, validation_stage=nullcontext, lowest_price=False, exp
                 {},
             )
         explanation.update(
-            reasons=sorted(reasons, key=reasons.get, reverse=True)[:2],
+            reasons=ranked_reasons[:2],
             criteria=[survey["_design"]["reasons"][role]],
             shown=[r["part"]["name"] for r in passed],
             reason=passed[0]["reason"] if passed else "",
@@ -686,6 +761,28 @@ def quote(survey, selected, *, validation_stage=nullcontext):
 def chat(question, survey, selected, history):
     if not isinstance(question, str) or not question.strip():
         raise InputError("상담 질문을 입력해 주세요.")
+    # In an explicit switch the destination, not the previously selected brand, is the filter.
+    brand = r"인텔|intel|AMD|에이엠디"
+    switch = re.fullmatch(
+        rf"(?:CPU[는를가]?\s*)?(?:(?:{brand})\s*(?:에서|말고)\s*)?"
+        rf"(?P<target>{brand})\s*(?:CPU)?\s*(?:으?로)(?:만)?\s*"
+        r"(?:바꿔\s*(?:줘|주세요)|바꾸고\s*싶(?:어|어요)|교체해\s*(?:줘|주세요))[.!?]?",
+        question.strip(),
+        re.IGNORECASE,
+    )
+    if switch:
+        target = "Intel" if switch["target"].lower() in {"intel", "인텔"} else "AMD"
+        return {
+            "text": f"{target} CPU 조건으로 호환되는 부품 후보를 다시 확인할게요.",
+            "sources": [],
+            "_preferences": {"cpu": target},
+        }
+    if survey and re.search(
+        r"예산[이가은는을를]?\s*[\d,.]+\s*(?:만|천)?\s*원(?:이\s*되었어|이?\s*됐어|으로|로)?"
+        r"[,.\s]*다시\s*견적[을]?\s*짜\s*(?:줘|주세요)[.!?]?$",
+        question.strip(),
+    ):
+        return {"text": "새 예산으로 견적을 다시 짜 달라는 요청을 받았습니다.", "sources": []}
     if designer.enabled():
         preference = designer.generate(
             designer.Preference,

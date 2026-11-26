@@ -144,11 +144,18 @@ export function PartSpecs({ part }: { part: Part }) {
       ["interface", "인터페이스", ""],
       ["form_factor", "규격", ""],
     ],
-    cooler: [
-      ["sockets", "소켓", ""],
-      ["radiator_size_mm", "라디에이터", "mm"],
-      ["noise_level_db", "소음", "dB"],
-    ],
+    cooler:
+      part.specs.cooling_type === "case_fan"
+        ? [
+            ["fan_size_mm", "팬 지름", "mm"],
+            ["thickness_mm", "두께", "mm"],
+            ["fan_w", "팬 전력", "W"],
+          ]
+        : [
+            ["sockets", "소켓", ""],
+            ["radiator_size_mm", "라디에이터", "mm"],
+            ["noise_level_db", "소음", "dB"],
+          ],
     psu: [
       ["wattage_w", "정격", "W"],
       ["efficiency", "효율", ""],

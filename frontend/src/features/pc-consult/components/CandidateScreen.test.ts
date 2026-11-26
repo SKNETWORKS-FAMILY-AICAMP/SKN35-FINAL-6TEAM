@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { fixturePart } from "../fixtures/demoSnapshot.fixture";
-import type { Candidate, CandidateResult, Quote } from "../types";
+import type { Candidate, CandidateResult, Category, Quote } from "../types";
 import { CandidateScreen } from "./CandidateScreen";
 import { QuoteScreen } from "./QuoteScreen";
 
@@ -40,10 +40,13 @@ const result: CandidateResult = {
   basis: "demo",
 };
 
-function renderCandidates(overrides: Partial<CandidateResult> = {}) {
+function renderCandidates(
+  overrides: Partial<CandidateResult> = {},
+  category: Category = "storage",
+) {
   return renderToStaticMarkup(
     createElement(CandidateScreen, {
-      category: "storage",
+      category,
       result: { ...result, ...overrides },
       progress: null,
       pending: false,
@@ -103,6 +106,38 @@ function renderQuote(value: Quote) {
 }
 
 describe("확인 필요 후보와 견적 표시", () => {
+  it("쿨러와 추가 팬에 각각 추천 근거를 표시하고 CPU 쿨러만 주 부품으로 선택합니다", () => {
+    const cooler = { ...passedCandidate, part: fixturePart("cooler"), reason: "테스트 CPU 냉각" };
+    const fan = {
+      ...cooler,
+      reason: "테스트 흡배기",
+      part: {
+        ...cooler.part,
+        source_key: "fixture-case-fan",
+        part_id: 90001,
+        name: "가상 팬",
+        specs: { cooling_type: "case_fan", fan_size_mm: 120 },
+      },
+    };
+    const html = renderCandidates(
+      { basis: "api", needsReview: [], passed: [cooler, fan], fans: [fan.part] },
+      "cooler",
+    );
+    expect(html.match(/class="pc-recommendation"/g)).toHaveLength(2);
+    expect(html).toContain("테스트 흡배기");
+    expect(html).toContain("테스트 CPU 냉각");
+    expect(html).toContain('aria-label="가상 팬 수량"');
+    expect(html.match(/이 부품 선택/g)).toHaveLength(1);
+    expect(html).not.toContain('type="radio"');
+  });
+
+  it("빈 케이스 목록에 서버가 확인한 장착 또는 전력 원인을 표시합니다", () => {
+    const html = renderCandidates(
+      { needsReview: [], criteria: ["가상 케이스 · 파워 길이 미확인"] },
+      "case",
+    );
+    expect(html).toContain("가상 케이스 · 파워 길이 미확인");
+  });
   it("통과 후보가 없고 확인 필요 후보가 있으면 빈 상태 대신 목록을 바로 펼칩니다", () => {
     const html = renderCandidates();
     expect(html).toContain("확인이 필요한 후보");

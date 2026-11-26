@@ -58,14 +58,18 @@ def add_reviewed_fit(selected, checks):
         ),
     }
     specs = {role: row.get("specs", {}) for role, row in selected.items()}
-    limit = specs.get("case", {}).get("max_psu_length_mm")
-    if "psu" in selected and type(limit) in (int, float) and limit > 0:
+    if "case" in selected and "psu" in selected:
+        limit = specs["case"].get("max_psu_length_mm")
         length = specs["psu"].get("length_mm")
-        verdict, reason = (
-            "UNKNOWN",
-            f"기본 배치의 파워 길이 한도는 {limit}mm입니다. 파워 길이를 확인하세요.",
-        )
-        if type(length) in (int, float) and length > 0:
+        missing = [
+            label
+            for label, value in (("파워 본체 길이", length), ("케이스의 파워 장착 한도", limit))
+            if type(value) not in (int, float) or not 0 < value < float("inf")
+        ]
+        if missing:
+            verdict = "UNKNOWN"
+            reason = "확인할 사양 · " + ", ".join(missing)
+        else:
             verdict = "PASS" if length <= limit else "FAIL"
             reason = f"기본 배치에서 파워 길이 {length}mm / 허용 {limit}mm"
         checks.append({"check_type": "PSU_CLEARANCE", "result": verdict, "reason": reason})

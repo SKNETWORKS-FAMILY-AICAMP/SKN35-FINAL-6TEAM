@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from app.api.pc_consult import stream
 from app.api.pc_sessions import COOKIE
+from app.contracts.pc_consult import Candidate
 from app.core.config import REPO_ROOT
 from app.domains.hardware.pc_consultation import service
 from app.domains.hardware.pc_consultation.parts_db import PartsCatalogError
@@ -31,6 +32,65 @@ SURVEY = {
 def test_published_contract_matches_the_running_app():
     path = REPO_ROOT / "contracts" / "pc-consult.openapi.json"
     assert create_app().openapi() == json.loads(path.read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("reject_first", [0, 10])
+def test_gpu_first_response_matches_full_ranking_and_extends_on_demand(
+    catalog_snapshot, monkeypatch, reject_first
+):
+    # Fictional GPU rows. Arrange DB order opposite to sales rank and track model work.
+    sample = next(row for row in catalog_snapshot.parts if row["id"] == 402)
+    catalog_snapshot.parts[:] = [row for row in catalog_snapshot.parts if row["category"] != "gpu"]
+    for index in reversed(range(30)):
+        catalog_snapshot.parts.append(
+            {
+                **sample,
+                "id": 1000 + index,
+                "source_key": f"fixture-gpu-{index}",
+                "name": f"테스트 GPU {index}",
+                "sold_units": 30 - index,
+                "specs": {**sample["specs"], "tier": 0 if index < reject_first else 3},
+            }
+        )
+    monkeypatch.setattr(service, "_read", lambda **_: catalog_snapshot)
+    generate = service.designer.generate
+    batches = []
+
+    def count_assessments(schema, instruction, data):
+        if schema is service.designer.Assessments:
+            batches.append(len(data["candidates"]))
+        return generate(schema, instruction, data)
+
+    monkeypatch.setattr(service.designer, "generate", count_assessments)
+    survey = {**SURVEY, "mode": "new", "purposes": ["gaming"], "owned": {}, "budget": 2_000_000}
+    body = {"survey": survey, "selected": {}, "category": "gpu", "budget": 500_000}
+    baseline = deepcopy(survey)
+    service.plan(baseline)
+    expected = service.candidates({**body, "survey": baseline})["passed"]
+    assert len(expected) == 30 - reject_first
+    assert batches == [10, 10, 10]
+
+    client = TestClient(create_app())
+    base = (
+        "/api/pc-consult/sessions/" + client.post("/api/pc-consult/sessions").json()["session_id"]
+    )
+    assert client.post(base + "/plan", json={"survey": survey}).status_code == 200
+    batches.clear()
+
+    def fetch(payload):
+        response = client.post(base + "/candidates", json=payload)
+        assert response.status_code == 200
+        return response.json()["passed"]
+
+    # Apply the same public response serialization to the full-list reference.
+    expected = [Candidate.model_validate(item).model_dump(mode="json") for item in expected]
+    assert fetch(body) == expected[:10]
+    assert len(batches) == 1 + reject_first // 10
+    for size in range(20, len(expected) + 1, 10):
+        assert fetch(body) == expected[:size]
+    assert fetch(body) == expected
+    assert batches == [10, 10, 10]
+    assert fetch({**body, "budget": 499_999}) == expected[:10]
 
 
 def test_chat_filters_real_candidate_flow_and_keeps_sessions_isolated(
@@ -115,6 +175,18 @@ def test_chat_filters_real_candidate_flow_and_keeps_sessions_isolated(
     assert client.post(url + "/messages", json={"text": "AMD CPU로 바꿔줘"}).status_code == 200
     assert choices(client, url, "cpu") == {101}
     assert choices(client, url, "gpu") == {402, 403, 406}
+    change = client.post(url + "/messages", json={"text": "CPU를 AMD에서 인텔로 바꾸고 싶어"})
+    assert change.status_code == 200 and "Intel" in change.json()["text"]
+    revised_survey = {**survey, "budget": 6_000_000}
+    budget_reply = client.post(
+        url + "/messages",
+        json={"text": "나 엄마한테 용돈 받아서 예산이 600만원이 되었어 다시 견적 짜줘"},
+    )
+    assert budget_reply.status_code == 200 and "새 예산" in budget_reply.json()["text"]
+    assert client.post(url + "/plan", json={"survey": revised_survey}).status_code == 200
+    survey = revised_survey
+    assert choices(client, url, "cpu") == {102}
+    assert client.post(url + "/messages", json={"text": "AMD CPU로 바꿔줘"}).status_code == 200
     reply = client.post(url + "/messages", json={"text": "GPU는 4060 이상으로 보여줘"})
     assert "RTX 4060 8GB" in reply.json()["text"]
     assert choices(client, url, "gpu") == {406}
@@ -244,6 +316,24 @@ def test_refuses_client_prices_and_stale_survey(visit):
     assert client.post(url + "/quotes", json=query).status_code == 422
     query.update(survey={**SURVEY, "budget": 999999}, selected={"storage": 123})
     assert client.post(url + "/quotes", json=query).status_code == 409
+
+
+def test_failed_replan_preserves_active_survey_and_design(visit, monkeypatch):
+    client, url, app = visit
+    session = app.state.pc_sessions.read(url.rsplit("/", 1)[1], client.cookies.get(COOKIE))
+    session.design["existing"] = True
+
+    def fail(inputs):
+        inputs["_design"]["partial"] = True
+        raise PartsCatalogError("테스트 카탈로그 연결 실패")
+
+    monkeypatch.setattr(service, "plan", fail)
+    assert (
+        client.post(url + "/plan", json={"survey": {**SURVEY, "budget": 6_000_000}}).status_code
+        == 503
+    )
+    assert session.survey.budget == SURVEY["budget"]
+    assert session.design == {"existing": True}
 
 
 def test_sse_resumes_from_last_event_id(visit):

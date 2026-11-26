@@ -4,6 +4,7 @@ import type { AgentEvent, ChatMessage } from "../../../api/client";
 import type { ConnectionState } from "../../../events/eventStream";
 import type { ConsultDataSource } from "./ConsultDataSource";
 import type { CandidateRequest, SelectionMap, Survey } from "../types";
+import { cpuCandidates } from "../designRevision";
 
 const api = createClient<paths>({ baseUrl: "", credentials: "same-origin" });
 const route = "/api/pc-consult/sessions/{session_id}" as const;
@@ -56,8 +57,13 @@ function coolingBody(selected: SelectionMap) {
 }
 
 function candidateBody(input: CandidateRequest) {
+  const { category, budget, color, note, requestedDiscountPercent } = input;
   return {
-    ...input,
+    category,
+    budget,
+    color,
+    note,
+    requestedDiscountPercent,
     ...coolingBody(input.selected),
     selected: selectionIds(input.selected),
     survey: surveyBody(input.survey),
@@ -77,8 +83,12 @@ export function createApiSource(sessionId: string) {
       result(api.GET(`${route}/parts`, { params: { ...params, query: { category, query } } })),
     planConsultation: (survey) =>
       result(api.POST(`${route}/plan`, { params, body: { survey: surveyBody(survey) } })),
-    getCandidates: (input) =>
-      result(api.POST(`${route}/candidates`, { params, body: candidateBody(input) })),
+    async getCandidates(input) {
+      const resultList = await result(
+        api.POST(`${route}/candidates`, { params, body: candidateBody(input) }),
+      );
+      return input.category === "cpu" ? cpuCandidates(resultList, input.cpuBrand) : resultList;
+    },
     validate: (survey, selected) =>
       result(
         api.POST(`${route}/validations`, {

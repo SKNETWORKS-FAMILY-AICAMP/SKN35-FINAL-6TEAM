@@ -339,6 +339,7 @@
       "tags": [],
       "specs": {
         "wattage_w": 650,
+        "length_mm": 180,
         "form_factor": "ATX"
       }
     },
@@ -353,6 +354,7 @@
       ],
       "specs": {
         "wattage_w": 750,
+        "length_mm": 140,
         "form_factor": "ATX"
       }
     },
@@ -366,6 +368,7 @@
       "specs": {
         "color": "black",
         "max_gpu_length_mm": 320,
+        "max_psu_length_mm": 200,
         "max_cooler_height_mm": 165,
         "board_sizes": [
           "mATX",
@@ -386,6 +389,7 @@
       "specs": {
         "color": "white",
         "max_gpu_length_mm": 320,
+        "max_psu_length_mm": 200,
         "max_cooler_height_mm": 165,
         "board_sizes": [
           "mATX",

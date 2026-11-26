@@ -64,15 +64,20 @@ class GpuDesign(Decision):
     suitable: list[GpuFit]
 
 
-class CoolingChoice(Decision):
+class CoolingPick(Decision):
     index: int
     reason: str
 
 
-def choose_cooling(survey, selected, candidates):
+class CoolingChoice(CoolingPick):
+    liquid_alternative: CoolingPick | None
+    additional_fan: CoolingPick | None
+
+
+def choose_cooling(survey, selected, candidates, fans, eligible_fans):
     options = []
     cpu = selected.get("cpu")
-    for candidate in candidates:
+    for index, candidate in enumerate(candidates):
         unit = candidate["part"]
         source = cooling_evidence(cpu, unit) if cpu else None
         options.append(
@@ -80,16 +85,28 @@ def choose_cooling(survey, selected, candidates):
                 "mode": candidate.get("cooling_mode", "purchase"),
                 "method": unit["specs"].get("radiator_size_mm") or "air",
                 "part": part(unit),
+                "price": unit["current_price"],
+                "eligible_fan_indices": eligible_fans[index],
                 "thermal_evidence": source["text"] if source else None,
             }
         )
     context = {
         "purpose": purpose(survey),
         "work_scale": survey["workScale"],
+        "problems": survey.get("problems", []),
         "request": survey.get("problemNote", ""),
         "preference": survey.get("_preferences", {}).get("cooler"),
-        "selected": {role: part(row) for role, row in selected.items() if role != "cooler"},
+        "selected": {
+            role: {
+                **part(row),
+                "power_draw_w": row.get("power_draw_w"),
+                "power_status": row.get("power_status"),
+            }
+            for role, row in selected.items()
+            if role != "cooler"
+        },
         "options": options,
+        "fans": [{"part": part(f), "price": f["current_price"]} for f in fans],
     }
     key = (
         "cooling:"
@@ -99,16 +116,31 @@ def choose_cooling(survey, selected, candidates):
     if key not in cache:
         choice = generate(
             CoolingChoice,
-            "검증된 CPU 냉각 후보 중 현재 구성에 알맞은 options의 0부터 시작하는 index 하나를 고른다. "
+            "검증된 CPU 냉각 후보 options에서 가장 알맞은 index 하나를 고른다. 인덱스는 0부터 시작한다. "
             "CPU 전력과 지속 부하, GPU 발열과 사용자 선호를 고려한다. 게임·고성능이라는 이유만으로 수냉을 요구하지 않는다. "
             "충분하면 기본 또는 보유 쿨러를 먼저 활용한다. 케이스 팬은 CPU 쿨러를 대체하지 않는다. "
+            "주 추천이 공랭이고 지속 부하나 소음 선호로 수냉 대안이 유익할 때만 liquid_alternative에 "
+            "수냉 옵션 하나를 추천한다. 추가 흡배기가 필요한 근거가 있을 때만 주 추천의 "
+            "eligible_fan_indices에서 팬 한 개를 골라 additional_fan에 넣는다. 기본 팬 구성과 "
+            "사용 목적을 고려하고 케이스가 미선택이면 장착은 추후 확인이라고 설명한다. "
+            "추가 추천 근거가 없으면 해당 필드는 null이다. 각 추천에 개별 이유를 쓴다. "
             "부품 사양에서 확인한 짧은 한국어 이유 한 문장을 쓴다.",
             context,
         )
         if not 0 <= choice.index < len(options) or not choice.reason.strip():
             raise advisor.AdvisorError("냉각 방식 추천을 다시 확인해 주세요.")
-        cache[key] = choice.index, choice.reason
-    return cache[key]
+        liquid, fan = choice.liquid_alternative, choice.additional_fan
+        if liquid and (
+            not 0 <= liquid.index < len(options)
+            or options[choice.index]["method"] != "air"
+            or options[liquid.index]["method"] == "air"
+            or not liquid.reason.strip()
+        ):
+            raise advisor.AdvisorError("수냉 대안의 제품과 근거를 다시 확인해 주세요.")
+        if fan and (fan.index not in eligible_fans[choice.index] or not fan.reason.strip()):
+            raise advisor.AdvisorError("추가 팬의 장착 조건과 추천 근거를 다시 확인해 주세요.")
+        cache[key] = choice.model_dump()
+    return CoolingChoice.model_validate(cache[key])
 
 
 class Preference(Decision):
