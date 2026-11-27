@@ -115,6 +115,22 @@ function choose(state: ConsultState, value: Part): ConsultState {
   return consultReducer(provide(state, entry), { type: "SELECT", candidate: entry });
 }
 
+it("추가 GPU 목록은 원래 조회가 계속 표시되는 동안에만 선택할 수 있다", () => {
+  const initial = provide(start(["gpu", "storage"]), candidate(part("gpu")));
+  const previous = initial.candidates!;
+  const extra = candidate({ ...part("gpu"), part_id: 90001, source_key: "test-extra-gpu" });
+  const result = { ...previous, passed: [...previous.passed, extra] };
+  const event = { type: "MORE_GPU_CANDIDATES", previous, result } as const;
+  const expanded = consultReducer(initial, event);
+  expect(consultReducer(expanded, { type: "SELECT", candidate: extra }).selected.gpu).toEqual(
+    extra.part,
+  );
+  const advanced = consultReducer(initial, { type: "SELECT", candidate: previous.passed[0] });
+  expect(consultReducer(advanced, event)).toBe(advanced);
+  const reloading = consultReducer(initial, { type: "REQUEST", requestId: 5 });
+  expect(consultReducer(reloading, event)).toBe(reloading);
+});
+
 function complete(state: ConsultState): ConsultState {
   for (const category of state.plan?.steps ?? []) state = choose(state, part(category));
   return state;

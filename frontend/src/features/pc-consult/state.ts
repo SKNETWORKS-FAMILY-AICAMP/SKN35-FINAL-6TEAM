@@ -1,4 +1,5 @@
 import { CATEGORIES, selectionLines, type FanSelection, type Part } from "./types";
+import type { DesignRevision } from "./designRevision";
 import type {
   AccountKind,
   BudgetProposal,
@@ -44,6 +45,7 @@ export interface ConsultState {
   account: AccountKind;
   survey: Survey | null;
   plan: ActivePlan | null;
+  revision: DesignRevision | null;
   consultationId: string;
   selected: SelectionMap;
   validations: Partial<Record<Category, ValidationResult>>;
@@ -75,12 +77,25 @@ export type ConsultEvent =
   | { type: "CHOOSE_MODE"; mode: ConsultMode }
   | { type: "SURVEY_REVIEW"; survey: Survey }
   | { type: "EDIT_SURVEY" }
-  | { type: "START"; survey: Survey; plan: ConsultPlan; consultationId: string }
+  | {
+      type: "START";
+      survey: Survey;
+      plan: ConsultPlan;
+      consultationId: string;
+      revision?: DesignRevision;
+    }
   | { type: "REQUEST"; requestId: number }
   | { type: "PROGRESS"; requestId: number; progress: Progress }
   | { type: "CANDIDATES"; requestId: number; result: CandidateResult }
+  | { type: "MORE_GPU_CANDIDATES"; previous: CandidateResult; result: CandidateResult }
   | { type: "ERROR"; requestId: number; message: string }
-  | { type: "SELECT"; candidate: Candidate; allowUnknown?: boolean; fans?: FanSelection[] }
+  | {
+      type: "SELECT";
+      candidate: Candidate;
+      allowUnknown?: boolean;
+      fans?: FanSelection[];
+      automatic?: boolean;
+    }
   | { type: "VISIT_STEP"; index: number }
   | { type: "OPEN_BUDGET" }
   | { type: "BUDGET_PROPOSAL"; proposal: BudgetProposal; amount?: number }
@@ -106,6 +121,7 @@ export function initialConsultState(): ConsultState {
     account: "personal",
     survey: null,
     plan: null,
+    revision: null,
     consultationId: "",
     selected: {},
     validations: {},
@@ -254,6 +270,7 @@ export function consultReducer(state: ConsultState, event: ConsultEvent): Consul
         account: state.account,
         screen: "selection",
         consultationId: event.consultationId,
+        revision: event.revision ?? null,
         survey: event.survey,
         plan: {
           ...event.plan,
@@ -277,25 +294,27 @@ export function consultReducer(state: ConsultState, event: ConsultEvent): Consul
         return state;
       return { ...state, progress: event.progress };
     case "CANDIDATES":
-      if (state.requestId !== event.requestId || state.quotePending || state.savePending)
+    case "MORE_GPU_CANDIDATES": {
+      if (event.type === "CANDIDATES") {
+        if (state.requestId !== event.requestId || state.quotePending || state.savePending)
+          return state;
+      } else if (
+        state.screen !== "selection" ||
+        currentCategory(state) !== "gpu" ||
+        state.candidates !== event.previous ||
+        !state.awaitingSelection
+      )
         return state;
+      const total =
+        event.result.passed.length + event.result.needsReview.length + event.result.rejectedCount;
       return {
         ...state,
         candidates: event.result,
         requestId: null,
-        progress: {
-          phase: "ready",
-          completed:
-            event.result.passed.length +
-            event.result.needsReview.length +
-            event.result.rejectedCount,
-          total:
-            event.result.passed.length +
-            event.result.needsReview.length +
-            event.result.rejectedCount,
-        },
+        progress: { phase: "ready", completed: total, total },
         error: null,
       };
+    }
     case "ERROR":
       if (state.requestId !== event.requestId) return state;
       return { ...withoutRequest(state), error: event.message };
@@ -313,6 +332,7 @@ export function consultReducer(state: ConsultState, event: ConsultEvent): Consul
       );
       if (
         !candidate ||
+        (category === "cooler" && candidate.part.specs.cooling_type === "case_fan") ||
         candidate.part.current_price === null ||
         candidate.validation.status === "FAIL"
       )

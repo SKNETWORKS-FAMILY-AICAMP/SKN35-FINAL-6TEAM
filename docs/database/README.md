@@ -3,7 +3,7 @@
 MySQL `dev_database`의 부품·가격·호환성 수집 자료를 관리합니다.
 [부품 DB 흐름과 기능별 테이블](FLOW.md)에서 적재, 상담, 견적, 검증의 관계를 볼 수 있습니다.
 모든 명령은 저장소 루트에서 실행합니다. 로컬 MySQL은 Docker 없이 사용합니다.
-`--directory backend`는 실행 위치와 Python 환경을 함께 백엔드로 지정합니다.
+먼저 [PC 상담 실행 안내](../../README.md#pc-상담-실행)에 따라 `UV_PROJECT_ENVIRONMENT`를 루트 `.venv`로 설정하고 의존성을 설치합니다. `--directory backend`는 백엔드의 프로젝트와 실행 위치를 선택합니다. Intel Mac에서는 아래 `uv run` 명령의 `--frozen` 대신 `--no-sync`를 사용합니다.
 
 ## 로컬 DB 설정
 
@@ -29,8 +29,7 @@ PARTS_MYSQL_PASSWORD='직접 입력'
 ## 빠른 사용
 
 ```powershell
-# Python 환경 준비 / DB 연결 확인
-uv sync --directory backend --frozen
+# DB 연결 확인
 uv run --directory backend --frozen python -X utf8 -m app.db.schema
 
 # 최초 생성. 기존 데이터 삭제나 컬럼 자동 변경을 수행하지 않음

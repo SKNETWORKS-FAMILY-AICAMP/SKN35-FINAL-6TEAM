@@ -74,6 +74,7 @@ export type Candidate = Omit<Wire["Candidate"], "validation" | "cooling_mode"> &
   cooling_mode?: CoolingMode;
 };
 export interface CandidateRequest {
+  cpuBrand?: "Intel" | "AMD";
   survey: Survey;
   category: Category;
   selected: SelectionMap;

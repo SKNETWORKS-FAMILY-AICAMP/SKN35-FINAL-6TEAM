@@ -605,6 +605,9 @@ export function eligibleParts(
     if (
       !partAllowedByPolicy(part, policy) ||
       part.category !== request.category ||
+      (part.category === "cpu" &&
+        request.cpuBrand &&
+        part.brand.toLowerCase() !== request.cpuBrand.toLowerCase()) ||
       (request.survey.mode === "replacement" &&
         part.source_key === request.survey.owned[request.category]?.part?.source_key) ||
       part.current_price === null ||

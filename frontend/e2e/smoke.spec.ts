@@ -1,10 +1,81 @@
 import { expect, test, type Page } from "@playwright/test";
+import { fixturePart } from "../src/features/pc-consult/fixtures/demoSnapshot.fixture";
 
 async function enterPersonal(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "개인용", exact: true }).click();
   await page.getByRole("button", { name: "개인용 시연으로 시작" }).click();
 }
+
+test("GPU 첫 후보는 추가 조회 전부터 선택할 수 있다", async ({ page }) => {
+  // Isolate the UI from catalog/model latency. Backend tests compare real selection logic.
+  const gpu = fixturePart("gpu");
+  const passed = Array.from({ length: 11 }, (_, index) => ({
+    part: {
+      ...gpu,
+      part_id: 1000 + index,
+      source_key: `test-gpu-${index}`,
+      name: `테스트 GPU ${index + 1}`,
+    },
+    validation: { status: "PASS", checks: [], basis: "api" },
+    recommended: index === 0,
+    reason: "테스트 판정",
+  }));
+  let reads = 0;
+  let release = () => {};
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/pc-consult/sessions", (route) =>
+    route.fulfill({ json: { session_id: "gpu-test" } }),
+  );
+  const url = "**/api/pc-consult/sessions/gpu-test/";
+  await page.route(url + "events/stream**", (route) =>
+    route.fulfill({ contentType: "text/event-stream", body: ": test\n\n" }),
+  );
+  await page.route(url + "messages", (route) => route.fulfill({ json: [] }));
+  await page.route(url + "plan", (route) =>
+    route.fulfill({
+      json: { steps: ["gpu"], allocations: { gpu: 1_500_000 }, reasons: {}, criteria: [] },
+    }),
+  );
+  await page.route(url + "candidates", async (route) => {
+    reads++;
+    if (reads === 2) await pending;
+    await route.fulfill({
+      json: {
+        passed: passed.slice(0, reads === 1 ? 10 : 11),
+        needsReview: [],
+        rejectedCount: 0,
+        missingColorCount: 0,
+        sortLabel: "테스트 순서",
+        criteria: [],
+        basis: "api",
+      },
+    });
+  });
+  await enterPersonal(page);
+  await page.locator(".pc-type-new").click();
+  await page.getByRole("checkbox", { name: /고사양 게임/ }).check();
+  await page.locator(".pc-survey button[type=submit]").click();
+  await page.locator(".pc-review .pc-primary").click();
+  const cards = page.getByTestId("pc-candidate");
+  await expect(cards).toHaveCount(10);
+  expect(reads).toBe(1);
+  const more = page.getByRole("button", { name: "GPU 후보 더 확인하기" });
+  await more.click();
+  try {
+    await expect(page.getByRole("button", { name: "추가 GPU 후보 확인 중" })).toBeDisabled();
+    await expect(cards.first().getByRole("button", { name: /선택/ })).toBeEnabled();
+  } finally {
+    release();
+  }
+  await expect(cards).toHaveCount(11);
+  await expect(cards.first()).toContainText("테스트 GPU 1");
+  await more.click();
+  await expect(page.getByText("현재 조건의 GPU 후보를 모두 확인했습니다.")).toBeVisible();
+  expect(reads).toBe(3);
+});
 
 test("기업 계정이 연결되지 않으면 고객과 판매 데이터가 노출되지 않는다", async ({ page }) => {
   await page.goto("/");
@@ -59,19 +130,15 @@ test("신규 조립 여덟 부품을 선택해 DB 가격과 RAG 근거가 있는
     }
     const endpoint = index === 7 ? "/quotes" : "/candidates";
     next = page.waitForResponse((res) => res.url().endsWith(endpoint));
-    if (candidate.part.category === "cooler" && result.passed.length) {
-      const cooling = page.getByRole("group", { name: "CPU 냉각 방식" });
-      await cooling.getByRole("radio").first().check();
-      if (result.fans.length) {
-        const fan = result.fans[0];
-        const count = page.getByRole("spinbutton", { name: fan.name + " 수량" });
-        await count.fill("2");
-        await expect(cooling).toBeVisible();
-        selected.push(fan.part_id);
-        total += fan.current_price * 2;
-      }
-      await page.getByRole("button", { name: "다음", exact: true }).click();
-      continue;
+    if (candidate.part.category === "cooler" && result.passed.length && result.fans.length) {
+      const fan = result.fans[0];
+      const count = page.getByRole("spinbutton", { name: fan.name + " 수량" });
+      const options = page.locator(".pc-fan-options");
+      if ((await options.getAttribute("open")) === null) await options.locator("summary").click();
+      await count.fill("2");
+      await expect(count).toHaveValue("2");
+      selected.push(fan.part_id);
+      total += fan.current_price * 2;
     }
     const card = page
       .getByTestId("pc-candidate")

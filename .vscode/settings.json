@@ -1,6 +1,7 @@
 {
   "files.eol": "\n",
   "files.insertFinalNewline": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
   "[powershell]": {
     "files.encoding": "utf8bom"
   },

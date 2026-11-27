@@ -78,7 +78,9 @@ def _part(row, company_id):
     source = specs["_provenance"]
     if review := _fit_reviews().get(source["source_key"]):
         try:
-            updates = fit_updates(specs, row["category"], row["model_number"], review)
+            updates = fit_updates(
+                specs, row["category"], row["model_number"], review, include_file_sources=True
+            )
         except ValueError:
             # Ambiguous identity or conflicting catalog values cannot supply missing facts.
             updates = {}

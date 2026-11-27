@@ -5,6 +5,7 @@ import { OfficeBoard } from "../office/OfficeBoard";
 import { teamNotesForOffice } from "../office/officeNotes";
 import type { OfficeState } from "../office/officeState";
 import { PcConsult } from "./PcConsult";
+import { designRevision } from "./designRevision";
 import { ConsultWindow } from "./components/ConsultWindow";
 import type { ConsultDataSource } from "./data/ConsultDataSource";
 import type { PcApi } from "./data/apiSource";
@@ -26,7 +27,7 @@ import "./consultationLayout.css";
 export interface LiveConsultation {
   office: OfficeState;
   chat: ChatState;
-  onSend: (text: string) => void;
+  onSend: (text: string) => Promise<boolean>;
   onContext: (survey: Survey | null, selected: SelectionMap) => void;
 }
 
@@ -117,7 +118,7 @@ export function IntegratedWorkspace({
       initialSurvey={initialSurvey}
       requestedDiscountPercent={requestedDiscountPercent}
       onStateChange={rememberState}
-      renderLayout={(content, intake, summary, screen) => (
+      renderLayout={(content, intake, summary, screen, revise, revisionPending) => (
         <div
           className="layout integrated-workspace"
           data-layout={intake ? "intake" : "selection"}
@@ -144,13 +145,29 @@ export function IntegratedWorkspace({
             <ChatPanel
               key={sessionId}
               state={displayedChat}
-              disabled={false}
-              onSend={(text) => {
-                if (live) return live.onSend(text);
-                const result = consultState.current?.candidates;
-                setChat((current) =>
-                  appendConsultMessage(current, text, new Date().toISOString(), result),
-                );
+              disabled={revisionPending}
+              onSend={async (text) => {
+                const change =
+                  ["selection", "budget", "quote"].includes(screen) &&
+                  !consultState.current?.receipt
+                    ? designRevision(text)
+                    : null;
+                const record = async () => {
+                  if (live) return live.onSend(text);
+                  const result = consultState.current?.candidates;
+                  setChat((current) =>
+                    appendConsultMessage(
+                      current,
+                      text,
+                      new Date().toISOString(),
+                      result,
+                      Boolean(change),
+                    ),
+                  );
+                  return true;
+                };
+                if (change) await revise(change, record);
+                else await record();
               }}
               notes={notes}
               officeRunStatus={office.runStatus}
@@ -204,7 +221,7 @@ export function LiveWorkspace({
     context.current = { survey, selected };
   }, []);
   const live = useMemo<LiveConsultation>(
-    () => ({ office: session.office, chat, onSend: (text) => void sendChat(text), onContext }),
+    () => ({ office: session.office, chat, onSend: sendChat, onContext }),
     [session.office, chat, sendChat, onContext],
   );
   return (

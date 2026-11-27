@@ -2,6 +2,10 @@
 
 from app.domains.hardware.ingestion.common import DATA, json_text, read_json, read_specs
 
+CASE_MOUNT_FIELDS = frozenset(
+    {"board_sizes", "psu_sizes", "max_gpu_length_mm", "max_cpu_cooler_mm", "max_psu_length_mm"}
+)
+
 
 def load_fit_reviews():
     rows = read_json(DATA / "reviewed_fit_specs.json")
@@ -17,7 +21,7 @@ def load_fit_reviews():
     return reviews
 
 
-def fit_updates(specs, category, model, review):
+def fit_updates(specs, category, model, review, *, include_file_sources=False):
     origin = specs["_provenance"]
     if (
         origin.get("source") != "docyx"
@@ -31,9 +35,14 @@ def fit_updates(specs, category, model, review):
     for field, value in review["specs"].items():
         if specs.get(field) is not None and specs[field] != value:
             raise ValueError(f"{review['raw_name']}: 기존 {field} 값과 제조사 자료가 다릅니다.")
-        url = review.get("field_sources", {}).get(field, review["source_url"])
         updates[field] = value
-        updates[field + "_source_url"] = url
+        file_source = review.get("file_sources_only") or (
+            category == "case" and field in CASE_MOUNT_FIELDS
+        )
+        if include_file_sources or not file_source:
+            updates[field + "_source_url"] = review.get("field_sources", {}).get(
+                field, review["source_url"]
+            )
     # Missing measurements stay absent, so consumers never compare a status string as a spec.
     status = dict(specs.get("fit_review_status", {}))
     for field in review["specs"]:
