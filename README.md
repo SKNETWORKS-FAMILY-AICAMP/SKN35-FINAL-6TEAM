@@ -16,18 +16,11 @@ SK네트웍스 Family AI 캠프 35기 최종 프로젝트 6팀.
 
 개인 상담은 MySQL의 부품·가격·호환성 자료와 로컬 RAG 근거를 사용합니다. 신규 조립이나 부품 교체를 선택한 뒤 설문, 후보 비교, 검증, 견적 확인으로 진행합니다. 서버 이벤트가 오피스에 반영됩니다. 견적 승인은 현재 상담 세션에만 보관합니다. 판매자 메뉴는 기업 인증·데이터가 연결될 때까지 미연결 상태를 표시합니다.
 
-저장소 루트에서 시작합니다. MySQL 접속 정보는 [DB 설정 안내](docs/database/README.md)에 따라 루트 `.env`에 둡니다. 처음 실행하는 환경에서는 의존성을 설치하고 로컬 검색 색인을 준비합니다.
-
-```bash
-uv sync --directory backend --frozen
-npm --prefix frontend ci
-uv run --directory backend --frozen python -m app.rag index
-```
 
 첫 번째 터미널에서 상담 API를 실행합니다. 현재 상담 세션과 이벤트는 단일 서버 프로세스에서 관리합니다.
 
 ```bash
-uv run --directory backend --frozen uvicorn app.main:app --host 127.0.0.1 --port 8000
+uv run --directory backend --no-sync uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 두 번째 터미널에서 화면을 실행한 뒤 [PC 상담](http://localhost:5173)을 엽니다. Vite가 같은 출처의 `/api` 요청을 백엔드에 전달합니다. [API 문서](http://127.0.0.1:8000/docs)에서 현재 상담 계약을 확인할 수 있습니다.
